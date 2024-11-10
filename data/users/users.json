@@ -1,0 +1,139 @@
+[
+    {
+        "user_id": 1,
+        "name": "Ali",
+        "surname": "Demir",
+        "phone_number": "05001234567",
+        "attempts": 1,
+        "last_attempt_date": "2023-10-01",
+        "scores": [
+            {
+                "date": "2023-10-01",
+                "section_scores": {
+                    "1": 80,
+                    "2": 75,
+                    "3": 85,
+                    "4": 90
+                },
+                "total_score": 82.5,
+                "passed": true
+            }
+        ]
+    },
+    {
+        "user_id": 2,
+        "name": "Enes",
+        "surname": "Yılmaz",
+        "phone_number": "123",
+        "attempts": 2,
+        "last_attempt_date": "",
+        "scores": []
+    },
+    {
+        "user_id": 3,
+        "name": "Ali",
+        "surname": "Veli",
+        "phone_number": "123",
+        "attempts": 2,
+        "last_attempt_date": "",
+        "scores": []
+    },
+    {
+        "user_id": 4,
+        "name": "Semih",
+        "surname": "Er",
+        "phone_number": "123",
+        "attempts": 1,
+        "last_attempt_date": "",
+        "scores": []
+    },
+    {
+        "user_id": 5,
+        "name": "Semir",
+        "surname": "Er",
+        "phone_number": "123",
+        "attempts": 1,
+        "last_attempt_date": "",
+        "scores": []
+    },
+    {
+        "user_id": 6,
+        "name": "Zafer",
+        "surname": "Yılmaz",
+        "phone_number": "123",
+        "attempts": 2,
+        "last_attempt_date": "",
+        "scores": [
+            {
+                "total_score": 20.0,
+                "section_scores": {
+                    "2": {
+                        "earned": 0,
+                        "total": 15
+                    },
+                    "1": {
+                        "earned": 10,
+                        "total": 40
+                    },
+                    "3": {
+                        "earned": 5,
+                        "total": 20
+                    },
+                    "4": {
+                        "earned": 5,
+                        "total": 25
+                    }
+                }
+            }
+        ]
+    },
+    {
+        "user_id": 7,
+        "name": "Ahmet",
+        "surname": "Remzi",
+        "phone_number": "123",
+        "attempts": 1,
+        "last_attempt_date": "",
+        "scores": []
+    },
+    {
+        "user_id": 8,
+        "name": "Ali",
+        "surname": "Cemal",
+        "phone_number": "123",
+        "attempts": 2,
+        "last_attempt_date": "",
+        "scores": [
+            {
+                "total_score": 20.0,
+                "section_scores": {
+                    "2": {
+                        "earned": 0,
+                        "total": 20
+                    },
+                    "1": {
+                        "earned": 10,
+                        "total": 50
+                    },
+                    "4": {
+                        "earned": 10,
+                        "total": 25
+                    },
+                    "3": {
+                        "earned": 0,
+                        "total": 5
+                    }
+                }
+            }
+        ]
+    },
+    {
+        "user_id": 9,
+        "name": "serhat",
+        "surname": "akın",
+        "phone_number": "123",
+        "attempts": 1,
+        "last_attempt_date": "",
+        "scores": []
+    }
+]
