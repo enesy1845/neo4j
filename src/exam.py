@@ -70,7 +70,6 @@ class Exam:
 
         # Sınavı sonlandır
         self.end_exam()
-
     def is_time_up(self):
         """Sınav süresinin dolup dolmadığını kontrol eder."""
         return time.time() >= self.end_time
