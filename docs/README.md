@@ -13,7 +13,7 @@
 11. Ana Programın (main.py) Oluşturulması
 12. Testlerin (test/ Dizini) Oluşturulması
 
-13. Bu proje kapsamında, kullanıcıların ve adminlerin etkileşimde bulunabileceği, şifrelenmiş verilerle güvenli bir sınav yönetim sistemi oluşturduk. Proje şu ana bileşenlerden oluşmaktadır:
+Bu proje kapsamında, kullanıcıların ve adminlerin etkileşimde bulunabileceği, şifrelenmiş verilerle güvenli bir sınav yönetim sistemi oluşturduk. Proje şu ana bileşenlerden oluşmaktadır:
 
 - Kullanıcı Yönetimi: Kullanıcı hesaplarının oluşturulması, girişi ve sınav denemelerinin yönetilmesi.
 - Admin Yönetimi: Adminlerin soruları eklemesi, güncellemesi, silmesi ve kullanıcıları yönetmesi.
