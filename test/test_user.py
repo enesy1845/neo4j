@@ -4,8 +4,8 @@ import unittest
 import os
 import sys
 
-# Sistemin ana klasörünü path'e ekleyin
-sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+# src klasörü path'e ekleyin
+sys.path.append(os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "src"))
 
 from user import User
 from utils import write_json, read_json

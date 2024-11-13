@@ -5,8 +5,9 @@ import sys
 import os
 from unittest.mock import patch
 
-# Ana klasörü path'e ekleyin
-sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+
+
+sys.path.append(os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "src"))
 
 from exam import Exam
 from user import User
@@ -74,7 +75,7 @@ class TestExam(unittest.TestCase):
     def test_exam_initialization(self):
         exam = Exam(self.user)
         self.assertEqual(exam.user.name, 'Test')
-        self.assertEqual(exam.duration, 3600)
+        self.assertEqual(exam.duration, 60)
 
     # Diğer test metotlarını ekleyebilirsiniz
 

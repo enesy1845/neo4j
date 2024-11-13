@@ -6,8 +6,7 @@ import os
 from unittest.mock import patch
 from io import StringIO
 
-# Ana klasörü path'e ekleyin
-sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+sys.path.append(os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "src"))
 
 from main import main
 
