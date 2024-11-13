@@ -4,8 +4,7 @@ import unittest
 import sys
 import os
 
-# Ana klasörü path'e ekleyin
-sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+sys.path.append(os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "src"))
 
 from question import QuestionManager
 from utils import write_json, read_json
