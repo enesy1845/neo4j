@@ -1,0 +1,72 @@
+[
+  {
+    "id": 1000,
+    "section": 1,
+    "question": "Türkiye'nin en yüksek dağı hangisidir?",
+    "options": ["Ağrı Dağı", "Erciyes Dağı", "Kaçkar Dağı", "Uludağ"],
+    "points": 5
+  },
+  {
+    "id": 1001,
+    "section": 1,
+    "question": "Aşağıdaki şehirlerden hangisi Avrupa'da bulunmaz?",
+    "options": ["Berlin", "Madrid", "Tokyo", "Roma"],
+    "points": 5
+  },
+  {
+    "id": 1002,
+    "section": 2,
+    "question": "DNA'nın çift sarmal yapısını keşfeden bilim insanı kimdir?",
+    "options": ["Albert Einstein", "Isaac Newton", "James Watson", "Galileo Galilei"],
+    "points": 5
+  },
+  {
+    "id": 1003,
+    "section": 2,
+    "question": "Hangisi bir element değildir?",
+    "options": ["Altın", "Su", "Gümüş", "Bakır"],
+    "points": 5
+  },
+  {
+    "id": 1004,
+    "section": 3,
+    "question": "Dünya'nın en kalabalık ülkesi hangisidir?",
+    "options": ["Hindistan", "Çin", "Amerika Birleşik Devletleri", "Endonezya"],
+    "points": 5
+  },
+  {
+    "id": 1005,
+    "section": 3,
+    "question": "Hangisi bir bilgisayar programlama dili değildir?",
+    "options": ["Python", "Java", "HTML", "H2O"],
+    "points": 5
+  },
+  {
+    "id": 1006,
+    "section": 4,
+    "question": "Işık hızı yaklaşık olarak saniyede kaç kilometredir?",
+    "options": ["300.000 km", "150.000 km", "30.000 km", "3.000 km"],
+    "points": 5
+  },
+  {
+    "id": 1007,
+    "section": 4,
+    "question": "Hangisi bir gezegen değildir?",
+    "options": ["Mars", "Jüpiter", "Plüton", "Sirius"],
+    "points": 5
+  },
+  {
+    "id": 1008,
+    "section": 1,
+    "question": "Türkiye Cumhuriyeti hangi yılda kurulmuştur?",
+    "options": ["1920", "1923", "1938", "1950"],
+    "points": 5
+  },
+  {
+    "id": 1009,
+    "section": 2,
+    "question": "Hangisi Nobel Edebiyat Ödülü kazanmış bir yazar değildir?",
+    "options": ["Orhan Pamuk", "Gabriel García Márquez", "J.K. Rowling", "Ernest Hemingway"],
+    "points": 5
+  }
+]
