@@ -27,9 +27,15 @@ Uygulama aşağıdaki ana özelliklerden oluşmaktadır:
 MultiPartQuizApp/
 ├── data/                     # JSON veri depolama
 │   ├── admins/               # Admin verileri
+│   │   └── admins.json       # Admin bilgilerini saklayan JSON dosyası
 │   ├── answers/              # Doğru cevaplar
+│   │   └── answers.json      # Soruların doğru cevaplarını içeren JSON dosyası
 │   ├── questions/            # Soru dosyaları
+│   │   ├── multiple_choice_questions.json  # Çoktan seçmeli sorular
+│   │   ├── single_choice_questions.json    # Tek seçimli sorular
+│   │   └── true_false_questions.json       # Doğru/Yanlış soruları
 │   └── users/                # Kullanıcı verileri
+│       └── users.json        # Kullanıcı bilgilerini saklayan JSON dosyası
 ├── docs/                     # Dokümantasyon
 │   └── README.md
 ├── src/                      # Kaynak kod dosyaları
