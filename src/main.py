@@ -4,7 +4,7 @@ from user import User
 from admin import Admin
 from exam import Exam
 from utils import clear_screen
-
+# ekledim
 def main():
     clear_screen()
     print("=== Çok Bölümlü Zaman Sınırlı Sınav Uygulaması ===\n")

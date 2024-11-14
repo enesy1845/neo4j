@@ -7,6 +7,9 @@ USERS_FILE = 'data/users/users.json'
 
 class User:
     def __init__(self):
+        """
+        User sınıfı, sınava katılacak kullanıcıların bilgilerini yönetir.
+        """
         self.user_id = None
         self.name = ''
         self.surname = ''
@@ -17,7 +20,11 @@ class User:
         self.role = 'user'  # Rol özelliği eklendi
 
     def get_user_info(self):
-        """Kullanıcıdan isim, soyisim ve telefon numarası alır."""
+        """
+        Kullanıcıdan isim, soyisim ve telefon numarası alır ve doğrular.
+
+        Kullanıcı bilgileri mevcut değilse yeni kullanıcı kaydı yapılır.
+        """
         try:
             print("Lütfen sınava giriş için bilgilerinizi giriniz.\n")
             self.name = input("Adınız: ").strip()
@@ -43,7 +50,12 @@ class User:
             self.get_user_info()
 
     def load_user(self):
-        """Kullanıcı bilgilerini users.json dosyasından yükler."""
+        """
+        Kullanıcı bilgilerini users.json dosyasından yükler.
+
+        Returns:
+            dict or None: Kullanıcı bilgileri, bulunamazsa None.
+        """
         if not os.path.exists(USERS_FILE):
             return None
 
@@ -57,7 +69,9 @@ class User:
         return None
 
     def save_user(self):
-        """Kullanıcı bilgilerini users.json dosyasına kaydeder."""
+        """
+        Kullanıcı bilgilerini users.json dosyasına kaydeder.
+        """
         users = []
         if os.path.exists(USERS_FILE):
             users = read_json(USERS_FILE)
@@ -74,16 +88,28 @@ class User:
         write_json(users, USERS_FILE)
 
     def can_attempt_exam(self):
-        """Kullanıcının sınava girme hakkı olup olmadığını kontrol eder."""
+        """
+        Kullanıcının sınava girme hakkı olup olmadığını kontrol eder.
+
+        Returns:
+            bool: Kullanıcının sınava girebilme hakkı varsa True, değilse False.
+        """
         return self.attempts < 2
 
     def increment_attempts(self):
-        """Sınav giriş sayısını bir artırır ve kaydeder."""
+        """
+        Sınav giriş sayısını bir artırır ve kaydeder.
+        """
         self.attempts += 1
         self.save_user()
 
     def to_dict(self):
-        """Kullanıcı nesnesini sözlük formatına dönüştürür."""
+        """
+        Kullanıcı nesnesini sözlük formatına dönüştürür.
+
+        Returns:
+            dict: Kullanıcı bilgilerini içeren sözlük.
+        """
         return {
             'user_id': self.user_id,
             'name': self.name,
@@ -99,7 +125,9 @@ class User:
 
     @staticmethod
     def list_users():
-        """Tüm kullanıcıları listeler."""
+        """
+        Tüm kullanıcıları listeler ve ekrana yazdırır.
+        """
         if not os.path.exists(USERS_FILE):
             print("Kullanıcı listesi boş.")
             return
@@ -112,7 +140,12 @@ class User:
 
     @staticmethod
     def delete_user(user_id):
-        """Belirtilen ID'ye sahip kullanıcıyı siler."""
+        """
+        Belirtilen ID'ye sahip kullanıcıyı siler.
+
+        Args:
+            user_id (int): Silinecek kullanıcı ID'si.
+        """
         if not os.path.exists(USERS_FILE):
             print("Kullanıcı dosyası bulunamadı.")
             return
@@ -124,7 +157,13 @@ class User:
 
     @staticmethod
     def update_user(user_id, updated_data):
-        """Belirtilen ID'ye sahip kullanıcıyı günceller."""
+        """
+        Belirtilen ID'ye sahip kullanıcıyı günceller.
+
+        Args:
+            user_id (int): Güncellenecek kullanıcı ID'si.
+            updated_data (dict): Güncellenecek veri.
+        """
         if not os.path.exists(USERS_FILE):
             print("Kullanıcı dosyası bulunamadı.")
             return
