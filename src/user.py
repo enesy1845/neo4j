@@ -144,7 +144,7 @@ class User:
         Belirtilen ID'ye sahip kullanıcıyı siler.
 
         Args:
-            user_id (int): Silinecek kullanıcı ID'si.
+          user_id (int): Silinecek kullanıcı ID'si.
         """
         if not os.path.exists(USERS_FILE):
             print("Kullanıcı dosyası bulunamadı.")
