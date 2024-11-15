@@ -24,7 +24,7 @@ class Result:
         self.passed = False
         self.used_question_ids = used_question_ids
         self.total_sections = total_sections        # Toplam bölüm sayısı
-
+        
     def calculate_results(self):
         """
         Sonuçları hesaplar ve kullanıcıya gösterir.
