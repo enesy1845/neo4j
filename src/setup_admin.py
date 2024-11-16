@@ -7,7 +7,31 @@ from utils import read_json, write_json
 ADMINS_FILE = 'data/admins/admins.json'
 
 def create_initial_admin():
-    # Dizinin varlığını kontrol edip yoksa oluşturuyoruz
+    """
+    Sistemdeki ilk admin hesabını oluşturur ve `ADMINS_FILE` dosyasına kaydeder.
+
+    Admin dosyası zaten mevcutsa yeni bir admin oluşturulmaz. Eğer dosya yoksa veya boşsa,
+    kullanıcının giriş bilgilerini alarak bir admin hesabı oluşturur ve güvenli bir şekilde
+    hashlenmiş şifre ile birlikte `ADMINS_FILE` dosyasına kaydeder.
+
+    İşleyiş:
+        - Admin dosyası için gerekli dizin kontrol edilir ve yoksa oluşturulur.
+        - Kullanıcıdan admin bilgileri (kullanıcı adı, şifre, ad, soyad, telefon) istenir.
+        - Şifre `bcrypt` modülü kullanılarak hashlenir ve güvenli bir şekilde dosyaya yazılır.
+    
+    Not:
+        Şifreler `bcrypt` ile hashlenmiş olarak saklanır, bu sayede şifrelerin güvenliği artırılır.
+        Bu işlev yalnızca sistemin başlangıcında çalıştırılır ve ilk admin oluşturulduktan sonra
+        yeniden çalıştırılmamalıdır.
+
+    Attributes:
+        admin_dir (str): Admin dosyasının bulunduğu dizin.
+        admins (list): Adminlerin bulunduğu liste, yeni admin bu listeye eklenir.
+
+    Raises:
+        IOError: Admin dosyası okuma/yazma sırasında bir hata oluşursa.
+
+    """
     admin_dir = os.path.dirname(ADMINS_FILE)
     if not os.path.exists(admin_dir):
         os.makedirs(admin_dir)

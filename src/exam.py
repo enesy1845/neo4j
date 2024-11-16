@@ -1,3 +1,5 @@
+# exam.py
+
 import time
 import os
 import threading
@@ -20,7 +22,7 @@ class TimeUpException(Exception):
 class Exam:
     def __init__(self, user):
         self.user = user
-        self.duration = 60  # Sınav süresi (saniye cinsinden)
+        self.duration = 180  # Sınav süresi (saniye cinsinden)
         self.start_time = None
         self.end_time = None
         self.sections = 4  # 4 bölüm
@@ -40,7 +42,7 @@ class Exam:
 
             # Soruları yükle
             all_questions = self.load_questions()
-
+            
             # Sınav boyunca kullanılacak soruların listesini hazırlıyoruz
             self.used_question_ids = set()
 

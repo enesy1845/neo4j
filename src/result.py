@@ -13,11 +13,17 @@ class Result:
         self.section_scores = {}
         self.total_score = 0
         self.passed = False
-        self.used_question_ids = used_question_ids  # Kullanılan soru ID'leri
+        self.used_question_ids = used_question_ids
         self.total_sections = total_sections        # Toplam bölüm sayısı
-
+        
     def calculate_results(self):
-        """Sonuçları hesaplar ve kullanıcıya gösterir."""
+        """
+        Sonuçları hesaplar ve kullanıcıya gösterir.
+        
+        Kullanıcının her bölüme göre doğru cevaplarını değerlendirir, bölüm başarı 
+        yüzdelerini ve toplam başarı yüzdesini hesaplar. Sonuçlar kullanıcının 
+        sınavı geçip geçmediğini belirler.
+        """
         print("\n=== Sınav Sonuçları ===")
         
         # Tüm soru bilgilerini yükle
@@ -89,7 +95,7 @@ class Result:
             self.section_scores[section]['total'] += max_score_per_question
 
             # Hesaplama detaylarını ekrana yazdırın
-            #print(f"Soru ID: {qid}, Bölüm: {section}, Soru Tipi: {question_type}, Puan: {points}, Kazanılan: {question_score}")
+            print(f"Soru ID: {qid}, Bölüm: {section}, Soru Tipi: {question_type}, Puan: {points}, Kazanılan: {question_score}")
 
         # Tamamlanmayan bölümler için puanları 0 olarak ekle
         for section in range(1, self.total_sections + 1):
@@ -122,7 +128,12 @@ class Result:
         self.update_user_scores()
 
     def load_all_questions(self):
-        """Tüm soruları yükler ve soru tiplerine göre gruplar."""
+        """
+        Tüm soruları yükler ve soru tiplerine göre gruplar.
+
+        Returns:
+            dict: Her soru tipi için JSON dosyalarından okunan soruların listesi.
+        """
         from question import QuestionManager
         qm = QuestionManager()
         all_questions = {}
@@ -136,7 +147,16 @@ class Result:
         return all_questions
 
     def get_question_info(self, question_id, all_questions):
-        """Soru ID'sine göre soru bilgilerini getirir."""
+        """
+        Soru ID'sine göre soru bilgilerini getirir.
+
+        Args:
+            question_id (int): Bilgisi getirilecek soru ID'si.
+            all_questions (dict): Tüm soruları içeren sözlük.
+
+        Returns:
+            dict or None: Soru bilgileri, bulunamazsa None.
+        """
         for qtype, questions in all_questions.items():
             for q in questions:
                 if q['id'] == question_id:
@@ -144,14 +164,28 @@ class Result:
         return None
 
     def check_answer(self, user_answer, correct_answer):
-        """Kullanıcının cevabını doğru cevapla karşılaştırır."""
+        """
+        Kullanıcının cevabını doğru cevapla karşılaştırır.
+
+        Args:
+            user_answer (str or list): Kullanıcının verdiği cevap.
+            correct_answer (str or list): Doğru cevap.
+
+        Returns:
+            bool: Kullanıcı cevabı doğruysa True, değilse False.
+        """
         if isinstance(correct_answer, list):
             return set(user_answer) == set(correct_answer)
         else:
             return user_answer.strip().lower() == correct_answer.strip().lower()
 
     def check_pass_fail(self):
-        """Kullanıcının sınavı geçip geçmediğini kontrol eder."""
+        """
+        Kullanıcının sınavı geçip geçmediğini kontrol eder.
+
+        Returns:
+            bool: Kullanıcı sınavı geçtiyse True, geçemediyse False.
+        """
         for section, scores in self.section_scores.items():
             percentage = (scores['earned'] / scores['total']) * 100 if scores['total'] > 0 else 0
             if percentage < 75:
@@ -160,7 +194,11 @@ class Result:
         return overall_pass
 
     def update_user_scores(self):
-        """Kullanıcının skorlarını günceller ve kaydeder."""
+        """
+        Kullanıcının skorlarını günceller ve kaydeder.
+        
+        Kullanıcının puanlarını kullanıcı nesnesine ekler ve güncel veriyi kaydeder.
+        """
         self.user.scores.append({
             'total_score': self.total_score,
             'section_scores': self.section_scores
