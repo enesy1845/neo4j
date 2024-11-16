@@ -28,19 +28,6 @@ USERS_FILE = 'data/users/users.json'
 
 class User:
     def __init__(self):
-        """
-        User sınıfı için varsayılan özellikleri tanımlar.
-
-        Attributes:
-        user_id (int or None): Kullanıcının benzersiz kimliği, başlangıçta None olarak atanır.
-        name (str): Kullanıcının adı, başlangıçta boş bir metin olarak atanır.
-        surname (str): Kullanıcının soyadı, başlangıçta boş bir metin olarak atanır.
-        phone_number (str): Kullanıcının telefon numarası, başlangıçta boş bir metin olarak atanır.
-        attempts (int): Kullanıcının sınava giriş sayısı, başlangıç değeri 0 olarak atanır.
-        last_attempt_date (str): Kullanıcının en son sınav giriş tarihi, başlangıçta boş bir metin olarak atanır.
-        scores (list): Kullanıcının sınav puanlarının listesi, başlangıçta boş bir liste olarak atanır.
-        role (str): Kullanıcının sistemdeki rolü, varsayılan olarak 'user' olarak atanır.
-        """
         self.user_id = None
         self.name = ''
         self.surname = ''
@@ -51,7 +38,11 @@ class User:
         self.role = 'user'  
 
     def get_user_info(self):
-        """Kullanıcıdan isim, soyisim ve telefon numarası alır."""
+        """
+        Kullanıcıdan isim, soyisim ve telefon numarası alır ve doğrular.
+
+        Kullanıcı bilgileri mevcut değilse yeni kullanıcı kaydı yapılır.
+        """
         try:
             print("Lütfen sınava giriş için bilgilerinizi giriniz.\n")
             self.name = input("Adınız: ").strip()
@@ -77,7 +68,12 @@ class User:
             self.get_user_info()
 
     def load_user(self):
-        """Kullanıcı bilgilerini users.json dosyasından yükler."""
+        """
+        Kullanıcı bilgilerini users.json dosyasından yükler.
+
+        Returns:
+            dict or None: Kullanıcı bilgileri, bulunamazsa None.
+        """
         if not os.path.exists(USERS_FILE):
             return None
 
@@ -91,24 +87,7 @@ class User:
         return None
 
     def save_user(self):
-        """
-        Kullanıcı bilgilerini `users.json` dosyasına kaydeder veya günceller.
-
-        Kullanıcı varlık kontrolü yaparak, mevcut kullanıcı bilgilerini günceller ya da
-        yeni kullanıcıyı `users.json` dosyasına ekler. Böylece kullanıcı bilgileri
-        kalıcı hale getirilir.
-
-        İşleyiş:
-            - Dosyada aynı `user_id` ile kayıtlı bir kullanıcı varsa, bu kullanıcı bilgileri
-            `to_dict` ile güncellenir.
-            - Eğer `user_id` bulunamazsa, yeni kullanıcı listeye eklenir ve dosyaya yazılır.
-
-        Attributes:
-            users (list): JSON dosyasındaki tüm kullanıcı verilerinin listesi.
-
-        Not:
-            Dosya mevcut değilse, yeni bir dosya oluşturulur ve yeni kullanıcı eklenir.
-        """
+        """Kullanıcı bilgilerini users.json dosyasına kaydeder."""
         users = []
         if os.path.exists(USERS_FILE):
             users = read_json(USERS_FILE)
@@ -125,16 +104,28 @@ class User:
         write_json(users, USERS_FILE)
 
     def can_attempt_exam(self):
-        """Kullanıcının sınava girme hakkı olup olmadığını kontrol eder."""
+        """
+        Kullanıcının sınava girme hakkı olup olmadığını kontrol eder.
+
+        Returns:
+            bool: Kullanıcının sınava girebilme hakkı varsa True, değilse False.
+        """
         return self.attempts < 2
 
     def increment_attempts(self):
-        """Sınav giriş sayısını bir artırır ve kaydeder."""
+        """
+        Sınav giriş sayısını bir artırır ve kaydeder.
+        """
         self.attempts += 1
         self.save_user()
 
     def to_dict(self):
-        """Kullanıcı nesnesini sözlük formatına dönüştürür."""
+        """
+        Kullanıcı nesnesini sözlük formatına dönüştürür.
+
+        Returns:
+            dict: Kullanıcı bilgilerini içeren sözlük.
+        """
         return {
             'user_id': self.user_id,
             'name': self.name,
@@ -185,18 +176,7 @@ class User:
 
     @staticmethod
     def list_users():
-        """
-        Sistemdeki tüm kullanıcıları listeler.
-
-        `users.json` dosyasındaki verileri okuyarak rolü 'user' olan tüm kullanıcıların
-        kimlik bilgilerini ekrana yazdırır. Dosya mevcut değilse veya kullanıcı yoksa 
-        kullanıcı listesi boş olarak kabul edilir ve mesaj görüntülenir.
-
-        Not:
-            Bu fonksiyon bir User nesnesi oluşturulmadan doğrudan sınıf üzerinden
-            çağrılabilir. Kullanıcı rolü 'user' olanlar listelenir, admin kullanıcılar 
-            hariç tutulur.
-        """
+        """Tüm kullanıcıları listeler."""
         if not os.path.exists(USERS_FILE):
             print("Kullanıcı listesi boş.")
             return
@@ -209,24 +189,7 @@ class User:
 
     @staticmethod
     def delete_user(user_id):
-        """
-        Belirtilen ID'ye sahip kullanıcıyı `users.json` dosyasından siler.
-
-        Kullanıcı ID'sine göre `users.json` dosyasındaki kullanıcıları tarar ve eşleşen 
-        kullanıcıyı siler. Dosya mevcut değilse, silme işlemi yapılmaz ve kullanıcıya 
-        dosyanın bulunamadığı bildirilir.
-
-        Args:
-            user_id (int): Silinmek istenen kullanıcının benzersiz kimlik numarası.
-
-        Not:
-            Bu işlev, belirli bir kullanıcı nesnesine ihtiyaç duymadan doğrudan sınıf 
-            üzerinden çağrılabilir. @staticmethod olarak tanımlanmıştır, bu yüzden
-            `User.delete_user(user_id)` şeklinde erişilebilir.
-
-        Örnek:
-            User.delete_user(3) # ID'si 3 olan kullanıcı `users.json` dosyasından silinir.
-        """
+        """Belirtilen ID'ye sahip kullanıcıyı siler."""
         if not os.path.exists(USERS_FILE):
             print("Kullanıcı dosyası bulunamadı.")
             return
@@ -251,7 +214,13 @@ class User:
 
     @staticmethod
     def update_user(user_id, updated_data):
-        """Belirtilen ID'ye sahip kullanıcıyı günceller."""
+        """
+        Belirtilen ID'ye sahip kullanıcıyı günceller.
+
+        Args:
+            user_id (int): Güncellenecek kullanıcı ID'si.
+            updated_data (dict): Güncellenecek veri.
+        """
         if not os.path.exists(USERS_FILE):
             print("Kullanıcı dosyası bulunamadı.")
             return
