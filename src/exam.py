@@ -1,28 +1,5 @@
 # exam.py
-"""
-Modüller:
-    - time: Sınav süresini ve gecikme işlemlerini yönetir.
-    - os: Platforma özgü işlemler ve dosya kontrolleri için kullanılır.
-    - threading: Paralel işlemler oluşturur, geri sayım veya sınav sürelerini
-      yönetmek için kullanılır.
-    - sys: Uygulamadan çıkmak veya sistemle ilgili işlemleri gerçekleştirmek
-      için kullanılır.
-    - platform: Çalışılan işletim sistemini tanımlar. Platforma özel modülleri
-      yüklemek için kullanılır.
-    - QuestionManager (from question): Soru eklemek, güncellemek veya sınavda
-      rastgele sorular seçmek için kullanılır.
-    - clear_screen (from utils): Platforma göre ekranı temizler.
-    - read_json (from utils): JSON formatında veri okuma işlemlerini yapar.
-    - random: Sınavda soruları veya seçenekleri rastgele sırayla sunmak için
-      kullanılır.
-    
-Platforma Özel Modüller:
-    - msvcrt (Windows): Windows'ta tek karakter okuma işlevlerini gerçekleştirir.
-    - select (Linux/macOS): Linux/macOS üzerinde klavyeden giriş almak için
-      giriş bekletme işlemi yapar.
-    - tty ve termios (Linux/macOS): Terminal ayarlarını değiştirerek platforma
-      özel giriş işlemleri için kullanılır.
-"""
+
 import time
 import os
 import threading
@@ -79,7 +56,7 @@ class Exam:
                 print(f"\n=== Bölüm {section_number} ===")
                 input(f"Bölüm {section_number} başlıyor. Devam etmek için Enter'a basınız...")
 
-                # Bölüm için soruları seç (bölüm numarasını geçiriyoruz)
+                # Bölüm için soruları seç
                 section_questions = self.select_questions_for_section(all_questions, section_number)
 
                 # Soruları sun
@@ -168,8 +145,8 @@ class Exam:
     def present_question(self, question):
         """Kullanıcıya soruyu sunar ve cevabını alır."""
         user_input = ''
-        while True:
-            try:
+        try:
+            while True:
                 # Ekranı güncelle
                 clear_screen()
                 remaining_time = int(self.end_time - time.time())
@@ -185,42 +162,38 @@ class Exam:
                         print(f"{idx}. {option}")
                 if question['type'] == 'multiple_choice':
                     print("Birden fazla seçeneği seçmek için numaraları virgülle ayırın (örneğin: 1,3,4)")
-                    print(f"Cevabınız: {user_input}", end='', flush=True)
                 elif question['type'] == 'single_choice':
                     print("Cevabınızı seçenek numarası olarak giriniz.")
-                    print(f"Cevabınız: {user_input}", end='', flush=True)
                 else:
                     print("1. Doğru")
                     print("2. Yanlış")
-                    print(f"Cevabınız: {user_input}", end='', flush=True)
+                print(f"Cevabınız: {user_input}", end='', flush=True)
 
                 # Non-blocking input
                 char = self.get_char()
-                if char:
-                    if char == '\r' or char == '\n':
+                if char is not None:
+                    if char in ('\r', '\n'):
                         # Enter tuşuna basıldı, girişi işle
                         answers = self.process_input(user_input.strip(), question)
                         self.answers[str(question['id'])] = answers
                         self.current_question_number += 1  # Sayaç artırıldı
                         break
-                    elif char == '\x08' or char == '\x7f':
+                    elif char in ('\x08', '\x7f'):
                         # Backspace tuşu
                         user_input = user_input[:-1]
                     else:
                         user_input += char
                 time.sleep(0.1)  # Ekranı çok hızlı yenilememek için
 
-            except ValueError as ve:
-                print(f"\nHata: {ve}")
-                input("Devam etmek için Enter tuşuna basın...")
-                user_input = ''
-            except TimeUpException as tue:
-                # Sınav süresi dolduğunda işlemi sonlandır
-                raise tue
-            except Exception as e:
-                print(f"\nBilinmeyen bir hata oluştu: {e}")
-                input("Devam etmek için Enter tuşuna basın...")
-                user_input = ''
+        except ValueError as ve:
+            print(f"\nHata: {ve}")
+            input("Devam etmek için Enter tuşuna basın...")
+        except TimeUpException as tue:
+            # Sınav süresi dolduğunda işlemi sonlandır
+            raise tue
+        except Exception as e:
+            print(f"\nBilinmeyen bir hata oluştu: {e}")
+            input("Devam etmek için Enter tuşuna basın...")
 
     def get_char(self):
         """Kullanıcıdan non-blocking şekilde karakter okur."""
@@ -229,15 +202,17 @@ class Exam:
                 char = msvcrt.getwch()
                 return char
         else:
-            # Unix tabanlı sistemler için
-            import sys, select, tty, termios
+            # Unix benzeri sistemler için
             fd = sys.stdin.fileno()
             old_settings = termios.tcgetattr(fd)
             try:
-                tty.setcbreak(sys.stdin.fileno())
-                dr, dw, de = select.select([sys.stdin], [], [], 0)
-                if dr:
+                tty.setraw(fd)  # setcbreak yerine setraw kullanıyoruz
+                if select.select([sys.stdin], [], [], 0.1)[0]:
                     char = sys.stdin.read(1)
+                    # Özel karakterleri kontrol et
+                    if char == '\x03':
+                        # Ctrl+C basıldı
+                        raise KeyboardInterrupt
                     return char
             finally:
                 termios.tcsetattr(fd, termios.TCSADRAIN, old_settings)
@@ -264,7 +239,7 @@ class Exam:
             if idx < 0 or idx >= len(question['options']):
                 raise ValueError(f"Lütfen 1 ile {len(question['options'])} arasında bir sayı giriniz.")
             return question['options'][idx]
-        else:  # True/False
+        else:  # Doğru/Yanlış
             if user_input not in ['1', '2']:
                 raise ValueError("Lütfen sadece 1 veya 2 giriniz.")
             idx = int(user_input.strip()) - 1
