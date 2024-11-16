@@ -8,8 +8,13 @@
 - [Dizin Yapısı](#dizin-yapısı)
 - [Ana İşlevler](#ana-işlevler)
 - [Kurulum ve Yükleme](#kurulum-ve-yükleme)
-- [Ortam Değişkenleri (.env Dosyası)](#ortam-değişkenleri-env-dosyası)
-- [Uygulamanın Çalıştırılması](#uygulamanın-çalıştırılması)
+  - [1. Gereksinimler](#1-gereksinimler)
+  - [2. Projenin Klonlanması](#2-projenin-klonlanması)
+  - [3. Sanal Ortam Oluşturma](#3-sanal-ortam-oluşturma)
+  - [4. Gerekli Paketlerin Yüklenmesi](#4-gerekli-paketlerin-yüklenmesi)
+  - [5. Ortam Değişkenlerinin Ayarlanması (.env Dosyası)](#5-ortam-değişkenlerinin-ayarlanması-env-dosyası)
+  - [6. İlk Admin Hesabının Oluşturulması](#6-ilk-admin-hesabının-oluşturulması)
+  - [7. Uygulamanın Çalıştırılması](#7-uygulamanın-çalıştırılması)
 - [Testler](#testler)
 - [En İyi Uygulamalar ve İpuçları](#en-iyi-uygulamalar-ve-ipuçları)
 - [Lisans](#lisans)
@@ -59,6 +64,7 @@ MultiPartQuizApp/
 │   ├── test_result.py        # Sonuç işleme testleri
 │   └── test_user.py          # Kullanıcı yönetimi testleri
 ├── .gitignore
+├── .env                      # Ortam değişkenleri (git tarafından izlenmez)
 ├── LICENSE
 ├── requirements.txt          # Gerekli Python paketleri
 └── README.md                 # Proje dokümantasyonu
@@ -98,129 +104,188 @@ MultiPartQuizApp/
 
 ## Kurulum ve Yükleme
 
-### 1. Projeyi Klonlayın
+Bu bölümde, projeyi sıfırdan bilgisayarınıza nasıl kuracağınızı ve çalıştıracağınızı adım adım anlatacağız.
+
+### **1. Gereksinimler**
+
+Projeyi çalıştırmak için aşağıdaki yazılımların bilgisayarınızda kurulu olması gerekmektedir:
+
+- **Python 3.8 veya üzeri**
+- **Git**
+
+**Kontrol Etme:**
 
 ```bash
-git clone https://github.com/username/MultiPartQuizApp.git
-cd MultiPartQuizApp
+python --version
+git --version
 ```
 
-### 2. Sanal Ortam Oluşturma
+Eğer bu komutlar sürüm bilgisi döndürüyorsa, yazılımlar yüklüdür. Aksi halde, resmi sitelerinden indirip kurmanız gerekir:
 
-Python'un yerleşik `venv` modülünü kullanarak sanal ortam oluşturun:
+- Python: [https://www.python.org/downloads/](https://www.python.org/downloads/)
+- Git: [https://git-scm.com/downloads](https://git-scm.com/downloads)
 
-```bash
-python -m venv myenv
-```
+### **2. Projenin Klonlanması**
 
-Sanal ortamı etkinleştirin:
+Terminal veya komut istemini açarak aşağıdaki adımları izleyin:
 
-- **Windows:**
+1. **Projenin Klonlanacağı Dizine Geçin:**
 
-  ```bash
-  myenv\Scripts\activate
-  ```
+   ```bash
+   cd Desktop  # Veya istediğiniz başka bir dizin
+   ```
 
-- **macOS/Linux:**
+2. **Projeyi Klonlayın:**
 
-  ```bash
-  source myenv/bin/activate
-  ```
+   ```bash
+   git clone https://github.com/username/MultiPartQuizApp.git
+   ```
 
-### 3. Gerekli Paketleri Yükleyin
+   **Not:** `username` kısmını projenin gerçek GitHub kullanıcı adıyla değiştirin.
 
-Pip'i güncelleyin:
+3. **Proje Dizinine Girin:**
 
-```bash
-pip install --upgrade pip
-```
+   ```bash
+   cd MultiPartQuizApp
+   ```
 
-`requirements.txt` dosyasındaki paketleri yükleyin:
+### **3. Sanal Ortam Oluşturma**
 
-```bash
-pip install -r requirements.txt
-```
+Sanal ortamlar, projelerin bağımlılıklarını izole etmek için kullanılır.
 
-### 4. İlk Admin Kurulumu
+1. **Sanal Ortamı Oluşturun:**
 
-Başlangıçta bir admin hesabı oluşturmak için scripti çalıştırın:
+   ```bash
+   python -m venv myenv
+   ```
 
-```bash
-python src/setup_admin.py
-```
+2. **Sanal Ortamı Etkinleştirin:**
 
-Kurulum sırasında sizden admin bilgileri istenecektir.
+   - **Windows:**
 
-## Ortam Değişkenleri (.env Dosyası)
+     ```bash
+     myenv\Scripts\activate
+     ```
 
-Proje, bazı hassas bilgileri ve yapılandırmaları `.env` dosyası üzerinden yönetir.
+   - **macOS/Linux:**
 
-### 1. `.env` Dosyasını Oluşturun
+     ```bash
+     source myenv/bin/activate
+     ```
 
-Proje dizininizde `.env` adında bir dosya oluşturun.
+   Etkinleştirme başarılı olursa, terminal satırının başında `(myenv)` ifadesini görürsünüz.
 
-### 2. Ortam Değişkenlerini Tanımlayın
+### **4. Gerekli Paketlerin Yüklenmesi**
 
-`.env` dosyasına aşağıdaki değişkenleri ekleyin:
+1. **pip'i Güncelleyin:**
 
-```env
-SECRET_KEY=your_secret_key_here
-DEBUG=True
-```
+   ```bash
+   pip install --upgrade pip
+   ```
 
-- **SECRET_KEY**: AES şifrelemesi için kullanılan gizli anahtar. Rastgele ve güvenli bir değer olmalıdır.
+2. **Gerekli Paketleri Yükleyin:**
 
-#### SECRET_KEY Oluşturma
+   ```bash
+   pip install -r requirements.txt
+   ```
 
-Python konsolunda aşağıdaki kodu çalıştırarak 32 baytlık bir anahtar oluşturabilirsiniz:
+   **requirements.txt** dosyasının içeriği:
 
-```python
-import secrets
-secret_key = secrets.token_hex(32)
-print(secret_key)
-```
+   ```
+   bcrypt==4.0.1
+   inputimeout==1.0.4
+   pycryptodome==3.9.9
+   python-dotenv==1.0.0
+   ```
 
-Çıktıyı `.env` dosyasındaki `SECRET_KEY` alanına yapıştırın.
+### **5. Ortam Değişkenlerinin Ayarlanması (.env Dosyası)**
 
-**Örnek:**
+1. **.env Dosyasını Oluşturun:**
 
-```env
-SECRET_KEY=9f8e7d6c5b4a39281716253445362728f9e8d7c6b5a49382716253445362728
-DEBUG=True
-```
+   ```bash
+   touch .env
+   ```
 
-### 3. `.env` Dosyasını Projede Kullanma
+2. **SECRET_KEY Oluşturun:**
 
-Kodunuzda `.env` dosyasını yüklemek için `python-dotenv` paketini kullanın:
+   ```bash
+   python
+   ```
 
-```python
-from dotenv import load_dotenv
-import os
+   Ardından, Python konsolunda:
 
-load_dotenv()
+   ```python
+   import secrets
+   secret_key = secrets.token_hex(32)
+   print(secret_key)
+   exit()
+   ```
 
-SECRET_KEY = os.getenv('SECRET_KEY')
-DEBUG = os.getenv('DEBUG')
-```
+   Çıktı olarak uzun bir hexadecimal string alacaksınız. Örneğin:
 
-### 4. `.env` Dosyasını Git'e Dahil Etmeyin
+   ```
+   9f8e7d6c5b4a39281716253445362728f9e8d7c6b5a49382716253445362728
+   ```
 
-`.gitignore` dosyanıza `.env` ekleyerek dosyanın versiyon kontrolüne dahil edilmesini önleyin:
+3. **.env Dosyasına Değişkenleri Ekleyin:**
 
-```
-.env
-```
+   `.env` dosyasını açın ve aşağıdaki gibi doldurun:
 
-## Uygulamanın Çalıştırılması
+   ```env
+   SECRET_KEY=9f8e7d6c5b4a39281716253445362728f9e8d7c6b5a49382716253445362728
+   DEBUG=True
+   ```
 
-Sanal ortam etkinleştirildikten sonra uygulamayı başlatın:
+4. **.env Dosyasını Versiyon Kontrolünden Hariç Tutun:**
 
-```bash
-python src/main.py
-```
+   `.gitignore` dosyanıza `.env` satırını ekleyin:
 
-- **Kullanıcı Girişi**: Kullanıcılar giriş yaparak sınava başlayabilir.
-- **Admin Erişimi**: Adminler giriş yaparak kullanıcı ve soru yönetimi işlemlerini gerçekleştirebilir.
+   ```
+   .env
+   ```
+
+### **6. İlk Admin Hesabının Oluşturulması**
+
+1. **setup_admin.py Scriptini Çalıştırın:**
+
+   ```bash
+   python src/setup_admin.py
+   ```
+
+2. **Admin Bilgilerini Girin:**
+
+   Script size admin oluşturmak için gerekli bilgileri soracaktır:
+
+   - Kullanıcı adı
+   - Şifre
+   - Adınız
+   - Soyadınız
+   - Telefon numaranız
+
+### **7. Uygulamanın Çalıştırılması**
+
+1. **Ana Programı Başlatın:**
+
+   ```bash
+   python src/main.py
+   ```
+
+2. **Giriş Yapın:**
+
+   Uygulama çalıştığında size giriş tipi sorulacaktır:
+
+   - `1`: Kullanıcı Girişi
+   - `2`: Admin Girişi
+
+**Admin İşlemleri:**
+
+- Admin olarak giriş yapıp soru ekleyebilir, güncelleyebilir veya silebilirsiniz.
+- Kullanıcıları yönetebilir, listeler ve gerektiğinde silebilirsiniz.
+
+**Kullanıcı İşlemleri:**
+
+- Kullanıcı olarak giriş yapıp sınava katılabilirsiniz.
+- Sınav sonucunda puanlarınız hesaplanır ve kaydedilir.
 
 ## Testler
 
@@ -297,3 +362,49 @@ Bu proje MIT Lisansı ile lisanslanmıştır. Daha fazla bilgi için [LICENSE](L
 Bu rehber ile **MultiPartQuizApp** projenizi başarıyla kurabilir ve çalıştırabilirsiniz. Herhangi bir sorunuz veya katkınız olursa lütfen bizimle iletişime geçin.
 
 ---
+
+**Not:** Bu proje şu an bir veritabanı kullanmamaktadır. İleride veritabanı entegrasyonu düşünüyorsanız, yapılandırma ayarlarınızı ve kodunuzu buna göre güncelleyebilirsiniz.
+
+---
+
+**Sorun Giderme**
+
+- **Modül Bulunamadı Hataları:**
+
+  - Eğer `ModuleNotFoundError` alıyorsanız, gerekli paketlerin yüklendiğinden emin olun.
+  - Sanal ortamın etkin olduğundan emin olun.
+
+- **Sanal Ortam Aktifleştirme Sorunları:**
+
+  - Eğer sanal ortamı etkinleştiremiyorsanız, doğru dizinde olup olmadığınızı kontrol edin.
+  - Windows'ta bazen Güvenlik Duvarı veya Antivirüs yazılımları engelleyebilir.
+
+- **Şifreleme Hataları:**
+
+  - `SECRET_KEY`'in doğru şekilde ayarlandığından ve en az 32 bayt (64 karakter) olduğundan emin olun.
+  - `.env` dosyasının doğru dizinde olduğundan ve yüklenebildiğinden emin olun.
+
+- **İzin Hataları:**
+
+  - Bazı dosya veya klasörlere erişimde sorun yaşıyorsanız, dosya izinlerini kontrol edin.
+
+- **Diğer Hatalar:**
+
+  - Hata mesajlarını dikkatlice okuyun ve hangi dosyada veya satırda hata olduğunu belirleyin.
+  - Gerekirse, Stack Overflow veya benzeri platformlarda hata mesajınızı aratarak çözüme ulaşabilirsiniz.
+
+---
+
+**Proje Hakkında**
+
+Bu proje, Python kullanılarak geliştirilmiş ve konsol tabanlı bir uygulamadır. Kullanıcı arayüzü komut satırı üzerinden etkileşimlidir. Uygulama, eğitim amaçlı sınavlar düzenlemek ve yönetmek için basit ve güvenli bir çözüm sunar.
+
+---
+
+**Destek ve Katkı**
+
+Projeye katkıda bulunmak veya sorularınızı iletmek isterseniz, lütfen GitHub üzerinden iletişime geçin.
+
+---
+
+**Teşekkürler ve İyi Çalışmalar!**
