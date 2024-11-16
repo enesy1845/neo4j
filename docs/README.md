@@ -1,6 +1,6 @@
 # MultiPartQuizApp
 
-**MultiPartQuizApp**, kullanıcıların sınava girebildiği ve adminlerin sınav içeriklerini yönetebildiği güvenli, çok bölümlü bir sınav yönetim sistemidir. Şifrelenmiş veri işleme özelliğine sahip olan sistem, farklı soru türlerini destekler ve her kullanıcı için ayrıntılı sonuçlar tutar.
+**MultiPartQuizApp**, kullanıcıların sınava girebildiği ve adminlerin sınav içeriklerini yönetebildiği güvenli, çok bölümlü bir sınav yönetim sistemidir. Şifrelenmiş veri işleme özelliğine sahip olan sistem, farklı soru türlerini destekler ve her kullanıcı için ayrıntılı sonuçlar tutar..
 
 ## İçindekiler
 
