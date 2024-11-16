@@ -6,7 +6,7 @@ import os
 ANSWERS_FILE = 'data/answers/answers.json'
 
 class Result:
-    def __init__(self, user, user_answers, used_question_ids, total_sections):
+    def __init__(self,user, user_answers, used_question_ids, total_sections):
         self.user = user
         self.user_answers = user_answers
         self.correct_answers = read_json(ANSWERS_FILE)

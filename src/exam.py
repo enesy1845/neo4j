@@ -1,5 +1,28 @@
 # exam.py
-
+"""
+Modüller:
+    - time: Sınav süresini ve gecikme işlemlerini yönetir.
+    - os: Platforma özgü işlemler ve dosya kontrolleri için kullanılır.
+    - threading: Paralel işlemler oluşturur, geri sayım veya sınav sürelerini
+      yönetmek için kullanılır.
+    - sys: Uygulamadan çıkmak veya sistemle ilgili işlemleri gerçekleştirmek
+      için kullanılır.
+    - platform: Çalışılan işletim sistemini tanımlar. Platforma özel modülleri
+      yüklemek için kullanılır.
+    - QuestionManager (from question): Soru eklemek, güncellemek veya sınavda
+      rastgele sorular seçmek için kullanılır.
+    - clear_screen (from utils): Platforma göre ekranı temizler.
+    - read_json (from utils): JSON formatında veri okuma işlemlerini yapar.
+    - random: Sınavda soruları veya seçenekleri rastgele sırayla sunmak için
+      kullanılır.
+    
+Platforma Özel Modüller:
+    - msvcrt (Windows): Windows'ta tek karakter okuma işlevlerini gerçekleştirir.
+    - select (Linux/macOS): Linux/macOS üzerinde klavyeden giriş almak için
+      giriş bekletme işlemi yapar.
+    - tty ve termios (Linux/macOS): Terminal ayarlarını değiştirerek platforma
+      özel giriş işlemleri için kullanılır.
+"""
 import time
 import os
 import threading
@@ -22,7 +45,7 @@ class TimeUpException(Exception):
 class Exam:
     def __init__(self, user):
         self.user = user
-        self.duration = 60  # Sınav süresi (saniye cinsinden)
+        self.duration = 180  # Sınav süresi (saniye cinsinden)
         self.start_time = None
         self.end_time = None
         self.sections = 4  # 4 bölüm
@@ -42,7 +65,7 @@ class Exam:
 
             # Soruları yükle
             all_questions = self.load_questions()
-
+            
             # Sınav boyunca kullanılacak soruların listesini hazırlıyoruz
             self.used_question_ids = set()
 

@@ -75,7 +75,7 @@ class TestExam(unittest.TestCase):
     def test_exam_initialization(self):
         exam = Exam(self.user)
         self.assertEqual(exam.user.name, 'Test')
-        self.assertEqual(exam.duration, 60)
+        self.assertEqual(exam.duration, 180)
 
     # Diğer test metotlarını ekleyebilirsiniz
 
