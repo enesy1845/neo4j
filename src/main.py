@@ -4,6 +4,7 @@ from user import User
 from admin import Admin
 from exam import Exam
 from utils import clear_screen
+from inputhandler import InputHandler
 
 def main():
     clear_screen()
@@ -13,7 +14,9 @@ def main():
     print("Giriş tipini seçiniz:")
     print("1. Kullanıcı Girişi")
     print("2. Admin Girişi")
-    choice = input("Seçiminiz (1/2): ").strip()
+    allowed_characters = '12'
+    input_handler = InputHandler(allowed_characters)
+    choice = input_handler.get_input()
     
     if choice == '1':
         # Kullanıcı girişi ve kontrolü
