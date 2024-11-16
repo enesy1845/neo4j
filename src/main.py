@@ -5,6 +5,15 @@ from admin import Admin
 from exam import Exam
 from utils import clear_screen
 
+from dotenv import load_dotenv
+import os
+
+load_dotenv()
+
+SECRET_KEY = os.getenv('SECRET_KEY')
+DATABASE_URL = os.getenv('DATABASE_URL')
+DEBUG = os.getenv('DEBUG')
+
 def main():
     clear_screen()
     print("=== Çok Bölümlü Zaman Sınırlı Sınav Uygulaması ===\n")
