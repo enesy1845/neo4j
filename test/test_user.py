@@ -27,11 +27,13 @@ class TestUser(unittest.TestCase):
             'role': 'user'
         }
         write_json([self.test_user_data], USERS_FILE)
+        print(f"Test user data written to {USERS_FILE}")
 
     def tearDown(self):
         # Test sırasında oluşturulan dosyayı sil
         if os.path.exists(USERS_FILE):
             os.remove(USERS_FILE)
+            print(f"Test user data removed from {USERS_FILE}")
 
     def test_load_user(self):
         user = User()
@@ -41,6 +43,8 @@ class TestUser(unittest.TestCase):
         loaded_user = user.load_user()
         self.assertIsNotNone(loaded_user)
         self.assertEqual(loaded_user['user_id'], 999)
+        self.assertEqual(loaded_user['attempts'], 1)
+        self.assertEqual(loaded_user['role'], 'user')
 
     def test_can_attempt_exam(self):
         user = User()
@@ -48,6 +52,7 @@ class TestUser(unittest.TestCase):
         self.assertTrue(user.can_attempt_exam())
         user.attempts = 2
         self.assertFalse(user.can_attempt_exam())
+        print(f"User can attempt the exam: {user.can_attempt_exam()}")
 
     def test_increment_attempts(self):
         user = User()
@@ -57,6 +62,7 @@ class TestUser(unittest.TestCase):
         user.increment_attempts()
         updated_user = user.load_user()
         self.assertEqual(updated_user['attempts'], 2)
+        print(f"User attempts incremented to {updated_user['attempts']}")
 
 if __name__ == '__main__':
     unittest.main()
