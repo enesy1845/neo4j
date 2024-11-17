@@ -1,0 +1,78 @@
+[
+  {
+    "id": 13,
+    "section": 4,
+    "question": "Işık, hem dalga hem parçacık özellikleri gösterir.",
+    "points": 5,
+    "type": "true_false"
+  },
+  {
+    "id": 14,
+    "section": 4,
+    "question": "Ses boşlukta yayılabilir.",
+    "points": 5,
+    "type": "true_false"
+  },
+  {
+    "id": 15,
+    "section": 4,
+    "question": "Isı, sıcaklık farkından dolayı enerji transferidir.",
+    "points": 5,
+    "type": "true_false"
+  },
+  {
+    "id": 16,
+    "section": 4,
+    "question": "Kütle çekim kuvveti, iki kütle arasındaki uzaklıkla doğru orantılıdır.",
+    "points": 5,
+    "type": "true_false"
+  },
+  {
+    "id": 1009,
+    "section": 4,
+    "question": "Hangi birim elektrik akımının birimidir?",
+    "options": ["Volt", "Amper", "Ohm", "Watt"],
+    "points": 5,
+    "type": "single_choice"
+  },
+  {
+    "id": 1010,
+    "section": 4,
+    "question": "Newton'un hangi yasası eylemsizlik prensibini ifade eder?",
+    "options": ["1. Yasa", "2. Yasa", "3. Yasa", "4. Yasa"],
+    "points": 5,
+    "type": "single_choice"
+  },
+  {
+    "id": 1011,
+    "section": 4,
+    "question": "Işık hızının değeri yaklaşık olarak nedir?",
+    "options": ["300.000 km/s", "150.000 km/s", "100.000 km/s", "50.000 km/s"],
+    "points": 5,
+    "type": "single_choice"
+  },
+  {
+    "id": 2009,
+    "section": 4,
+    "question": "Aşağıdaki enerji türlerinden hangileri yenilenebilir enerji kaynaklarıdır?",
+    "options": ["Güneş Enerjisi", "Rüzgar Enerjisi", "Fosil Yakıtlar", "Jeotermal Enerji", "Nükleer Enerji"],
+    "points": 10,
+    "type": "multiple_choice"
+  },
+  {
+    "id": 2010,
+    "section": 4,
+    "question": "Hangileri temel fiziksel büyüklüklerdir?",
+    "options": ["Kütle", "Zaman", "Hız", "Kuvvet", "Uzunluk"],
+    "points": 10,
+    "type": "multiple_choice"
+  },
+  {
+    "id": 2011,
+    "section": 4,
+    "question": "Aşağıdakilerden hangileri elektromanyetik dalgalardır?",
+    "options": ["Radyo Dalgaları", "Mikrodalgalar", "Ses Dalgaları", "Kızılötesi Işınlar", "Su Dalgaları"],
+    "points": 10,
+    "type": "multiple_choice"
+  }
+]

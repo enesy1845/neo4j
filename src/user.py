@@ -22,20 +22,40 @@ Modüller:
           her kullanıcıya özgün bir kimlik atanır.
 """
 import os
+import bcrypt
 from utils import read_json, write_json, get_next_user_id
 
 USERS_FILE = 'data/users/users.json'
 
 class User:
-    def __init__(self):
-        self.user_id = None
-        self.name = ''
-        self.surname = ''
-        self.phone_number = ''
-        self.attempts = 0
-        self.last_attempt_date = ''
-        self.scores = []
-        self.role = 'user'  
+    def __init__(
+        self,
+        user_id,
+        username,
+        password,
+        name,
+        surname,
+        phone_number,
+        role='user',
+        attempts=0,
+        last_attempt_date='',
+        score1=None,
+        score2=None,
+        score_avg=None
+    ):
+        self.user_id = user_id
+        self.username = username
+        self.password = password
+        self.name = name
+        self.surname = surname
+        self.phone_number = phone_number
+        self.role = role
+        self.attempts = attempts
+        self.last_attempt_date = last_attempt_date
+        self.score1 = score1
+        self.score2 = score2
+        self.score_avg = score_avg
+         
 
     def get_user_info(self):
         """
@@ -55,7 +75,9 @@ class User:
                 self.user_id = existing_user['user_id']
                 self.attempts = existing_user['attempts']
                 self.last_attempt_date = existing_user['last_attempt_date']
-                self.scores = existing_user.get('scores', [])
+                self.score1 = existing_user.get('score1')
+                self.score2 = existing_user.get('score2')
+                self.score_avg = existing_user.get('score_avg')
                 print(f"Hoş geldiniz, {self.name} {self.surname}!")
             else:
                 # Yeni kullanıcı oluştur ve kaydet
@@ -103,6 +125,23 @@ class User:
 
         write_json(users, USERS_FILE)
 
+    def to_dict(self):
+        """Kullanıcı nesnesini sözlük formatına dönüştürür."""
+        return {
+            'user_id': self.user_id,
+            'username': self.username,
+            'password': self.password,
+            'name': self.name,
+            'surname': self.surname,
+            'phone_number': self.phone_number,
+            'role': self.role,
+            'attempts': self.attempts,
+            'last_attempt_date': self.last_attempt_date,
+            'score1': self.score1,
+            'score2': self.score2,
+            'score_avg': self.score_avg
+        }
+
     def can_attempt_exam(self):
         """
         Kullanıcının sınava girme hakkı olup olmadığını kontrol eder.
@@ -110,7 +149,13 @@ class User:
         Returns:
             bool: Kullanıcının sınava girebilme hakkı varsa True, değilse False.
         """
-        return self.attempts < 2
+        if self.role == 'admin':
+            # Admin kullanıcıları sınava sınırsız girebilir
+            return True
+        if self.attempts < 2:
+            return True
+        else:
+            return False
 
     def increment_attempts(self):
         """
@@ -119,23 +164,19 @@ class User:
         self.attempts += 1
         self.save_user()
 
-    def to_dict(self):
-        """
-        Kullanıcı nesnesini sözlük formatına dönüştürür.
 
-        Returns:
-            dict: Kullanıcı bilgilerini içeren sözlük.
-        """
-        return {
-            'user_id': self.user_id,
-            'name': self.name,
-            'surname': self.surname,
-            'phone_number': self.phone_number,
-            'attempts': self.attempts,
-            'last_attempt_date': self.last_attempt_date,
-            'scores': self.scores,
-            'role': self.role 
-        }
+
+    def view_results(self):
+        """Kullanıcının sınav sonuçlarını görüntüler."""
+        print(f"\n=== {self.name} {self.surname} - Sınav Sonuçları ===")
+        if self.score1 is not None:
+            print(f"Deneme 1: {self.score1:.2f}% başarı")
+        if self.score2 is not None:
+            print(f"Deneme 2: {self.score2:.2f}% başarı")
+        if self.score_avg is not None:
+            print(f"Ortalama Başarı Yüzdesi: {self.score_avg:.2f}%")
+        if self.score1 is None and self.score2 is None:
+            print("Henüz bir sınava girmediniz.")
 
     """
     @staticmethod Dekoratörü
@@ -176,7 +217,7 @@ class User:
 
     @staticmethod
     def list_users():
-        """Tüm kullanıcıları listeler."""
+        """Tüm kullanıcıları listeler ve skorlarını gösterir."""
         if not os.path.exists(USERS_FILE):
             print("Kullanıcı listesi boş.")
             return
@@ -185,7 +226,24 @@ class User:
         print("\n=== Kullanıcı Listesi ===")
         for user in users:
             if user.get('role', 'user') == 'user':
-                print(f"ID: {user['user_id']}, İsim: {user['name']} {user['surname']}, Telefon: {user['phone_number']}, Giriş Sayısı: {user['attempts']}")
+                score1 = user.get('score1')
+                score2 = user.get('score2')
+                score_avg = user.get('score_avg')
+                scores_info = ""
+                if score1 is not None:
+                    scores_info += f"Skor 1: {score1:.2f}% "
+                else:
+                    scores_info += "Skor 1: - "
+                if score2 is not None:
+                    scores_info += f"Skor 2: {score2:.2f}% "
+                else:
+                    scores_info += "Skor 2: - "
+                if score_avg is not None:
+                    scores_info += f"Ortalama: {score_avg:.2f}%"
+                else:
+                    scores_info += "Ortalama: -"
+                print(f"ID: {user['user_id']}, İsim: {user['name']} {user['surname']}, Telefon: {user['phone_number']}, Giriş Sayısı: {user['attempts']}, {scores_info}")
+
 
     @staticmethod
     def delete_user(user_id):
@@ -234,3 +292,81 @@ class User:
                 return
 
         print(f"Kullanıcı ID {user_id} bulunamadı.")
+
+
+    @staticmethod
+    def register():
+        """Yeni bir kullanıcı kaydı oluşturur."""
+        print("\n=== Kullanıcı Kayıt ===")
+        username = input("Kullanıcı Adı: ").strip()
+        password = input("Şifre: ").strip()
+        name = input("Adınız: ").strip()
+        surname = input("Soyadınız: ").strip()
+        phone_number = input("Telefon Numaranız: ").strip()
+
+        # Kullanıcı adı kontrolü
+        users = []
+        if os.path.exists(USERS_FILE):
+            users = read_json(USERS_FILE)
+            for user in users:
+                if user['username'] == username:
+                    print("Bu kullanıcı adı zaten alınmış. Lütfen başka bir kullanıcı adı seçin.")
+                    return None
+
+        # Şifre hashleme
+        hashed_password = bcrypt.hashpw(password.encode('utf-8'), bcrypt.gensalt()).decode('utf-8')
+
+        # Yeni kullanıcı oluştur
+        new_user = User(
+            user_id=get_next_user_id(),
+            username=username,
+            password=hashed_password,
+            name=name,
+            surname=surname,
+            phone_number=phone_number,
+            role='user'
+        )
+
+        # Kullanıcıyı kaydet
+        new_user.save_user()
+        print(f"Kayıt başarılı! Hoş geldiniz, {name} {surname}!")
+        return new_user
+
+    @staticmethod
+    def login():
+        """Kullanıcı girişi yapar."""
+        print("\n=== Kullanıcı Girişi ===")
+        username = input("Kullanıcı Adı: ").strip()
+        password = input("Şifre: ").strip()
+
+        users = []
+        if os.path.exists(USERS_FILE):
+            users = read_json(USERS_FILE)
+        else:
+            print("Kullanıcı veritabanı bulunamadı.")
+            return None
+
+        for user_data in users:
+            if user_data['username'] == username:
+                # Şifreyi kontrol et
+                if bcrypt.checkpw(password.encode('utf-8'), user_data['password'].encode('utf-8')):
+                    # Kullanıcı nesnesini oluştur ve döndür
+                    return User(
+                        user_id=user_data['user_id'],
+                        username=user_data['username'],
+                        password=user_data['password'],
+                        name=user_data['name'],
+                        surname=user_data['surname'],
+                        phone_number=user_data['phone_number'],
+                        role=user_data.get('role', 'user'),
+                        attempts=user_data.get('attempts', 0),
+                        last_attempt_date=user_data.get('last_attempt_date', ''),
+                        score1=user_data.get('score1'),
+                        score2=user_data.get('score2'),
+                        score_avg=user_data.get('score_avg')
+                    )
+                else:
+                    print("Şifre yanlış.")
+                    return None
+        print("Kullanıcı bulunamadı.")
+        return None

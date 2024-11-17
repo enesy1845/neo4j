@@ -22,7 +22,7 @@ class TimeUpException(Exception):
 class Exam:
     def __init__(self, user):
         self.user = user
-        self.duration = 180  # Sınav süresi (saniye cinsinden)
+        self.duration = 15  # Sınav süresi (saniye cinsinden)
         self.start_time = None
         self.end_time = None
         self.sections = 4  # 4 bölüm
@@ -30,6 +30,8 @@ class Exam:
         self.answers = {}  # Kullanıcının cevapları
         self.used_question_ids = set()  # Kullanılan soru ID'lerini takip etmek için
         self.current_question_number = 1  # Soru sayacı
+        self.time_up = False  # Zamanın dolup dolmadığını takip etmek için
+        self.lock = threading.Lock()  # Thread güvenliği için kilit
 
     def start_exam(self):
         """Sınavı başlatır."""
@@ -40,6 +42,11 @@ class Exam:
             self.start_time = time.time()
             self.end_time = self.start_time + self.duration
 
+            # Zamanlayıcı thread'i başlat
+            timer_thread = threading.Thread(target=self.timer)
+            timer_thread.daemon = True
+            timer_thread.start()
+
             # Soruları yükle
             all_questions = self.load_questions()
             
@@ -48,7 +55,7 @@ class Exam:
 
             # Her bölüm için soruları sun
             for section_number in range(1, self.sections + 1):
-                if self.is_time_up():
+                if self.time_up:
                     print("\nSınav süresi doldu.")
                     break
 
@@ -61,15 +68,10 @@ class Exam:
 
                 # Soruları sun
                 for question in section_questions:
-                    if self.is_time_up():
+                    if self.time_up:
                         print("\nSınav süresi doldu.")
                         raise TimeUpException("Sınav süresi doldu.")
                     self.present_question(question)
-
-                # Sınav süresinin dolup dolmadığını kontrol et
-                if self.is_time_up():
-                    print("\nSınav süresi doldu.")
-                    break
 
                 # Bölüm sonu mesajı
                 if section_number < self.sections:
@@ -86,33 +88,41 @@ class Exam:
             # Sınavı sonlandır
             self.end_exam()
 
+    def timer(self):
+        """Sınav süresini takip eder."""
+        while True:
+            with self.lock:
+                remaining_time = self.end_time - time.time()
+                if remaining_time <= 0:
+                    self.time_up = True
+                    break
+            time.sleep(1)
+
     def is_time_up(self):
         """Sınav süresinin dolup dolmadığını kontrol eder."""
-        return time.time() >= self.end_time
+        with self.lock:
+            return self.time_up or time.time() >= self.end_time
 
     def load_questions(self):
-        """Tüm soruları yükler ve soru tiplerine göre gruplar."""
+        """Tüm soruları yükler ve bölüm numarasına göre gruplar."""
         all_questions = {}
-        # Tüm soru dosyalarını yükle
-        for qtype, filename in self.question_manager.question_types.items():
-            file_path = 'data/questions/' + filename
+        for section, filename in self.question_manager.section_files.items():
+            file_path = os.path.join('data/questions/', filename)
             if os.path.exists(file_path):
                 questions = read_json(file_path)
-                # Her soruya 'type' anahtarını ekliyoruz
-                for q in questions:
-                    q['type'] = qtype
-                # Soruları doğrudan soru tipine göre grupluyoruz
-                all_questions[qtype] = questions
+                # Her sorunun 'section' ve 'type' bilgisi zaten mevcut
+                all_questions[section] = questions
         return all_questions
 
     def select_questions_for_section(self, all_questions, section_number):
         """Her bölüm için soruları seçer."""
         section_questions = []
-        # Öncelikle her soru tipinden birer tane alıyoruz, sadece belirtilen bölüme ait olanlar
-        for qtype in ['true_false', 'single_choice', 'multiple_choice']:
+        # Öncelikle her soru tipinden birer tane alıyoruz
+        question_types = ['true_false', 'single_choice', 'multiple_choice']
+        for qtype in question_types:
             available_questions = [
-                q for q in all_questions.get(qtype, [])
-                if q['id'] not in self.used_question_ids and q['section'] == section_number
+                q for q in all_questions.get(section_number, [])
+                if q['id'] not in self.used_question_ids and q['type'] == qtype
             ]
             if available_questions:
                 question = random.choice(available_questions)
@@ -121,15 +131,13 @@ class Exam:
             else:
                 print(f"Uyarı: {qtype} tipi için Bölüm {section_number} de yeterli soru yok.")
 
-        # Kalan soruları rastgele seçiyoruz, yine sadece belirtilen bölüme ait olanlardan
+        # Kalan soruları rastgele seçiyoruz
         remaining_needed = 5 - len(section_questions)
         if remaining_needed > 0:
-            all_available_questions = []
-            for qtype in ['true_false', 'single_choice', 'multiple_choice']:
-                all_available_questions.extend([
-                    q for q in all_questions.get(qtype, [])
-                    if q['id'] not in self.used_question_ids and q['section'] == section_number
-                ])
+            all_available_questions = [
+                q for q in all_questions.get(section_number, [])
+                if q['id'] not in self.used_question_ids
+            ]
             if len(all_available_questions) < remaining_needed:
                 print(f"Uyarı: Bölüm {section_number} için yeterli sayıda soru yok.")
             else:
@@ -144,10 +152,8 @@ class Exam:
 
     def present_question(self, question):
         """Kullanıcıya soruyu sunar ve cevabını alır."""
-        user_input = ''
-        try:
-            while True:
-                # Ekranı güncelle
+        while True:
+            try:
                 clear_screen()
                 remaining_time = int(self.end_time - time.time())
                 if remaining_time <= 0:
@@ -155,8 +161,9 @@ class Exam:
                     raise TimeUpException("Sınav süresi doldu.")
                 mins, secs = divmod(remaining_time, 60)
                 time_format = '{:02d}:{:02d}'.format(mins, secs)
-                print(f"Kalan Süre: {time_format}")
-                print(f"\nSoru {self.current_question_number}: {question['question']}")
+                print(f"Kalan Süre: {time_format}\n")
+
+                print(f"Soru {self.current_question_number}: {question['question']}")
                 if 'options' in question:
                     for idx, option in enumerate(question['options'], 1):
                         print(f"{idx}. {option}")
@@ -167,56 +174,36 @@ class Exam:
                 else:
                     print("1. Doğru")
                     print("2. Yanlış")
-                print(f"Cevabınız: {user_input}", end='', flush=True)
+                
+                # Kalan süreyi güncellemek için hızlıca sleep etmeyelim
+                # Kullanıcıdan cevap al
+                user_input = input("Cevabınız: ")
 
-                # Non-blocking input
-                char = self.get_char()
-                if char is not None:
-                    if char in ('\r', '\n'):
-                        # Enter tuşuna basıldı, girişi işle
-                        answers = self.process_input(user_input.strip(), question)
-                        self.answers[str(question['id'])] = answers
-                        self.current_question_number += 1  # Sayaç artırıldı
-                        break
-                    elif char in ('\x08', '\x7f'):
-                        # Backspace tuşu
-                        user_input = user_input[:-1]
-                    else:
-                        user_input += char
-                time.sleep(0.1)  # Ekranı çok hızlı yenilememek için
+                if self.is_time_up():
+                    print("\nSınav süresi doldu!")
+                    raise TimeUpException("Sınav süresi doldu.")
 
-        except ValueError as ve:
-            print(f"\nHata: {ve}")
-            input("Devam etmek için Enter tuşuna basın...")
-        except TimeUpException as tue:
-            # Sınav süresi dolduğunda işlemi sonlandır
-            raise tue
-        except Exception as e:
-            print(f"\nBilinmeyen bir hata oluştu: {e}")
-            input("Devam etmek için Enter tuşuna basın...")
+                if not user_input.strip():
+                    print("\nLütfen bir cevap giriniz.")
+                    input("Devam etmek için Enter tuşuna basın...")
+                    continue  # Aynı soruyu tekrar sun
 
-    def get_char(self):
-        """Kullanıcıdan non-blocking şekilde karakter okur."""
-        if platform.system() == 'Windows':
-            if msvcrt.kbhit():
-                char = msvcrt.getwch()
-                return char
-        else:
-            # Unix benzeri sistemler için
-            fd = sys.stdin.fileno()
-            old_settings = termios.tcgetattr(fd)
-            try:
-                tty.setraw(fd)  # setcbreak yerine setraw kullanıyoruz
-                if select.select([sys.stdin], [], [], 0.1)[0]:
-                    char = sys.stdin.read(1)
-                    # Özel karakterleri kontrol et
-                    if char == '\x03':
-                        # Ctrl+C basıldı
-                        raise KeyboardInterrupt
-                    return char
-            finally:
-                termios.tcsetattr(fd, termios.TCSADRAIN, old_settings)
-        return None
+                answers = self.process_input(user_input.strip(), question)
+                self.answers[str(question['id'])] = answers
+                self.current_question_number += 1  # Sayaç artırıldı
+                break
+
+            except ValueError as ve:
+                print(f"\nHata: {ve}")
+                input("Devam etmek için Enter tuşuna basın...")
+                continue  # Aynı soruyu tekrar sun
+            except TimeUpException as tue:
+                # Sınav süresi dolduğunda işlemi sonlandır
+                raise tue
+            except Exception as e:
+                print(f"\nBilinmeyen bir hata oluştu: {e}")
+                input("Devam etmek için Enter tuşuna basın...")
+                continue  # Aynı soruyu tekrar sun
 
     def process_input(self, user_input, question):
         """Kullanıcının girdiği cevabı işler."""
@@ -242,12 +229,15 @@ class Exam:
         else:  # Doğru/Yanlış
             if user_input not in ['1', '2']:
                 raise ValueError("Lütfen sadece 1 veya 2 giriniz.")
-            idx = int(user_input.strip()) - 1
-            return ["Doğru", "Yanlış"][idx]
+            return ["Doğru", "Yanlış"][int(user_input.strip()) - 1]
 
     def end_exam(self):
         """Sınavı sonlandırır ve sonuçları hesaplar."""
         print("\nSınav tamamlandı.")
         from result import Result
-        result = Result(self.user, self.answers, self.used_question_ids, self.sections)
-        result.calculate_results()
+        try:
+            result = Result(self.user, self.answers, self.used_question_ids, self.sections)
+            result.calculate_results()
+        except Exception as e:
+            print(f"Sonuçlar hesaplanırken bir hata oluştu: {e}")
+            input("Devam etmek için Enter tuşuna basın...")

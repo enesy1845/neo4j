@@ -1,0 +1,78 @@
+[
+  {
+    "id": 1,
+    "section": 1,
+    "question": "4 sayısı bir asal sayıdır.",
+    "points": 5,
+    "type": "true_false"
+  },
+  {
+    "id": 2,
+    "section": 1,
+    "question": "0 sayısı bir doğal sayıdır.",
+    "points": 5,
+    "type": "true_false"
+  },
+  {
+    "id": 3,
+    "section": 1,
+    "question": "Eşkenar üçgenin tüm kenarları eşittir.",
+    "points": 5,
+    "type": "true_false"
+  },
+  {
+    "id": 4,
+    "section": 1,
+    "question": "Bir dikdörtgenin karşılıklı kenarları eşittir.",
+    "points": 5,
+    "type": "true_false"
+  },
+  {
+    "id": 1000,
+    "section": 1,
+    "question": "3'ün karesi kaçtır?",
+    "options": ["6", "9", "12", "15"],
+    "points": 5,
+    "type": "single_choice"
+  },
+  {
+    "id": 1001,
+    "section": 1,
+    "question": "Pi sayısının yaklaşık değeri hangisidir?",
+    "options": ["2.14", "3.14", "4.14", "5.14"],
+    "points": 5,
+    "type": "single_choice"
+  },
+  {
+    "id": 1002,
+    "section": 1,
+    "question": "5 x 6 işleminin sonucu kaçtır?",
+    "options": ["30", "35", "25", "40"],
+    "points": 5,
+    "type": "single_choice"
+  },
+  {
+    "id": 2000,
+    "section": 1,
+    "question": "Aşağıdaki sayılardan hangileri çift sayıdır?",
+    "options": ["1", "2", "3", "4", "5"],
+    "points": 10,
+    "type": "multiple_choice"
+  },
+  {
+    "id": 2001,
+    "section": 1,
+    "question": "Aşağıdaki ifadelerden hangileri bir üçgenin iç açılarının toplamıdır?",
+    "options": ["180 derece", "90 derece", "360 derece", "270 derece"],
+    "points": 10,
+    "type": "multiple_choice"
+  },
+  {
+    "id": 2002,
+    "section": 1,
+    "question": "Aşağıdaki işlemlerden hangilerinin sonucu 8'dir?",
+    "options": ["4 + 4", "2 x 4", "16 / 2", "10 - 2"],
+    "points": 10,
+    "type": "multiple_choice"
+  }
+]
