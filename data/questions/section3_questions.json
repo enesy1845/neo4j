@@ -1,0 +1,78 @@
+[
+  {
+    "id": 9,
+    "section": 3,
+    "question": "'Apple' kelimesinin Türkçe karşılığı 'armut'tur.",
+    "points": 5,
+    "type": "true_false"
+  },
+  {
+    "id": 10,
+    "section": 3,
+    "question": "'He is running' cümlesi geniş zaman kipindedir.",
+    "points": 5,
+    "type": "true_false"
+  },
+  {
+    "id": 11,
+    "section": 3,
+    "question": "'Blue' bir renk ismidir.",
+    "points": 5,
+    "type": "true_false"
+  },
+  {
+    "id": 12,
+    "section": 3,
+    "question": "'They are students' cümlesi çoğul bir ifadeyi belirtir.",
+    "points": 5,
+    "type": "true_false"
+  },
+  {
+    "id": 1006,
+    "section": 3,
+    "question": "'Beautiful' kelimesinin zıt anlamlısı hangisidir?",
+    "options": ["Ugly", "Pretty", "Smart", "Happy"],
+    "points": 5,
+    "type": "single_choice"
+  },
+  {
+    "id": 1007,
+    "section": 3,
+    "question": "'I ___ to school every day.' Boşluğa hangisi gelmelidir?",
+    "options": ["go", "goes", "went", "gone"],
+    "points": 5,
+    "type": "single_choice"
+  },
+  {
+    "id": 1008,
+    "section": 3,
+    "question": "'Cat' kelimesinin Türkçe karşılığı nedir?",
+    "options": ["Köpek", "Kedi", "Kuş", "Balık"],
+    "points": 5,
+    "type": "single_choice"
+  },
+  {
+    "id": 2006,
+    "section": 3,
+    "question": "Hangileri İngilizcede birer zamirdir?",
+    "options": ["He", "She", "It", "And", "But"],
+    "points": 10,
+    "type": "multiple_choice"
+  },
+  {
+    "id": 2007,
+    "section": 3,
+    "question": "Aşağıdaki kelimelerden hangileri duyu organlarını ifade eder?",
+    "options": ["Eye", "Ear", "Hand", "Foot", "Nose"],
+    "points": 10,
+    "type": "multiple_choice"
+  },
+  {
+    "id": 2008,
+    "section": 3,
+    "question": "Aşağıdaki fiillerden hangileri düzensiz fiillerdir?",
+    "options": ["Go", "Eat", "Walk", "Play", "Run"],
+    "points": 10,
+    "type": "multiple_choice"
+  }
+]
