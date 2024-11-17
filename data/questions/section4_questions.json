@@ -2,76 +2,76 @@
   {
     "id": 13,
     "section": 4,
-    "question": "Işık, hem dalga hem parçacık özellikleri gösterir.",
+    "question": "Light exhibits both wave and particle properties.",
     "points": 5,
     "type": "true_false"
   },
   {
     "id": 14,
     "section": 4,
-    "question": "Ses boşlukta yayılabilir.",
+    "question": "Sound can travel through a vacuum.",
     "points": 5,
     "type": "true_false"
   },
   {
     "id": 15,
     "section": 4,
-    "question": "Isı, sıcaklık farkından dolayı enerji transferidir.",
+    "question": "Heat is the transfer of energy due to a temperature difference.",
     "points": 5,
     "type": "true_false"
   },
   {
     "id": 16,
     "section": 4,
-    "question": "Kütle çekim kuvveti, iki kütle arasındaki uzaklıkla doğru orantılıdır.",
+    "question": "Gravitational force is directly proportional to the distance between two masses.",
     "points": 5,
     "type": "true_false"
   },
   {
     "id": 1009,
     "section": 4,
-    "question": "Hangi birim elektrik akımının birimidir?",
-    "options": ["Volt", "Amper", "Ohm", "Watt"],
+    "question": "Which unit is used to measure electric current?",
+    "options": ["Volt", "Ampere", "Ohm", "Watt"],
     "points": 5,
     "type": "single_choice"
   },
   {
     "id": 1010,
     "section": 4,
-    "question": "Newton'un hangi yasası eylemsizlik prensibini ifade eder?",
-    "options": ["1. Yasa", "2. Yasa", "3. Yasa", "4. Yasa"],
+    "question": "Which of Newton's laws expresses the principle of inertia?",
+    "options": ["1st Law", "2nd Law", "3rd Law", "4th Law"],
     "points": 5,
     "type": "single_choice"
   },
   {
     "id": 1011,
     "section": 4,
-    "question": "Işık hızının değeri yaklaşık olarak nedir?",
-    "options": ["300.000 km/s", "150.000 km/s", "100.000 km/s", "50.000 km/s"],
+    "question": "What is the approximate value of the speed of light?",
+    "options": ["300,000 km/s", "150,000 km/s", "100,000 km/s", "50,000 km/s"],
     "points": 5,
     "type": "single_choice"
   },
   {
     "id": 2009,
     "section": 4,
-    "question": "Aşağıdaki enerji türlerinden hangileri yenilenebilir enerji kaynaklarıdır?",
-    "options": ["Güneş Enerjisi", "Rüzgar Enerjisi", "Fosil Yakıtlar", "Jeotermal Enerji", "Nükleer Enerji"],
+    "question": "Which of the following energy types are renewable energy sources?",
+    "options": ["Solar Energy", "Wind Energy", "Fossil Fuels", "Geothermal Energy", "Nuclear Energy"],
     "points": 10,
     "type": "multiple_choice"
   },
   {
     "id": 2010,
     "section": 4,
-    "question": "Hangileri temel fiziksel büyüklüklerdir?",
-    "options": ["Kütle", "Zaman", "Hız", "Kuvvet", "Uzunluk"],
+    "question": "Which of the following are fundamental physical quantities?",
+    "options": ["Mass", "Time", "Speed", "Force", "Length"],
     "points": 10,
     "type": "multiple_choice"
   },
   {
     "id": 2011,
     "section": 4,
-    "question": "Aşağıdakilerden hangileri elektromanyetik dalgalardır?",
-    "options": ["Radyo Dalgaları", "Mikrodalgalar", "Ses Dalgaları", "Kızılötesi Işınlar", "Su Dalgaları"],
+    "question": "Which of the following are electromagnetic waves?",
+    "options": ["Radio Waves", "Microwaves", "Sound Waves", "Infrared Rays", "Water Waves"],
     "points": 10,
     "type": "multiple_choice"
   }

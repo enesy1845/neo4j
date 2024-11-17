@@ -11,7 +11,7 @@ USERS_FILE = 'data/users/users.json'
 
 def read_json(file_path):
     """
-    Belirtilen JSON dosyasını okur, şifreliyse çözer ve veriyi döndürür.
+    Reads the specified JSON file, decrypts it if encrypted, and returns the data.
     """
     if not os.path.exists(file_path):
         return []
@@ -30,7 +30,7 @@ def read_json(file_path):
 
 def write_json(data, file_path):
     """
-    Veriyi belirtilen JSON dosyasına şifrelenmiş olarak yazar.
+    Writes the data to the specified JSON file in an encrypted format.
     """
     data_str = json.dumps(data, ensure_ascii=False, indent=4)
     encrypted_data = encrypt(data_str)
@@ -39,7 +39,7 @@ def write_json(data, file_path):
 
 def get_next_user_id():
     """
-    Yeni kullanıcılar için benzersiz bir ID üretir.
+    Generates a unique ID for new users.
     """
     
     if not os.path.exists(USERS_FILE):
@@ -52,7 +52,7 @@ def get_next_user_id():
 
 def clear_screen():
     """
-    Konsolu temizler.
+    Clears the console screen.
     """
     if platform.system() == "Windows":
         os.system('cls')
@@ -61,23 +61,23 @@ def clear_screen():
 
 def validate_input(prompt, valid_options):
     """
-    Kullanıcıdan geçerli bir giriş alır.
+    Prompts the user for input and ensures it is one of the valid options.
     """
     while True:
         user_input = input(prompt).strip()
         if user_input in valid_options:
             return user_input
         else:
-            print("Geçersiz giriş. Lütfen tekrar deneyin.")
+            print("Invalid input. Please try again.")
 
 def format_time(seconds):
     """
-    Saniye cinsinden verilen süreyi "dakika ve saniye" formatında metin olarak döndürür.
+    Converts the given time in seconds to a "minutes and seconds" formatted string.
     """
     minutes = seconds // 60
     seconds = seconds % 60
-    return f"{minutes} dakika {seconds} saniye"
+    return f"{minutes} minutes {seconds} seconds"
 
 def generate_random_number(start, end):
-    """Belirtilen aralıkta rastgele bir sayı üretir."""
+    """Generates a random number within the specified range."""
     return random.randint(start, end)

@@ -2,24 +2,22 @@
 
 
 """
-Kullanıcı yönetimi işlevleri için gerekli modüller.
+Modules required for user management functions.
 
-Modüller:
-    - os: Dosya ve dizin işlemlerini gerçekleştirmek için kullanılır. Bu modül,
-      `USERS_FILE` dosyasının varlığını kontrol etmek ve dosya yolu işlemlerini
-      yönetmek için kullanılır.
+Modules:
+    - os: Used to perform file and directory operations. This module is used
+      to check the existence of the `USERS_FILE` and manage file path operations.
       
     - utils (read_json, write_json, get_next_user_id):
-        - read_json: JSON dosyasını okuyarak veriyi yüklemek için kullanılır. 
-          Kullanıcı verilerini `users.json` dosyasından alır.
+        - read_json: Used to load data by reading a JSON file.
+          Retrieves user data from the `users.json` file.
           
-        - write_json: JSON dosyasına veri yazmak için kullanılır. Yeni kullanıcı
-          oluşturma, güncelleme ve silme işlemlerinde `users.json` dosyasına
-          veri yazarken kullanılır.
+        - write_json: Used to write data to a JSON file.
+          Utilized when creating, updating, and deleting users in the `users.json` file.
           
-        - get_next_user_id: Yeni bir kullanıcı için benzersiz ID oluşturur. Bu işlev,
-          mevcut kullanıcı ID'lerine göre bir sonraki ID'yi belirler, böylece
-          her kullanıcıya özgün bir kimlik atanır.
+        - get_next_user_id: Generates a unique ID for a new user.
+          This function determines the next ID based on existing user IDs,
+          ensuring that each user is assigned a unique identifier.
 """
 import os
 import bcrypt
@@ -59,17 +57,17 @@ class User:
 
     def get_user_info(self):
         """
-        Kullanıcıdan isim, soyisim ve telefon numarası alır ve doğrular.
+        Collects and validates the user's name, surname, and phone number.
 
-        Kullanıcı bilgileri mevcut değilse yeni kullanıcı kaydı yapılır.
+        If user information does not exist, a new user registration is performed.
         """
         try:
-            print("Lütfen sınava giriş için bilgilerinizi giriniz.\n")
-            self.name = input("Adınız: ").strip()
-            self.surname = input("Soyadınız: ").strip()
-            self.phone_number = input("Telefon Numaranız: ").strip()
+            print("Please enter your information to access the exam.\n")
+            self.name = input("Your Name: ").strip()
+            self.surname = input("Your Surname: ").strip()
+            self.phone_number = input("Your Phone Number: ").strip()
 
-            # Kullanıcıyı yükle veya yeni kullanıcı oluştur
+            # Load or create a new user
             existing_user = self.load_user()
             if existing_user:
                 self.user_id = existing_user['user_id']
@@ -78,23 +76,23 @@ class User:
                 self.score1 = existing_user.get('score1')
                 self.score2 = existing_user.get('score2')
                 self.score_avg = existing_user.get('score_avg')
-                print(f"Hoş geldiniz, {self.name} {self.surname}!")
+                print(f"Welcome, {self.name} {self.surname}!")
             else:
-                # Yeni kullanıcı oluştur ve kaydet
+                # Create and save a new user
                 self.user_id = get_next_user_id()
                 self.save_user()
-                print(f"Kayıt başarılı! Hoş geldiniz, {self.name} {self.surname}!")
+                print(f"Registration successful! Welcome, {self.name} {self.surname}!")
         except Exception as e:
-            print(f"Hata oluştu: {e}")
-            input("Devam etmek için Enter tuşuna basın...")
+            print(f"An error occurred: {e}")
+            input("Press Enter to continue...")
             self.get_user_info()
 
     def load_user(self):
         """
-        Kullanıcı bilgilerini users.json dosyasından yükler.
+        Loads user information from the users.json file.
 
         Returns:
-            dict or None: Kullanıcı bilgileri, bulunamazsa None.
+            dict or None: User information if found, otherwise None.
         """
         if not os.path.exists(USERS_FILE):
             return None
@@ -109,24 +107,24 @@ class User:
         return None
 
     def save_user(self):
-        """Kullanıcı bilgilerini users.json dosyasına kaydeder."""
+        """Saves user information to the users.json file."""
         users = []
         if os.path.exists(USERS_FILE):
             users = read_json(USERS_FILE)
 
-        # Kullanıcı zaten varsa güncelle
+        # If user exists, update
         for i, user in enumerate(users):
             if user['user_id'] == self.user_id:
                 users[i] = self.to_dict()
                 break
         else:
-            # Yeni kullanıcı ekle
+            # Add new user
             users.append(self.to_dict())
 
         write_json(users, USERS_FILE)
 
     def to_dict(self):
-        """Kullanıcı nesnesini sözlük formatına dönüştürür."""
+        """Converts the user object to a dictionary format."""
         return {
             'user_id': self.user_id,
             'username': self.username,
@@ -144,13 +142,13 @@ class User:
 
     def can_attempt_exam(self):
         """
-        Kullanıcının sınava girme hakkı olup olmadığını kontrol eder.
+        Checks if the user has the right to attempt the exam.
 
         Returns:
-            bool: Kullanıcının sınava girebilme hakkı varsa True, değilse False.
+            bool: True if the user can attempt the exam, False otherwise.
         """
         if self.role == 'admin':
-            # Admin kullanıcıları sınava sınırsız girebilir
+            # Admin users can attempt exams unlimited times
             return True
         if self.attempts < 2:
             return True
@@ -159,7 +157,7 @@ class User:
 
     def increment_attempts(self):
         """
-        Sınav giriş sayısını bir artırır ve kaydeder.
+        Increments the number of exam attempts and saves the user.
         """
         self.attempts += 1
         self.save_user()
@@ -167,63 +165,61 @@ class User:
 
 
     def view_results(self):
-        """Kullanıcının sınav sonuçlarını görüntüler."""
-        print(f"\n=== {self.name} {self.surname} - Sınav Sonuçları ===")
+        """Displays the user's exam results."""
+        print(f"\n=== {self.name} {self.surname} - Exam Results ===")
         if self.score1 is not None:
-            print(f"Deneme 1: {self.score1:.2f}% başarı")
+            print(f"Attempt 1: {self.score1:.2f}% success")
         if self.score2 is not None:
-            print(f"Deneme 2: {self.score2:.2f}% başarı")
+            print(f"Attempt 2: {self.score2:.2f}% success")
         if self.score_avg is not None:
-            print(f"Ortalama Başarı Yüzdesi: {self.score_avg:.2f}%")
+            print(f"Average Success Percentage: {self.score_avg:.2f}%")
         if self.score1 is None and self.score2 is None:
-            print("Henüz bir sınava girmediniz.")
+            print("You have not taken any exams yet.")
 
     """
-    @staticmethod Dekoratörü
+    @staticmethod Decorator
 
-    @staticmethod dekoratörü, bir sınıfın metodu olarak tanımlanan işlevlerin sınıf
-    örneğine (nesnesine) ihtiyaç duymadan çağrılabilmesini sağlar. Bir statik metod,
-    ne sınıfın kendisine (`cls`), ne de sınıf örneğine (`self`) bağlıdır. Bu sayede,
-    sınıfa ait bağımsız bir işlev olarak çalışabilir.
+    The @staticmethod decorator allows functions defined within a class to be called
+    without needing an instance of the class. A static method is neither bound to the class itself (`cls`)
+    nor to any instance of the class (`self`). This means that it can operate independently
+    of the class's attributes and methods.
 
-    Özellikler:
-        - Statik metotlar, sınıf üzerinden doğrudan çağrılabilir: `ClassName.method_name()`.
-        - Statik metotların, sınıfın örneğine veya özelliklerine erişmesi gerekmez, 
-        yalnızca sınıfın genel bir işlevi olarak çalışır.
+    Features:
+        - Static methods can be called directly on the class: `ClassName.method_name()`.
+        - Static methods do not require access to the class instance or class variables,
+          and thus, can function as general-purpose utility functions.
 
-    Kullanım Alanları:
-        Statik metotlar, belirli bir sınıfla ilişkili ancak sınıf örneğine ihtiyaç
-        duymayan işlemleri gerçekleştirmek için uygundur. Örneğin, genel yardımcı
-        işlevler, basit veri işleme veya sınıfın belirli bir durumundan bağımsız olan
-        hesaplama ve kontrol işlemleri için statik metotlar tercih edilir.
+    Use Cases:
+        Static methods are suitable for operations that are related to the class but do not need
+        access to any class or instance-specific data. For example, general helper functions,
+        simple data processing, or calculations that are independent of the class's state.
 
-    Örnek Senaryolar:
-        - Veri doğrulama veya formatlama işlemleri gibi sınıfa bağlı olmayan işlevler.
-        - Sınıfın örnekleri arasında bağımsız çalışan genel yardımcı işlevler.
+    Example Scenarios:
+        - Data validation or formatting functions that do not depend on class attributes.
+        - General-purpose helper functions that operate on inputs without needing class context.
 
-    Kullanılmaması Durumunda:
-        Eğer bir metot, @staticmethod olarak tanımlanmazsa, sınıfın örneğine (`self`)
-        bağlı olarak çalışır. Bu durumda, işlevin sınıf üzerinden doğrudan çağrılması 
-        mümkün olmaz ve yalnızca bir nesne üzerinden çağrılabilir hale gelir. Örneğin,
-        `list_users` işlevi @staticmethod olmadan `User.list_users()` şeklinde
-        çağrılamaz; bunun yerine önce bir `User` nesnesi oluşturulmalı ve `instance.list_users()` 
-        şeklinde erişilmelidir.
-
-    Özet:
-        @staticmethod dekoratörü, bir sınıfın işlevselliğiyle ilgili genel işlemleri
-        sınıf örneğine ihtiyaç duymadan gerçekleştirebilmeyi sağlar. Bu sayede işlev,
-        yalnızca sınıfa ait bağımsız bir yardımcı işlev olarak tanımlanır.
+    If Not Used:
+        If a method is not defined as @staticmethod, it operates as an instance method and
+        requires access to the instance (`self`). Consequently, it cannot be called directly on the
+        class and must be accessed through an instance. For example, the `list_users` function
+        without @staticmethod cannot be called as `User.list_users()`; instead, a `User` instance
+        must be created, and the method called on that instance.
+    
+    Summary:
+        The @staticmethod decorator enables the creation of methods that belong to the class's
+        namespace but do not operate on class or instance data, allowing them to function as
+        independent utility functions.
     """
 
     @staticmethod
     def list_users():
-        """Tüm kullanıcıları listeler ve skorlarını gösterir."""
+        """Lists all users and displays their scores."""
         if not os.path.exists(USERS_FILE):
-            print("Kullanıcı listesi boş.")
+            print("User list is empty.")
             return
 
         users = read_json(USERS_FILE)
-        print("\n=== Kullanıcı Listesi ===")
+        print("\n=== User List ===")
         for user in users:
             if user.get('role', 'user') == 'user':
                 score1 = user.get('score1')
@@ -231,56 +227,56 @@ class User:
                 score_avg = user.get('score_avg')
                 scores_info = ""
                 if score1 is not None:
-                    scores_info += f"Skor 1: {score1:.2f}% "
+                    scores_info += f"Score 1: {score1:.2f}% "
                 else:
-                    scores_info += "Skor 1: - "
+                    scores_info += "Score 1: - "
                 if score2 is not None:
-                    scores_info += f"Skor 2: {score2:.2f}% "
+                    scores_info += f"Score 2: {score2:.2f}% "
                 else:
-                    scores_info += "Skor 2: - "
+                    scores_info += "Score 2: - "
                 if score_avg is not None:
-                    scores_info += f"Ortalama: {score_avg:.2f}%"
+                    scores_info += f"Average: {score_avg:.2f}%"
                 else:
-                    scores_info += "Ortalama: -"
-                print(f"ID: {user['user_id']}, İsim: {user['name']} {user['surname']}, Telefon: {user['phone_number']}, Giriş Sayısı: {user['attempts']}, {scores_info}")
+                    scores_info += "Average: -"
+                print(f"ID: {user['user_id']}, Name: {user['name']} {user['surname']}, Phone: {user['phone_number']}, Login Attempts: {user['attempts']}, {scores_info}")
 
 
     @staticmethod
     def delete_user(user_id):
-        """Belirtilen ID'ye sahip kullanıcıyı siler."""
+        """Deletes the user with the specified ID."""
         if not os.path.exists(USERS_FILE):
-            print("Kullanıcı dosyası bulunamadı.")
+            print("User file not found.")
             return
 
         users = read_json(USERS_FILE)
         users = [user for user in users if user['user_id'] != user_id]
         """
-        # Yeni bir liste tanımlanır
+        # A new list is defined
         filtered_users = []
 
-        # Mevcut users listesinde döngü başlatılır
+        # Start a loop through the existing users list
         for user in users:
-        # Eğer user_id 2'ye eşit değilse, kullanıcı filtered_users listesine eklenir
+        # If user_id is not equal to 2, add the user to the filtered_users list
             if user['user_id'] != 2:
                 filtered_users.append(user)
 
-        # filtered_users listesi, orijinal users listesi ile güncellenir
+        # The filtered_users list is updated with the original users list
         users = filtered_users
         """
         write_json(users, USERS_FILE)
-        print(f"Kullanıcı ID {user_id} silindi.")
+        print(f"User ID {user_id} has been deleted.")
 
     @staticmethod
     def update_user(user_id, updated_data):
         """
-        Belirtilen ID'ye sahip kullanıcıyı günceller.
+        Updates the user with the specified ID.
 
         Args:
-            user_id (int): Güncellenecek kullanıcı ID'si.
-            updated_data (dict): Güncellenecek veri.
+            user_id (int): The ID of the user to update.
+            updated_data (dict): The data to update.
         """
         if not os.path.exists(USERS_FILE):
-            print("Kullanıcı dosyası bulunamadı.")
+            print("User file not found.")
             return
 
         users = read_json(USERS_FILE)
@@ -288,35 +284,35 @@ class User:
             if user['user_id'] == user_id and user.get('role', 'user') == 'user':
                 user.update(updated_data)
                 write_json(users, USERS_FILE)
-                print(f"Kullanıcı ID {user_id} güncellendi.")
+                print(f"User ID {user_id} has been updated.")
                 return
 
-        print(f"Kullanıcı ID {user_id} bulunamadı.")
+        print(f"User ID {user_id} not found.")
 
 
     @staticmethod
     def register():
-        """Yeni bir kullanıcı kaydı oluşturur."""
-        print("\n=== Kullanıcı Kayıt ===")
-        username = input("Kullanıcı Adı: ").strip()
-        password = input("Şifre: ").strip()
-        name = input("Adınız: ").strip()
-        surname = input("Soyadınız: ").strip()
-        phone_number = input("Telefon Numaranız: ").strip()
+        """Creates a new user registration."""
+        print("\n=== User Registration ===")
+        username = input("Username: ").strip()
+        password = input("Password: ").strip()
+        name = input("Your Name: ").strip()
+        surname = input("Your Surname: ").strip()
+        phone_number = input("Your Phone Number: ").strip()
 
-        # Kullanıcı adı kontrolü
+        # Check if the username is already taken
         users = []
         if os.path.exists(USERS_FILE):
             users = read_json(USERS_FILE)
             for user in users:
                 if user['username'] == username:
-                    print("Bu kullanıcı adı zaten alınmış. Lütfen başka bir kullanıcı adı seçin.")
+                    print("This username is already taken. Please choose another username.")
                     return None
 
-        # Şifre hashleme
+        # Hash the password
         hashed_password = bcrypt.hashpw(password.encode('utf-8'), bcrypt.gensalt()).decode('utf-8')
 
-        # Yeni kullanıcı oluştur
+        # Create a new user
         new_user = User(
             user_id=get_next_user_id(),
             username=username,
@@ -327,30 +323,30 @@ class User:
             role='user'
         )
 
-        # Kullanıcıyı kaydet
+        # Save the user
         new_user.save_user()
-        print(f"Kayıt başarılı! Hoş geldiniz, {name} {surname}!")
+        print(f"Registration successful! Welcome, {name} {surname}!")
         return new_user
 
     @staticmethod
     def login():
-        """Kullanıcı girişi yapar."""
-        print("\n=== Kullanıcı Girişi ===")
-        username = input("Kullanıcı Adı: ").strip()
-        password = input("Şifre: ").strip()
+        """Logs in a user."""
+        print("\n=== User Login ===")
+        username = input("Username: ").strip()
+        password = input("Password: ").strip()
 
         users = []
         if os.path.exists(USERS_FILE):
             users = read_json(USERS_FILE)
         else:
-            print("Kullanıcı veritabanı bulunamadı.")
+            print("User database not found.")
             return None
 
         for user_data in users:
             if user_data['username'] == username:
-                # Şifreyi kontrol et
+                # Check the password
                 if bcrypt.checkpw(password.encode('utf-8'), user_data['password'].encode('utf-8')):
-                    # Kullanıcı nesnesini oluştur ve döndür
+                    # Create and return the user object
                     return User(
                         user_id=user_data['user_id'],
                         username=user_data['username'],
@@ -366,7 +362,7 @@ class User:
                         score_avg=user_data.get('score_avg')
                     )
                 else:
-                    print("Şifre yanlış.")
+                    print("Incorrect password.")
                     return None
-        print("Kullanıcı bulunamadı.")
+        print("User not found.")
         return None

@@ -2,35 +2,35 @@
   {
     "id": 5,
     "section": 2,
-    "question": "Türkiye'nin başkenti İstanbul'dur.",
+    "question": "The capital of Turkey is Istanbul.",
     "points": 5,
     "type": "true_false"
   },
   {
     "id": 6,
     "section": 2,
-    "question": "Dünya'nın en uzun nehri Nil Nehri'dir.",
+    "question": "The longest river in the world is the Nile River.",
     "points": 5,
     "type": "true_false"
   },
   {
     "id": 7,
     "section": 2,
-    "question": "Dünya'nın en büyük okyanusu Pasifik Okyanusu'dur.",
+    "question": "The largest ocean in the world is the Pacific Ocean.",
     "points": 5,
     "type": "true_false"
   },
   {
     "id": 8,
     "section": 2,
-    "question": "Ay, Dünya'nın uydusudur.",
+    "question": "The Moon is Earth's satellite.",
     "points": 5,
     "type": "true_false"
   },
   {
     "id": 1003,
     "section": 2,
-    "question": "UNESCO Dünya Mirası Listesi'nde yer alan Pamukkale hangi ilimizdedir?",
+    "question": "Which province is Pamukkale, listed in the UNESCO World Heritage Sites, located in?",
     "options": ["Denizli", "Antalya", "Muğla", "İzmir"],
     "points": 5,
     "type": "single_choice"
@@ -38,31 +38,31 @@
   {
     "id": 1004,
     "section": 2,
-    "question": "Hangisi bir Afrika ülkesidir?",
-    "options": ["Brezilya", "Mısır", "İtalya", "Japonya"],
+    "question": "Which of the following is an African country?",
+    "options": ["Brazil", "Egypt", "Italy", "Japan"],
     "points": 5,
     "type": "single_choice"
   },
   {
     "id": 1005,
     "section": 2,
-    "question": "Hangisi bir İskandinav ülkesidir?",
-    "options": ["Norveç", "İspanya", "Almanya", "Yunanistan"],
+    "question": "Which of the following is a Scandinavian country?",
+    "options": ["Norway", "Spain", "Germany", "Greece"],
     "points": 5,
     "type": "single_choice"
   },
   {
     "id": 2003,
     "section": 2,
-    "question": "Aşağıdaki şehirlerden hangileri Avrupa kıtasındadır?",
-    "options": ["Paris", "Londra", "Tokyo", "Berlin", "Moskova"],
+    "question": "Which of the following cities are located on the European continent?",
+    "options": ["Paris", "London", "Tokyo", "Berlin", "Moscow"],
     "points": 10,
     "type": "multiple_choice"
   },
   {
     "id": 2004,
     "section": 2,
-    "question": "Hangileri Nobel Ödülü kazanmış bilim insanlarıdır?",
+    "question": "Which of the following are Nobel Prize-winning scientists?",
     "options": ["Marie Curie", "Albert Einstein", "Isaac Newton", "Thomas Edison"],
     "points": 10,
     "type": "multiple_choice"
@@ -70,8 +70,8 @@
   {
     "id": 2005,
     "section": 2,
-    "question": "Aşağıdaki dillerden hangileri Birleşmiş Milletler'in resmi dillerindendir?",
-    "options": ["İngilizce", "Fransızca", "Almanca", "Çince", "Arapça"],
+    "question": "Which of the following languages are official languages of the United Nations?",
+    "options": ["English", "French", "German", "Chinese", "Arabic"],
     "points": 10,
     "type": "multiple_choice"
   }

@@ -1,67 +1,66 @@
 # encryption.py
 
 """
-Şifreleme ve çözme işlemleri için kullanılan modüller.
+Modules used for encryption and decryption processes.
 
-Modüller:
-    - Crypto.Cipher (AES): AES (Advanced Encryption Standard) algoritmasını kullanarak
-      veriyi şifrelemek ve çözmek için kullanılır. AES, 16, 24 veya 32 bayt uzunluğunda
-      anahtarlarla güvenli veri şifreleme sağlar.
-
-    - base64: Şifrelenmiş ikili veriyi ASCII formatına dönüştürmek ve geri almak için
-      kullanılır. Bu sayede şifrelenmiş veri, metin tabanlı formatlarda güvenli bir şekilde
-      taşınabilir hale gelir.
+Modules:
+    - Crypto.Cipher (AES): Used to encrypt and decrypt data using the AES (Advanced Encryption Standard) algorithm.
+      AES provides secure data encryption with keys of 16, 24, or 32 bytes in length.
+    
+    - base64: Used to convert encrypted binary data to ASCII format and back.
+      This ensures that the encrypted data can be safely transported in text-based formats.
 """
 from Crypto.Cipher import AES
 import base64
 
-key = b'16_byte_key_here'  # 16 bayt uzunluğunda bir anahtar
-iv = b'16_byte_iv_here '   # 16 bayt uzunluğunda bir IV
+key = b'16_byte_key_here'  # A 16-byte key
+iv = b'16_byte_iv_here '   # A 16-byte IV
 
 def pad(s):
     """
-    Veriyi AES şifreleme için 16 baytlık bloklara tamamlayacak şekilde doldurur.
+    Pads the data to complete 16-byte blocks for AES encryption.
 
-    AES algoritması, 16 baytlık (128-bit) bloklar halinde veri işlediği için verinin
-    uzunluğu 16'nın katı olmalıdır. Bu işlev, girilen veriyi 16'nın katlarına 
-    tamamlamak için eksik baytları doldurur. Eklenen her dolgu karakterinin sayısı,
-    eklenmesi gereken bayt miktarını temsil eder.
+    Since the AES algorithm processes data in 16-byte (128-bit) blocks, the length of the data
+    must be a multiple of 16. This function pads the input data with the necessary number of bytes
+    to reach the next multiple of 16. Each padding character added represents the number of bytes
+    that were added as padding.
 
     Args:
-        s (str): 16 bayt uzunluğunda olmayan düz metin.
+        s (str): Plain text that is not a multiple of 16 bytes in length.
 
     Returns:
-        str: Verinin sonunda dolgu karakterleri ile 16'nın katlarına tamamlanmış hali.
+        str: The input data padded with padding characters at the end to make its length a multiple of 16.
 
-    Örnek:
-        "hello" metni 16 baytlık bir bloğu doldurmak için ek karakterlere ihtiyaç
-        duyduğunda, bu işlev veriyi `"hello\x03\x03\x03"` olarak döndürür.
-        Burada "\x03", 3 baytlık dolgu yapıldığını gösterir.
+    Example:
+        When the text "hello" needs additional characters to fill a 16-byte block, this function
+        returns the data as `"hello\x0b\x0b\x0b\x0b\x0b\x0b\x0b\x0b\x0b\x0b\x0b"`.
+
+        Here, "\x0b" indicates that 11 bytes of padding were added.
     """
     padding_length = 16 - (len(s.encode('utf-8')) % 16)
-    padding = chr(padding_length) * padding_length # eksik kalan sayının ASCII degerini alır ve verinin sonuna ascii değeri kadar ekler
+    padding = chr(padding_length) * padding_length  # Takes the ASCII value of the missing number and appends that many to the end of the data
     return s + padding
 
 def unpad(s):
-    """Doldurulmuş veriyi orijinal haline getirir."""
+    """Removes padding from the padded data to restore it to its original form."""
     padding_length = ord(s[-1])
     return s[:-padding_length]
 
 def encrypt(data):
-    """Veriyi AES ile şifreler."""
+    """Encrypts data using AES."""
     data = pad(data)
     cipher = AES.new(key, AES.MODE_CBC, iv)
     
-    #Bu kısımda, encrypted_bytes doğrudan döndürülmüyor çünkü 
-    #şifrelenmiş veriyi base64 formatına çevirip bir metin olarak 
-    # döndürmek istiyoruz. encrypted_bytes ikili (binary) bir veri 
-    # formatında olduğu için, bu veriyi metin formatına çevirmeden 
-    # doğrudan döndürmek kullanım açısından zor olabilir.
-    encrypted_bytes = cipher.encrypt(data.encode('utf-8')) #binary veri
-    return base64.b64encode(encrypted_bytes).decode('utf-8') #base64 veri	
+    # In this part, encrypted_bytes are not returned directly because
+    # we want to convert the encrypted binary data to base64 format and
+    # return it as text. Since encrypted_bytes is in binary format,
+    # returning it directly without converting to text format
+    # can be difficult to use.
+    encrypted_bytes = cipher.encrypt(data.encode('utf-8'))  # binary data
+    return base64.b64encode(encrypted_bytes).decode('utf-8')  # base64 data
 
 def decrypt(data):
-    """Şifrelenmiş veriyi AES ile çözer."""
+    """Decrypts encrypted data using AES."""
     encrypted_bytes = base64.b64decode(data)
     cipher = AES.new(key, AES.MODE_CBC, iv)
     decrypted_bytes = cipher.decrypt(encrypted_bytes)
