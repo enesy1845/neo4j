@@ -1,5 +1,5 @@
 # src/question.py
-
+from inputhandler import InputHandler
 import os
 import uuid
 from utils import read_json, write_json
@@ -18,6 +18,7 @@ class QuestionManager:
 
     def add_question(self):
         """Yeni bir soru ekler."""
+<<<<<<< HEAD
         print("\n=== Yeni Soru Ekle ===")
         question_type = input("Soru tipi (true_false, single_choice, multiple_choice): ").strip().lower()
         if question_type not in ['true_false', 'single_choice', 'multiple_choice']:
@@ -32,27 +33,37 @@ class QuestionManager:
         except ValueError:
             print("Geçersiz bölüm numarası. Lütfen 1 ile 4 arasında bir sayı giriniz.")
             return
+=======
+        question_type = ['true_false', 'single_choice', 'multiple_choice']
+        print("\n=== Yeni Soru Ekle === \nSoru tipi (1-true_false, 2-single_choice, 3-multiple_choice): ")
+        allowed_characters = '123'
+        input_handler = InputHandler(allowed_characters)
+        question_typenummer = input_handler.get_input()
+        question_type = question_type[int(question_typenummer)-1]
+>>>>>>> Bilal
 
+        allowed_characters = '1234'
+        input_handler = InputHandler(allowed_characters)
+        print("\nBölüm numarası (1-4): ")
+        section= int(input_handler.get_input())
         question_text = input("Soru metni: ").strip()
-        points_input = input("Soru puanı: ").strip()
-        try:
-            points = float(points_input)
-            if points <= 0:
-                raise ValueError
-        except ValueError:
-            print("Geçersiz puan. Lütfen pozitif bir sayı giriniz.")
-            return
-
+        allowed_characters = '1234567890'
+        input_handler = InputHandler(allowed_characters)
+        points =  int(input_handler.get_input())
+    
         if question_type == 'true_false':
             options = ["Doğru", "Yanlış"]
         else:
-            options_input = input("Seçenekleri virgülle ayırarak girin: ").strip()
+            allowed_characters = 'abcdefghijklmnopqrstuvwxyz0123456789!@#$%^&*()'
+            input_handler = InputHandler(allowed_characters)
+            options_input = input_handler.get_input()
             options = [opt.strip() for opt in options_input.split(',')]
             if len(options) < 2:
                 print("En az iki seçenek girmeniz gerekmektedir.")
                 return
-
-        correct_answer_input = input("Doğru cevap(lar) (birden fazla ise virgülle ayırın): ").strip()
+        allowed_characters = 'abcdefghijklmnopqrstuvwxyz0123456789!@#$%^&*()'
+        input_handler = InputHandler(allowed_characters)
+        correct_answer_input = input_handler.get_input().strip()
         if question_type == 'multiple_choice':
             correct_answer = [ans.strip() for ans in correct_answer_input.split(',')]
             if not correct_answer:

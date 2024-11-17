@@ -28,11 +28,13 @@ class TestUser(unittest.TestCase):
         os.makedirs(os.path.dirname(USERS_FILE), exist_ok=True)
         # Write test user data to USERS_FILE
         write_json([self.test_user_data], USERS_FILE)
+        print(f"Test user data written to {USERS_FILE}")
 
     def tearDown(self):
         # Remove USERS_FILE after each test
         if os.path.exists(USERS_FILE):
             os.remove(USERS_FILE)
+            print(f"Test user data removed from {USERS_FILE}")
 
     def test_load_user(self):
         # Initialize a User instance with matching attributes
@@ -57,6 +59,7 @@ class TestUser(unittest.TestCase):
         # Update the attempts to exceed the limit and recheck
         user.attempts = 2
         self.assertFalse(user.can_attempt_exam())
+        print(f"User can attempt the exam: {user.can_attempt_exam()}")
 
     def test_increment_attempts(self):
         # Initialize a User instance and set user_id and attempts
@@ -73,6 +76,7 @@ class TestUser(unittest.TestCase):
         # Reload the user data to verify changes
         updated_user = user.load_user()
         self.assertEqual(updated_user['attempts'], 2)
+        print(f"User attempts incremented to {updated_user['attempts']}")
 
 if __name__ == '__main__':
     unittest.main()

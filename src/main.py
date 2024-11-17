@@ -3,6 +3,7 @@
 import os
 from user import User
 from exam import Exam
+<<<<<<< HEAD
 from admin import admin_menu, create_initial_admin
 from utils import clear_screen, read_json, USERS_FILE
 
@@ -70,6 +71,34 @@ def user_menu(user):
                 print("Sınava giriş hakkınız kalmamıştır. İyi günler!")
                 input("Devam etmek için Enter tuşuna basın...")
                 continue
+=======
+from utils import clear_screen
+from inputhandler import InputHandler
+
+def main():
+    clear_screen()
+    print("=== Çok Bölümlü Zaman Sınırlı Sınav Uygulaması ===\n")
+    
+    # Giriş tipi seçimi
+    print("Giriş tipini seçiniz:")
+    print("1. Kullanıcı Girişi")
+    print("2. Admin Girişi")
+    allowed_characters = '12'
+    input_handler = InputHandler(allowed_characters)
+    choice = input_handler.get_input()
+    
+    if choice == '1':
+        # Kullanıcı girişi ve kontrolü
+        user = User()
+        user.get_user_info()
+        
+        if not user.can_attempt_exam():
+            print("Sınava giriş hakkınız kalmamıştır. İyi günler!")
+            return
+        
+        # Sınavı başlat
+        try:
+>>>>>>> Bilal
             exam = Exam(user)
             exam.start_exam()
         elif choice == '2':

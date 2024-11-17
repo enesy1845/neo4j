@@ -24,6 +24,28 @@ class TestEncryption(unittest.TestCase):
         encrypted2 = encrypt(text2)
         self.assertNotEqual(encrypted1, encrypted2)
 
+    def test_encrypt_empty_string(self):
+        """Boş bir metni şifreleyip çözer ve orijinalin boş olduğunu doğrular."""
+        original_text = ''
+        encrypted_text = encrypt(original_text)
+        decrypted_text = decrypt(encrypted_text)
+        self.assertEqual(original_text, decrypted_text)
+
+    def test_encrypt_long_text(self):
+        """Uzun bir metni şifreleyip çözer ve orijinal metne ulaşıldığını doğrular."""
+        original_text = 'A' * 1000  # 1000 karakterlik uzun bir metin
+        encrypted_text = encrypt(original_text)
+        decrypted_text = decrypt(encrypted_text)
+        self.assertEqual(original_text, decrypted_text)
+
+    def test_encrypt_consistent_output(self):
+        """Aynı metin farklı zamanlarda şifrelendiğinde aynı sonucu döndürmez (CBC moduyla IV nedeniyle)."""
+        text = 'Tekrar şifrelenmiş bir metin'
+        encrypted1 = encrypt(text)
+        encrypted2 = encrypt(text)
+        self.assertNotEqual(encrypted1, encrypted2)
+
+    
     # Diğer test metotlarını ekleyebilirsiniz
 
 if __name__ == '__main__':
