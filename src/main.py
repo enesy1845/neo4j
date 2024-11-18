@@ -72,6 +72,7 @@ def user_menu(user):
                 continue
             exam = Exam(user)
             exam.start_exam()
+            input("\nSınav tamamlandı. Sonuçları gördükten sonra devam etmek için Enter tuşuna basın...")
         elif choice == '2':
             user.view_results()
             input("Press Enter to continue...")

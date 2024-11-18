@@ -36,7 +36,7 @@ class Result:
             correct_answer = self.correct_answers.get(qid)
             question_info = self.get_question_info(qid, all_questions)
             if not question_info:
-                print(f"Question ID {qid} information not found.")
+                #print(f"Question ID {qid} information not found.")
                 continue
             if correct_answer is None:
                 print(f"Error: No correct answer found for Question ID {qid}.")
