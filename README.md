@@ -10,7 +10,7 @@
 - [Installation and Setup](#installation-and-setup)
   - [1. Requirements](#1-requirements)
   - [2. Cloning the Project](#2-cloning-the-project)
-  - [3. Creating the Conda Environment](#3-creating-the-conda-environment)
+  - [3. Setting Up the Conda Environment](#3-setting-up-the-conda-environment)
   - [4. Installing Required Packages](#4-installing-required-packages)
   - [5. Creating the First Admin Account](#5-creating-the-first-admin-account)
   - [6. Running the Application](#6-running-the-application)
@@ -62,6 +62,7 @@ MultiPartQuizApp/
 ├── .gitignore
 ├── LICENSE
 ├── requirements.txt          # Required Python packages
+├── environment.yml           # Conda environment configuration
 └── README.md                 # Project documentation
 ```
 
@@ -142,18 +143,18 @@ Open your terminal or command prompt and follow these steps:
    cd MultiPartQuizApp
    ```
 
-### **3. Creating the Conda Environment**
+### **3. Setting Up the Conda Environment**
 
 Virtual environments are used to isolate project dependencies.
 
-1. **Create the Conda Environment:**
+1. **Create the Conda Environment Using `environment.yml`:**
 
    ```bash
-   conda create -n quiz_app_env python=3.9
+   conda env create -f environment.yml
    ```
 
-   - `quiz_app_env` is the name of the environment; you can change it if desired.
-   - `python=3.9` specifies the Python version you want to use.
+   - **Explanation:**
+     - This command creates a new Conda environment based on the specifications in the `environment.yml` file, including Python version and required packages.
 
 2. **Activate the Environment:**
 
@@ -161,9 +162,11 @@ Virtual environments are used to isolate project dependencies.
    conda activate quiz_app_env
    ```
 
-   - If the environment is activated successfully, you will see `(quiz_app_env)` at the beginning of your terminal prompt.
+   - **Note:** If the environment name is different in your `environment.yml`, use the corresponding name.
 
 ### **4. Installing Required Packages**
+
+Pip packages are managed separately to handle dependencies not available through Conda.
 
 1. **Upgrade pip:**
 
@@ -213,7 +216,7 @@ When running the program for the first time, if there is no admin user in the sy
 1. **Start the Main Program:**
 
    ```bash
-   python main.py
+   python src/main.py
    ```
 
 2. **Log In or Register:**
@@ -295,36 +298,119 @@ This project is licensed under the MIT License. See the [LICENSE](LICENSE) file 
 
 ## Troubleshooting
 
-- **Conda Commands Not Recognized:**
+### **1. Conda Commands Not Recognized**
 
-  - Ensure that Miniconda or Anaconda is added to your system PATH variable.
-  - During installation, check the option to 'Add Anaconda3 to my PATH environment variable'.
-  - Restart your terminal or PowerShell.
+- **Ensure Conda is Added to PATH:**
+  - During installation, check the option to 'Add Anaconda to my PATH environment variable'.
+- **Initialize Conda for Your Shell:**
+  ```bash
+  conda init
+  ```
+- **Restart Your Terminal or PowerShell.**
 
-- **Module Not Found Errors:**
+### **2. Module Not Found Errors**
 
-  - Ensure that all required packages are installed:
+- **Ensure All Required Packages are Installed:**
+  ```bash
+  pip install -r requirements.txt
+  ```
 
-    ```bash
-    pip install -r requirements.txt
-    ```
+### **3. Virtual Environment Activation Issues**
 
-- **Virtual Environment Activation Issues:**
+- **Run `conda init` Before Activating the Environment and Restart Your Terminal:**
+  ```bash
+  conda init
+  ```
+- **Set Execution Policy in PowerShell:**
+  ```powershell
+  Set-ExecutionPolicy -ExecutionPolicy RemoteSigned -Scope CurrentUser
+  ```
+  - **Explanation:**
+    - This allows PowerShell to execute scripts necessary for Conda.
 
-  - Run `conda init` before activating the environment and restart your terminal:
+### **4. PowerShell Profile File Not Found**
 
-    ```bash
-    conda init
-    ```
+If you encounter issues related to the Conda initialization in PowerShell, follow these steps:
 
-- **Python Files Not Found:**
+1. **Check if the Profile Exists:**
 
-  - Ensure you are in the correct directory when running the application.
-  - Verify that the `main.py` file exists.
+   ```powershell
+   Test-Path $PROFILE
+   ```
 
-- **Permission Errors:**
+   - **Output:**
+     - `True`: Profile exists.
+     - `False`: Profile does not exist.
 
-  - If encountering issues accessing certain files or directories, check file permissions.
+2. **Create the Profile if It Does Not Exist:**
+
+   ```powershell
+   New-Item -Type File -Path $PROFILE -Force
+   ```
+
+3. **Initialize Conda for PowerShell:**
+
+   ```powershell
+   conda init powershell
+   ```
+
+4. **Set Execution Policy:**
+
+   ```powershell
+   Set-ExecutionPolicy -ExecutionPolicy RemoteSigned -Scope CurrentUser
+   ```
+
+   - **Note:** Confirm the change by typing `Y` when prompted.
+
+5. **Restart PowerShell or Your Terminal.**
+
+### **5. Prefix Already Exists Error**
+
+If you encounter the following error:
+
+```
+CondaValueError: prefix already exists: C:\Users\yilma\Miniconda3\envs\quiz_app_env
+```
+
+- **Solution: Remove the Existing Environment and Recreate It:**
+  ```powershell
+  conda remove --name quiz_app_env --all
+  conda env create -f environment.yml
+  ```
+
+### **6. Conda Initialization Issues**
+
+If `conda activate` still doesn't work after following the above steps:
+
+- **Ensure Your `environment.yml` is Correct:**
+
+  - Remove the `prefix` line if present.
+  - Use a supported Python version (e.g., `python=3.10`).
+
+- **Sample `environment.yml`:**
+
+  ```yaml
+  name: quiz_app_env
+  channels:
+    - defaults
+    - conda-forge
+  dependencies:
+    - python=3.10
+    - pip
+    - pip:
+        - -r requirements.txt
+  ```
+
+- **Recreate the Environment:**
+  ```powershell
+  conda env create -f environment.yml
+  ```
+
+### **7. General Tips**
+
+- **Ensure You Are in the Correct Directory When Running Commands.**
+- **Verify the `environment.yml` File is Properly Formatted.**
+- **Check for Typos in Commands and File Paths.**
 
 ---
 
@@ -346,15 +432,14 @@ For feedback or contributions related to the project, please reach out via GitHu
 
 **Important Note:**
 
-- **.env File No Longer Used:**
+- **`.env` File No Longer Used:**
 
   - The previously used `.env` file and related code have been removed.
   - Encryption processes and other sensitive information are managed securely within the code or through other secure methods.
 
 - **Summary of Installation Steps:**
-
   1. Clone the project.
-  2. Create and activate the Conda environment.
+  2. Create and activate the Conda environment using `environment.yml`.
   3. Install required packages.
   4. Run the application and create the first admin account.
 
@@ -363,3 +448,44 @@ For feedback or contributions related to the project, please reach out via GitHu
 **Note:** This README file contains all the necessary information to set up and run the project smoothly. If you encounter any issues, refer to the [Troubleshooting](#troubleshooting) section or contact us for support.
 
 ---
+
+## Updated `environment.yml` Example
+
+Ensure your `environment.yml` file in the project root directory (`MultiPartQuizApp/`) looks like the following:
+
+```yaml
+name: quiz_app_env
+channels:
+  - defaults
+  - conda-forge
+dependencies:
+  - python=3.10
+  - pip
+  - pip:
+      - -r requirements.txt
+```
+
+**Notes:**
+
+- **Python Version:** Set to `python=3.10` for stability. Adjust as needed based on project requirements.
+- **Pip Packages:** Listed under `pip` to ensure packages in `requirements.txt` are installed correctly.
+- **Channels:** Includes `defaults` and `conda-forge` for a broader range of packages.
+
+## Using `environment.yml` to Create the Conda Environment
+
+After cloning the project and navigating to the project directory, run the following commands to set up your Conda environment:
+
+```bash
+conda env create -f environment.yml
+conda activate quiz_app_env
+```
+
+These steps will create the Conda environment as specified in the `environment.yml` file and activate it for use.
+
+---
+
+If you follow all these steps and still encounter issues, please provide detailed error messages and context so that further assistance can be provided.
+
+---
+
+**Happy Coding!**
