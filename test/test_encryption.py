@@ -12,7 +12,7 @@ from encryption import encrypt, decrypt
 class TestEncryption(unittest.TestCase):
 
     def test_encrypt_decrypt(self):
-        original_text = 'Bu bir test mesajıdır. Türkçe karakterler içerir: ğüşiöç'
+        original_text = 'Bu bir test mesajıdır. Türkçe karakterler içerir: şğüşiöç'
         encrypted_text = encrypt(original_text)
         decrypted_text = decrypt(encrypted_text)
         self.assertEqual(original_text, decrypted_text)
