@@ -1,0 +1,78 @@
+[
+  {
+    "id": 1,
+    "section": 1,
+    "question": "The number 4 is a prime number.",
+    "points": 5,
+    "type": "true_false"
+  },
+  {
+    "id": 2,
+    "section": 1,
+    "question": "The number 0 is a natural number.",
+    "points": 5,
+    "type": "true_false"
+  },
+  {
+    "id": 3,
+    "section": 1,
+    "question": "All sides of an equilateral triangle are equal.",
+    "points": 5,
+    "type": "true_false"
+  },
+  {
+    "id": 4,
+    "section": 1,
+    "question": "Opposite sides of a rectangle are equal.",
+    "points": 5,
+    "type": "true_false"
+  },
+  {
+    "id": 1000,
+    "section": 1,
+    "question": "What is the square of 3?",
+    "options": ["6", "9", "12", "15"],
+    "points": 5,
+    "type": "single_choice"
+  },
+  {
+    "id": 1001,
+    "section": 1,
+    "question": "What is the approximate value of Pi?",
+    "options": ["2.14", "3.14", "4.14", "5.14"],
+    "points": 5,
+    "type": "single_choice"
+  },
+  {
+    "id": 1002,
+    "section": 1,
+    "question": "What is the result of 5 x 6?",
+    "options": ["30", "35", "25", "40"],
+    "points": 5,
+    "type": "single_choice"
+  },
+  {
+    "id": 2000,
+    "section": 1,
+    "question": "Which of the following numbers are even?",
+    "options": ["1", "2", "3", "4", "5"],
+    "points": 10,
+    "type": "multiple_choice"
+  },
+  {
+    "id": 2001,
+    "section": 1,
+    "question": "Which of the following statements represent the sum of the interior angles of a triangle?",
+    "options": ["180 degrees", "90 degrees", "360 degrees", "270 degrees"],
+    "points": 10,
+    "type": "multiple_choice"
+  },
+  {
+    "id": 2002,
+    "section": 1,
+    "question": "Which of the following operations result in 8?",
+    "options": ["4 + 4", "2 x 4", "16 / 2", "10 - 2"],
+    "points": 10,
+    "type": "multiple_choice"
+  }
+]

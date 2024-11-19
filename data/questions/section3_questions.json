@@ -1,0 +1,78 @@
+[
+  {
+    "id": 9,
+    "section": 3,
+    "question": "The English word 'Apple' translates to 'armut' in Turkish.",
+    "points": 5,
+    "type": "true_false"
+  },
+  {
+    "id": 10,
+    "section": 3,
+    "question": "The sentence 'He is running' is in the present tense.",
+    "points": 5,
+    "type": "true_false"
+  },
+  {
+    "id": 11,
+    "section": 3,
+    "question": "'Blue' is a color name.",
+    "points": 5,
+    "type": "true_false"
+  },
+  {
+    "id": 12,
+    "section": 3,
+    "question": "The sentence 'They are students' indicates a plural expression.",
+    "points": 5,
+    "type": "true_false"
+  },
+  {
+    "id": 1006,
+    "section": 3,
+    "question": "What is the opposite of the word 'Beautiful'?",
+    "options": ["Ugly", "Pretty", "Smart", "Happy"],
+    "points": 5,
+    "type": "single_choice"
+  },
+  {
+    "id": 1007,
+    "section": 3,
+    "question": "Fill in the blank: 'I ___ to school every day.'",
+    "options": ["go", "goes", "went", "gone"],
+    "points": 5,
+    "type": "single_choice"
+  },
+  {
+    "id": 1008,
+    "section": 3,
+    "question": "What is the Turkish translation of the word 'Cat'?",
+    "options": ["Köpek", "Kedi", "Kuş", "Balık"],
+    "points": 5,
+    "type": "single_choice"
+  },
+  {
+    "id": 2006,
+    "section": 3,
+    "question": "Which of the following are pronouns in English?",
+    "options": ["He", "She", "It", "And", "But"],
+    "points": 10,
+    "type": "multiple_choice"
+  },
+  {
+    "id": 2007,
+    "section": 3,
+    "question": "Which of the following words represent sensory organs?",
+    "options": ["Eye", "Ear", "Hand", "Foot", "Nose"],
+    "points": 10,
+    "type": "multiple_choice"
+  },
+  {
+    "id": 2008,
+    "section": 3,
+    "question": "Which of the following verbs are irregular verbs?",
+    "options": ["Go", "Eat", "Walk", "Play", "Run"],
+    "points": 10,
+    "type": "multiple_choice"
+  }
+]

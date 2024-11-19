@@ -2,188 +2,208 @@
 
 import os
 import bcrypt
+from utils import read_json, write_json, USERS_FILE, get_next_user_id
 from user import User
-from utils import read_json, write_json, clear_screen
+from question import QuestionManager
+from utils import clear_screen
+from exam import Exam  # Imported the Exam class
 
-ADMINS_FILE = 'data/admins/admins.json'
+def create_initial_admin():
+    """Creates the first admin account in the system and saves it to the USERS_FILE."""
+    print("=== Creating First Admin ===")
+    username = input("Username for the first admin: ").strip()
+    password = input("Password: ").strip()
+    name = input("Your Name: ").strip()
+    surname = input("Your Surname: ").strip()
+    phone_number = input("Your Phone Number: ").strip()
 
-class Admin:
-    def __init__(self):
-        self.admin_id = None
-        self.username = ''
-        self.password = ''
-        self.name = ''
-        self.surname = ''
-        self.phone_number = ''
-        self.role = 'admin'
+    # Hash the password
+    hashed_password = bcrypt.hashpw(password.encode('utf-8'), bcrypt.gensalt()).decode('utf-8')
 
-    def get_admin_info(self):
-        """Admin bilgilerini alır ve doğrular."""
-        try:
-            print("Lütfen admin girişi için bilgilerinizi giriniz.\n")
-            self.username = input("Kullanıcı Adı: ").strip()
-            password_input = input("Şifre: ").strip()
-            
-            # Admini yükle ve doğrula
-            existing_admin = self.load_admin()
-            if existing_admin:
-                self.admin_id = existing_admin['admin_id']
-                self.name = existing_admin['name']
-                self.surname = existing_admin['surname']
-                self.phone_number = existing_admin['phone_number']
-                stored_password = existing_admin['password']  # Hashlenmiş şifre
+    # Create new admin
+    admin = {
+        'user_id': get_next_user_id(),
+        'username': username,
+        'password': hashed_password,
+        'name': name,
+        'surname': surname,
+        'phone_number': phone_number,
+        'role': 'admin',
+        'attempts': 0,
+        'last_attempt_date': '',
+        'score1': None,
+        'score2': None,
+        'score_avg': None
+    }
 
-                # Şifreyi doğrula
-                if bcrypt.checkpw(password_input.encode('utf-8'), stored_password.encode('utf-8')):
-                    print(f"Hoş geldiniz, Admin {self.name} {self.surname}!")
-                else:
-                    print("Hatalı şifre. Giriş başarısız.")
-                    exit()
-            else:
-                print("Admin bulunamadı. Giriş başarısız.")
-                exit()
-        except Exception as e:
-            print(f"Hata oluştu: {e}")
-            input("Devam etmek için Enter tuşuna basın...")
-            self.get_admin_info()
+    # Save admin
+    users = []
+    if os.path.exists(USERS_FILE):
+        users = read_json(USERS_FILE)
+    users.append(admin)
+    write_json(users, USERS_FILE)
+    print(f"First admin '{username}' has been created.")
 
-    def load_admin(self):
-        """Admin bilgilerini admins.json dosyasından yükler."""
-        if not os.path.exists(ADMINS_FILE):
-            return None
-        admins = read_json(ADMINS_FILE)
-        for admin in admins:
-            if admin['username'] == self.username:
-                return admin
-        return None
+    # Return the created admin user
+    return User(
+        user_id=admin['user_id'],
+        username=admin['username'],
+        password=admin['password'],
+        name=admin['name'],
+        surname=admin['surname'],
+        phone_number=admin['phone_number'],
+        role='admin',
+        attempts=admin['attempts'],
+        last_attempt_date=admin['last_attempt_date'],
+        score1=admin['score1'],
+        score2=admin['score2'],
+        score_avg=admin['score_avg']
+    )
 
-    def save_admin(self):
-        """Admin bilgilerini admins.json dosyasına kaydeder."""
-        admins = []
-        if os.path.exists(ADMINS_FILE):
-            admins = read_json(ADMINS_FILE)
-        # Admin zaten varsa güncelle
-        for i, admin in enumerate(admins):
-            if admin['admin_id'] == self.admin_id:
-                admins[i] = self.to_dict()
-                break
+def admin_menu(admin_user):
+    """Admin user menu."""
+    while True:
+        clear_screen()
+        print(f"=== Admin Menu ({admin_user.name} {admin_user.surname}) ===")
+        print("1. Solve Exam")
+        print("2. Admin Panel")
+        print("3. Exit")
+        choice = input("Your choice: ").strip()
+        if choice == '1':
+            # Start the exam
+            exam = Exam(admin_user)
+            exam.start_exam()
+            input("Press Enter to continue...")
+        elif choice == '2':
+            # Show the admin panel
+            admin_panel(admin_user)
+        elif choice == '3':
+            print("Exiting...")
+            break
         else:
-            # Yeni admin ekle
-            admins.append(self.to_dict())
-        write_json(admins, ADMINS_FILE)
+            print("Invalid choice.")
+            input("Press Enter to continue...")
 
-    def get_next_admin_id(self):
-        """Adminler için otomatik ID üretir."""
-        if not os.path.exists(ADMINS_FILE):
-            return 1
-        admins = read_json(ADMINS_FILE)
-        admin_ids = [admin['admin_id'] for admin in admins]
-        if not admin_ids:
-            return 1
-        return max(admin_ids) + 1
-
-    def to_dict(self):
-        """Admin nesnesini sözlük formatına dönüştürür."""
-        return {
-            'admin_id': self.admin_id,
-            'username': self.username,
-            'password': self.password,
-            'name': self.name,
-            'surname': self.surname,
-            'phone_number': self.phone_number,
-            'role': self.role
-        }
-
-    def admin_menu(self):
-        """Admin işlemleri menüsü."""
-        from question import QuestionManager
-        qm = QuestionManager()
-        while True:
-            clear_screen()
-            print("=== Admin Paneli ===")
-            print("1. Soru Ekle")
-            print("2. Soru Güncelle")
-            print("3. Soru Sil")
-            print("4. Soruları Listele")
-            print("5. Kullanıcıları Listele")
-            print("6. Kullanıcı Sil")
-            print("7. Kullanıcı Güncelle")
-            print("8. Yeni Admin Oluştur")
-            print("9. Çıkış")
-            choice = input("Seçiminiz: ").strip()
-            if choice == '1':
-                qm.add_question()
-                input("Devam etmek için Enter tuşuna basın...")
-            elif choice == '2':
-                question_id = int(input("Güncellenecek Soru ID: ").strip())
-                qm.update_question(question_id)
-                input("Devam etmek için Enter tuşuna basın...")
-            elif choice == '3':
-                question_id = int(input("Silinecek Soru ID: ").strip())
-                qm.delete_question(question_id)
-                input("Devam etmek için Enter tuşuna basın...")
-            elif choice == '4':
-                question_type = input("Soru Tipi (true_false, single_choice, multiple_choice): ").strip()
-                qm.list_questions(question_type)
-                input("Devam etmek için Enter tuşuna basın...")
-            elif choice == '5':
-                User.list_users()
-                input("Devam etmek için Enter tuşuna basın...")
-            elif choice == '6':
-                user_id = int(input("Silinecek Kullanıcı ID: ").strip())
+def admin_panel(admin_user):
+    """Admin operations panel."""
+    qm = QuestionManager()
+    while True:
+        clear_screen()
+        print(f"=== Admin Panel ({admin_user.username}) ===")
+        print("1. Add Question")
+        print("2. Update Question")
+        print("3. Delete Question")
+        print("4. List Questions")
+        print("5. List Users")
+        print("6. Delete User")
+        print("7. Update User")
+        print("8. Create New Admin")
+        print("9. Go Back")
+        choice = input("Your choice: ").strip()
+        if choice == '1':
+            qm.add_question()
+            input("Press Enter to continue...")
+        elif choice == '2':
+            question_id = int(input("Question ID to update: ").strip())
+            qm.update_question(question_id)
+            input("Press Enter to continue...")
+        elif choice == '3':
+            question_id = int(input("Question ID to delete: ").strip())
+            qm.delete_question(question_id)
+            input("Press Enter to continue...")
+        elif choice == '4':
+            section_number = input("Which section's questions do you want to list? (1-4, all sections for 0): ").strip()
+            if section_number.isdigit():
+                section_number = int(section_number)
+                qm.list_questions(section_number)
+            else:
+                print("Invalid section number.")
+            input("Press Enter to continue...")
+        elif choice == '5':
+            User.list_users()
+            input("Press Enter to continue...")
+        elif choice == '6':
+            user_id = input("User ID to delete: ").strip()
+            if user_id.isdigit():
+                user_id = int(user_id)
                 User.delete_user(user_id)
-                input("Devam etmek için Enter tuşuna basın...")
-            elif choice == '7':
-                user_id = int(input("Güncellenecek Kullanıcı ID: ").strip())
+            else:
+                print("Invalid user ID.")
+            input("Press Enter to continue...")
+        elif choice == '7':
+            user_id = input("User ID to update: ").strip()
+            if user_id.isdigit():
+                user_id = int(user_id)
                 updated_data = {}
-                new_name = input("Yeni Adı (boş bırakılırsa aynı kalır): ").strip()
+                new_name = input("New Name (leave blank to keep the same): ").strip()
                 if new_name:
                     updated_data['name'] = new_name
-                new_surname = input("Yeni Soyadı (boş bırakılırsa aynı kalır): ").strip()
+                new_surname = input("New Surname (leave blank to keep the same): ").strip()
                 if new_surname:
                     updated_data['surname'] = new_surname
-                new_phone = input("Yeni Telefon Numarası (boş bırakılırsa aynı kalır): ").strip()
+                new_phone = input("New Phone Number (leave blank to keep the same): ").strip()
                 if new_phone:
                     updated_data['phone_number'] = new_phone
                 User.update_user(user_id, updated_data)
-                input("Devam etmek için Enter tuşuna basın...")
-            elif choice == '8':
-                # Yeni Admin Oluşturma
-                self.create_admin()
-                input("Devam etmek için Enter tuşuna basın...")
-            elif choice == '9':
-                print("Çıkış yapılıyor...")
-                break
             else:
-                print("Geçersiz seçim.")
-                input("Devam etmek için Enter tuşuna basın...")
+                print("Invalid user ID.")
+            input("Press Enter to continue...")
+        elif choice == '8':
+            # Create new admin
+            create_admin()
+            input("Press Enter to continue...")
+        elif choice == '9':
+            print("Returning to admin menu...")
+            break
+        else:
+            print("Invalid choice.")
+            input("Press Enter to continue...")
 
-    def create_admin(self):
-        """Yeni bir admin oluşturur, master şifre doğrulaması ile."""
-        print("=== Yeni Admin Oluşturma ===")
-        master_password = input("Master Şifreyi Giriniz: ").strip()
-        if master_password != '123':
-            print("Hatalı master şifre. Yeni admin oluşturma yetkiniz yok.")
-            return
+def create_admin():
+    """Creates a new admin, with master password verification."""
+    print("=== Create New Admin ===")
+    # Use the following method to securely manage the master password
+    master_password = input("Enter Master Password: ").strip()
+    # Retrieve the master password from an environment variable
+    correct_master_password = os.environ.get('MASTER_PASSWORD', 'default_master_password')
+    if master_password != correct_master_password:
+        print("Incorrect master password. You do not have permission to create a new admin.")
+        return
 
-        username = input("Kullanıcı Adı: ").strip()
-        password = input("Şifre: ").strip()
-        name = input("Adınız: ").strip()
-        surname = input("Soyadınız: ").strip()
-        phone_number = input("Telefon Numaranız: ").strip()
+    username = input("Username: ").strip()
+    password = input("Password: ").strip()
+    name = input("Your Name: ").strip()
+    surname = input("Your Surname: ").strip()
+    phone_number = input("Your Phone Number: ").strip()
 
-        # Şifreyi hashleyelim
-        hashed_password = bcrypt.hashpw(password.encode('utf-8'), bcrypt.gensalt())
+    # Check if the username is already taken
+    users = []
+    if os.path.exists(USERS_FILE):
+        users = read_json(USERS_FILE)
+        for user in users:
+            if user['username'] == username:
+                print("This username is already taken. Please choose another username.")
+                return
 
-        # Yeni admin nesnesi oluştur
-        new_admin = Admin()
-        new_admin.admin_id = new_admin.get_next_admin_id()
-        new_admin.username = username
-        new_admin.password = hashed_password.decode('utf-8')
-        new_admin.name = name
-        new_admin.surname = surname
-        new_admin.phone_number = phone_number
+    # Hash the password
+    hashed_password = bcrypt.hashpw(password.encode('utf-8'), bcrypt.gensalt()).decode('utf-8')
 
-        # Admini kaydet
-        new_admin.save_admin()
-        print(f"Admin '{username}' oluşturuldu.")
+    # Create new admin user
+    new_admin = User(
+        user_id=get_next_user_id(),
+        username=username,
+        password=hashed_password,
+        name=name,
+        surname=surname,
+        phone_number=phone_number,
+        role='admin',
+        attempts=0,
+        last_attempt_date='',
+        score1=None,
+        score2=None,
+        score_avg=None
+    )
+
+    # Save the admin
+    new_admin.save_user()
+    print(f"Admin '{username}' has been created.")

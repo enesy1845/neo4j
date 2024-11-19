@@ -7,15 +7,6 @@ ANSWERS_FILE = 'data/answers/answers.json'
 
 class Result:
     def __init__(self, user, user_answers, used_question_ids, total_sections):
-        """
-        Result sınıfı, sınav sonuçlarını hesaplama ve yönetme işlemlerini yapar.
-
-        Args:
-            user (User): Sınava katılan kullanıcı nesnesi.
-            user_answers (dict): Kullanıcının verdiği cevaplar.
-            used_question_ids (list): Kullanılan soru ID'leri.
-            total_sections (int): Sınavdaki toplam bölüm sayısı.
-        """      
         self.user = user
         self.user_answers = user_answers
         self.correct_answers = read_json(ANSWERS_FILE)
@@ -23,22 +14,15 @@ class Result:
         self.total_score = 0
         self.passed = False
         self.used_question_ids = used_question_ids
-        self.total_sections = total_sections        # Toplam bölüm sayısı
-        
+        self.total_sections = total_sections 
+            
     def calculate_results(self):
-        """
-        Sonuçları hesaplar ve kullanıcıya gösterir.
+        print("\n=== Exam Results ===")
         
-        Kullanıcının her bölüme göre doğru cevaplarını değerlendirir, bölüm başarı 
-        yüzdelerini ve toplam başarı yüzdesini hesaplar. Sonuçlar kullanıcının 
-        sınavı geçip geçmediğini belirler.
-        """
-        print("\n=== Sınav Sonuçları ===")
-        
-        # Tüm soru bilgilerini yükle
+        # Load all question information
         all_questions = self.load_all_questions()
 
-        # Bölüm bazında toplam puanları hesapla
+        # Calculate total points per section
         section_total_points = {section: 0 for section in range(1, self.total_sections + 1)}
         for qid in self.used_question_ids:
             question_info = self.get_question_info(qid, all_questions)
@@ -47,18 +31,24 @@ class Result:
                 points = question_info.get('points', 1)
                 section_total_points[section] += points
 
-        # Her soruyu değerlendir ve bölüm puanlarını güncelle
+        # Evaluate each question and update section scores
         for qid, user_answer in self.user_answers.items():
             correct_answer = self.correct_answers.get(qid)
-            question_info = self.get_question_info(int(qid), all_questions)
+            question_info = self.get_question_info(qid, all_questions)
             if not question_info:
-                print(f"Soru ID {qid} bilgisi bulunamadı.")
+                #print(f"Question ID {qid} information not found.")
+                continue
+            if correct_answer is None:
+                print(f"Error: No correct answer found for Question ID {qid}.")
                 continue
             section = question_info['section']
             points = question_info.get('points', 1)
-            max_score_per_question = points  # Her soru için maksimum puan
+            max_score_per_question = points  # Maximum points per question
 
-            # Soru tipi ve seçenek sayısına göre puanlama
+            # Initialize question score to 0
+            question_score = 0
+
+            # Scoring based on question type and number of options
             question_type = question_info['type']
             if question_type == 'multiple_choice':
                 total_options = len(question_info.get('options', []))
@@ -77,124 +67,98 @@ class Result:
 
                 question_score = correct_point + wrong_penalty
 
-                # Soru puanını sınırla
-                question_score = max(question_score, 0)  # Negatif puanları sıfırla
+                # Limit the question score
+                question_score = max(question_score, 0)  # Set negative scores to zero
 
             elif question_type == 'single_choice':
-                total_options = len(question_info.get('options', []))
+                # No penalty for single-choice questions
                 if self.check_answer(user_answer, correct_answer):
-                    question_score = 1 * points  # Doğru cevap için 1 * points puan
+                    question_score = points  # Full points for correct answer
                 else:
-                    wrong_penalty = -1 / (total_options - 1) * points if total_options > 1 else 0
-                    question_score = wrong_penalty
-                    question_score = max(question_score, 0)  # Negatif puanları sıfırla
-            else:  # true_false
-                total_options = 2  # Doğru/Yanlış soruları için 2 seçenek var
-                if self.check_answer(user_answer, correct_answer):
-                    question_score = 1 * points  # Doğru cevap için 1 * points puan
-                else:
-                    wrong_penalty = -1 / (total_options - 1) * points
-                    question_score = wrong_penalty
-                    question_score = max(question_score, 0)  # Negatif puanları sıfırla
+                    question_score = 0  # Zero points for incorrect answer
 
-            # Bölüm puanlarını güncelle
+            elif question_type == 'true_false':
+                # No penalty for true/false questions
+                if self.check_answer(user_answer, correct_answer):
+                    question_score = points  # Full points for correct answer
+                else:
+                    question_score = 0  # Zero points for incorrect answer
+
+            else:
+                print(f"Unsupported question type: {question_type}")
+                continue
+
+            # Update section scores
             if section not in self.section_scores:
                 self.section_scores[section] = {'earned': 0, 'total': 0}
             self.section_scores[section]['earned'] += question_score
             self.section_scores[section]['total'] += max_score_per_question
 
-            # Hesaplama detaylarını ekrana yazdırın
-            print(f"Soru ID: {qid}, Bölüm: {section}, Soru Tipi: {question_type}, Puan: {points}, Kazanılan: {question_score}")
+            # Print calculation details to the screen
+            print(f"Question ID: {qid}, Section: {section}, Question Type: {question_type}, Points: {points}, Earned: {question_score}")
 
-        # Tamamlanmayan bölümler için puanları 0 olarak ekle
+        # Add scores of incomplete sections as 0
         for section in range(1, self.total_sections + 1):
             if section not in self.section_scores:
                 self.section_scores[section] = {'earned': 0, 'total': section_total_points.get(section, 0)}
-                print(f"Bölüm {section}: Henüz tamamlanmadı. Puan: 0")
+                print(f"Section {section}: Not completed yet. Points: 0")
 
-        # Bölüm başarı yüzdelerini ve toplam puanı hesapla
+        # Calculate section success percentages and total score
         total_earned = 0
         total_possible = 0
         for section, scores in sorted(self.section_scores.items()):
             earned = scores['earned']
             total = scores['total']
             percentage = (earned / total) * 100 if total > 0 else 0
-            print(f"Bölüm {section}: {percentage:.2f}% başarı")
+            print(f"Section {section}: {percentage:.2f}% success")
             total_earned += earned
             total_possible += total
 
         self.total_score = (total_earned / total_possible) * 100 if total_possible > 0 else 0
-        print(f"\nToplam Başarı Yüzdesi: {self.total_score:.2f}%")
+        print(f"\nTotal Success Percentage: {self.total_score:.2f}%")
 
-        # Başarı durumunu belirle
+        # Determine pass/fail status
         self.passed = self.check_pass_fail()
         if self.passed:
-            print("Tebrikler, sınavı geçtiniz!")
+            print("Congratulations, you passed the exam!")
         else:
-            print("Maalesef, sınavı geçemediniz.")
+            print("Unfortunately, you did not pass the exam.")
 
-        # Kullanıcı skorlarını güncelle
+        # Update user scores
         self.update_user_scores()
 
     def load_all_questions(self):
-        """
-        Tüm soruları yükler ve soru tiplerine göre gruplar.
-
-        Returns:
-            dict: Her soru tipi için JSON dosyalarından okunan soruların listesi.
-        """
         from question import QuestionManager
         qm = QuestionManager()
         all_questions = {}
-        for qtype, filename in qm.question_types.items():
-            file_path = 'data/questions/' + filename
+        for section, filename in qm.section_files.items():
+            file_path = os.path.join('data/questions/', filename)
             if os.path.exists(file_path):
                 questions = read_json(file_path)
                 for q in questions:
-                    q['type'] = qtype
-                all_questions[qtype] = questions
+                    all_questions[str(q['id'])] = q  # Convert IDs to strings
         return all_questions
 
     def get_question_info(self, question_id, all_questions):
-        """
-        Soru ID'sine göre soru bilgilerini getirir.
-
-        Args:
-            question_id (int): Bilgisi getirilecek soru ID'si.
-            all_questions (dict): Tüm soruları içeren sözlük.
-
-        Returns:
-            dict or None: Soru bilgileri, bulunamazsa None.
-        """
-        for qtype, questions in all_questions.items():
-            for q in questions:
-                if q['id'] == question_id:
-                    return q
-        return None
+        return all_questions.get(str(question_id))
 
     def check_answer(self, user_answer, correct_answer):
-        """
-        Kullanıcının cevabını doğru cevapla karşılaştırır.
+        """Compares the user's answer with the correct answer."""
+        if user_answer is None or correct_answer is None:
+            return False
 
-        Args:
-            user_answer (str or list): Kullanıcının verdiği cevap.
-            correct_answer (str or list): Doğru cevap.
-
-        Returns:
-            bool: Kullanıcı cevabı doğruysa True, değilse False.
-        """
         if isinstance(correct_answer, list):
+            if not isinstance(user_answer, list):
+                return False
             return set(user_answer) == set(correct_answer)
         else:
-            return user_answer.strip().lower() == correct_answer.strip().lower()
+            # Process user's answer and correct answer safely
+            user_processed = user_answer.strip().lower() if isinstance(user_answer, str) else ''
+            correct_processed = correct_answer.strip().lower() if isinstance(correct_answer, str) else ''
+            return user_processed == correct_processed
 
     def check_pass_fail(self):
-        """
-        Kullanıcının sınavı geçip geçmediğini kontrol eder.
-
-        Returns:
-            bool: Kullanıcı sınavı geçtiyse True, geçemediyse False.
-        """
+        """Checks whether the user passed the exam."""
         for section, scores in self.section_scores.items():
             percentage = (scores['earned'] / scores['total']) * 100 if scores['total'] > 0 else 0
             if percentage < 75:
@@ -204,12 +168,20 @@ class Result:
 
     def update_user_scores(self):
         """
-        Kullanıcının skorlarını günceller ve kaydeder.
-        
-        Kullanıcının puanlarını kullanıcı nesnesine ekler ve güncel veriyi kaydeder.
+        Updates and saves the user's scores based on their exam attempts.
         """
-        self.user.scores.append({
-            'total_score': self.total_score,
-            'section_scores': self.section_scores
-        })
+        # Update the user's score based on their exam attempt count
+        if self.user.attempts == 1:
+            self.user.score1 = self.total_score
+        elif self.user.attempts == 2:
+            self.user.score2 = self.total_score
+            # Calculate the average score
+            if self.user.score1 is not None:
+                self.user.score_avg = (self.user.score1 + self.user.score2) / 2
+            else:
+                self.user.score_avg = self.user.score2
+        else:
+            print("The user has no remaining exam attempts.")
+
+        # Save the user's data
         self.user.save_user()
