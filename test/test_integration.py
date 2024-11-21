@@ -5,7 +5,7 @@ from main import main
 from admin import admin_menu
 from user import User
 
-# === MAIN TESTLERİ === BURAYA AYRICA REGISTER ICIN DA BIR TEST EKLENEBİLİR.
+# === MAIN TESTLERİ === BURAYA AYRICA REGISTER ICIN DA BIR TEST EKLENEBİLİR.a
 @patch('builtins.input', side_effect=['3'])  # Programdan çıkış
 @patch('sys.stdout', new_callable=StringIO)
 def test_main_exit_flow(mock_stdout, mock_input):
