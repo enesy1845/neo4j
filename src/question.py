@@ -1,5 +1,5 @@
 # src/question.py
-
+from inputhandler import InputHandler
 import os
 import uuid
 from utils import read_json, write_json
