@@ -2,35 +2,35 @@
   {
     "id": 9,
     "section": 3,
-    "question": "'Apple' kelimesinin Türkçe karşılığı 'armut'tur.",
+    "question": "The English word 'Apple' translates to 'armut' in Turkish.",
     "points": 5,
     "type": "true_false"
   },
   {
     "id": 10,
     "section": 3,
-    "question": "'He is running' cümlesi geniş zaman kipindedir.",
+    "question": "The sentence 'He is running' is in the present tense.",
     "points": 5,
     "type": "true_false"
   },
   {
     "id": 11,
     "section": 3,
-    "question": "'Blue' bir renk ismidir.",
+    "question": "'Blue' is a color name.",
     "points": 5,
     "type": "true_false"
   },
   {
     "id": 12,
     "section": 3,
-    "question": "'They are students' cümlesi çoğul bir ifadeyi belirtir.",
+    "question": "The sentence 'They are students' indicates a plural expression.",
     "points": 5,
     "type": "true_false"
   },
   {
     "id": 1006,
     "section": 3,
-    "question": "'Beautiful' kelimesinin zıt anlamlısı hangisidir?",
+    "question": "What is the opposite of the word 'Beautiful'?",
     "options": ["Ugly", "Pretty", "Smart", "Happy"],
     "points": 5,
     "type": "single_choice"
@@ -38,7 +38,7 @@
   {
     "id": 1007,
     "section": 3,
-    "question": "'I ___ to school every day.' Boşluğa hangisi gelmelidir?",
+    "question": "Fill in the blank: 'I ___ to school every day.'",
     "options": ["go", "goes", "went", "gone"],
     "points": 5,
     "type": "single_choice"
@@ -46,7 +46,7 @@
   {
     "id": 1008,
     "section": 3,
-    "question": "'Cat' kelimesinin Türkçe karşılığı nedir?",
+    "question": "What is the Turkish translation of the word 'Cat'?",
     "options": ["Köpek", "Kedi", "Kuş", "Balık"],
     "points": 5,
     "type": "single_choice"
@@ -54,7 +54,7 @@
   {
     "id": 2006,
     "section": 3,
-    "question": "Hangileri İngilizcede birer zamirdir?",
+    "question": "Which of the following are pronouns in English?",
     "options": ["He", "She", "It", "And", "But"],
     "points": 10,
     "type": "multiple_choice"
@@ -62,7 +62,7 @@
   {
     "id": 2007,
     "section": 3,
-    "question": "Aşağıdaki kelimelerden hangileri duyu organlarını ifade eder?",
+    "question": "Which of the following words represent sensory organs?",
     "options": ["Eye", "Ear", "Hand", "Foot", "Nose"],
     "points": 10,
     "type": "multiple_choice"
@@ -70,7 +70,7 @@
   {
     "id": 2008,
     "section": 3,
-    "question": "Aşağıdaki fiillerden hangileri düzensiz fiillerdir?",
+    "question": "Which of the following verbs are irregular verbs?",
     "options": ["Go", "Eat", "Walk", "Play", "Run"],
     "points": 10,
     "type": "multiple_choice"

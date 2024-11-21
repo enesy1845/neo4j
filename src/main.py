@@ -7,30 +7,30 @@ from admin import admin_menu, create_initial_admin
 from utils import clear_screen, read_json, USERS_FILE
 
 def main():
-    # Admin kullanıcılarının var olup olmadığını kontrol edin
+    # Check if any admin users exist
     if not os.path.exists(USERS_FILE):
-        # Kullanıcılar dosyası yoksa, ilk admini oluştur
+        # If the users file does not exist, create the first admin
         admin_user = create_initial_admin()
-        # Oluşturulan admin kullanıcıyla admin menüsüne yönlendir
+        # Redirect to the admin menu with the created admin user
         admin_menu(admin_user)
     else:
-        # Kullanıcılar dosyası varsa, içinde admin var mı kontrol et
+        # If the users file exists, check if an admin exists
         users = read_json(USERS_FILE)
         admin_exists = any(user.get('role') == 'admin' for user in users)
         if not admin_exists:
-            # Admin yoksa, ilk admini oluştur
+            # If no admin exists, create the first admin
             admin_user = create_initial_admin()
-            # Oluşturulan admin kullanıcıyla admin menüsüne yönlendir
+            # Redirect to the admin menu with the created admin user
             admin_menu(admin_user)
         else:
-            # Admin varsa, normal akışa devam et
+            # If an admin exists, proceed with the normal flow
             while True:
                 clear_screen()
-                print("=== Çok Bölümlü Zaman Sınırlı Sınav Uygulaması ===\n")
-                print("1. Kayıt Ol")
-                print("2. Giriş Yap")
-                print("3. Çıkış")
-                choice = input("Seçiminiz (1/2/3): ").strip()
+                print("=== Multi-Section Timed Exam Application ===\n")
+                print("1. Register")
+                print("2. Login")
+                print("3. Exit")
+                choice = input("Your choice (1/2/3): ").strip()
 
                 if choice == '1':
                     user = User.register()
@@ -47,40 +47,41 @@ def main():
                         else:
                             user_menu(user)
                     else:
-                        print("Hatalı kullanıcı adı veya şifre. Lütfen tekrar deneyin.")
-                        input("Devam etmek için Enter tuşuna basın...")
+                        print("Incorrect username or password. Please try again.")
+                        input("Press Enter to continue...")
                 elif choice == '3':
-                    print("Programdan çıkılıyor...")
+                    print("Exiting the program...")
                     break
                 else:
-                    print("Geçersiz seçim. Lütfen tekrar deneyin.")
-                    input("Devam etmek için Enter tuşuna basın...")
+                    print("Invalid choice. Please try again.")
+                    input("Press Enter to continue...")
 
 def user_menu(user):
     while True:
         clear_screen()
-        print(f"=== Kullanıcı Menüsü ({user.name} {user.surname}) ===")
-        print("1. Sınava Başla")
-        print("2. Sonuçlarımı Görüntüle")
-        print("3. Çıkış Yap")
-        choice = input("Seçiminiz: ").strip()
+        print(f"=== User Menu ({user.name} {user.surname}) ===")
+        print("1. Start Exam")
+        print("2. View My Results")
+        print("3. Logout")
+        choice = input("Your choice: ").strip()
 
         if choice == '1':
             if not user.can_attempt_exam():
-                print("Sınava giriş hakkınız kalmamıştır. İyi günler!")
-                input("Devam etmek için Enter tuşuna basın...")
+                print("You have no remaining attempts for the exam. Have a nice day!")
+                input("Press Enter to continue...")
                 continue
             exam = Exam(user)
             exam.start_exam()
+            input("\nSınav tamamlandı. Sonuçları gördükten sonra devam etmek için Enter tuşuna basın...")
         elif choice == '2':
             user.view_results()
-            input("Devam etmek için Enter'a basın...")
+            input("Press Enter to continue...")
         elif choice == '3':
-            print("Çıkış yapılıyor...")
+            print("Logging out...")
             break
         else:
-            print("Geçersiz seçim. Lütfen tekrar deneyin.")
-            input("Devam etmek için Enter tuşuna basın...")
+            print("Invalid choice. Please try again.")
+            input("Press Enter to continue...")
 
 if __name__ == "__main__":
     main()
