@@ -2,8 +2,6 @@ import pytest
 import sys
 import os
 
-# src klasörü path'e ekleyin
-sys.path.append(os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "src"))
 
 from encryption import encrypt, decrypt
 

@@ -42,6 +42,30 @@ def exam_instance(test_user):
         'question': 'Bu bir Doğru/Yanlış sorusudur.',
         'type': 'true_false',
         'points': 5
+    },
+    '2': {
+        "id": 1003,
+        "section": 2,
+        "question": "Which province is Pamukkale, listed in the UNESCO World Heritage Sites, located in?",
+        "options": ["Denizli", "Antalya", "Muğla", "İzmir"],
+        "points": 5,
+        "type": "single_choice"
+    },
+    '3': {
+        "id": 1004,
+        "section": 2,
+        "question": "Which of the following are Nobel Prize-winning scientists?",
+        "options": ["Marie Curie", "Albert Einstein", "Isaac Newton", "Thomas Edison"],
+        "points": 5,
+        "type": "multiple_choice"
+    },
+    '4': {
+        "id": 1005,
+        "section": 2,
+        "question": "Which of the following languages are official languages of the United Nations?",
+        "options": ["English", "French", "German", "Chinese", "Arabic"],
+        "points": 5,
+        "type": "multiple_choice"
     }
 })
 @patch.object(Result, 'check_answer', return_value=True)
