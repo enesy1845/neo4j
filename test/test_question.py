@@ -2,8 +2,6 @@ import os
 import sys
 import pytest
 
-sys.path.append(os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "src"))
-
 from question import QuestionManager
 from utils import write_json, read_json
 

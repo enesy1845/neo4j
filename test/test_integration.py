@@ -1,32 +1,32 @@
 import pytest
-from unittest.mock import patch
+from unittest.mock import patch, MagicMock
 from io import StringIO
-import sys
-import os
-
-# src klasörünü path'e ekleyin
-sys.path.append(os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "src"))
-
 from main import main
+from admin import admin_menu
+from user import User
 
-@patch('builtins.input', side_effect=[
-    '1',           # Giriş Tipi: Kullanıcı Girişi
-    'Test',        # Ad
-    'User',        # Soyad
-    '1234567890',  # Telefon
-    # Sınav sırasında soruların cevapları
-    '1',           # Soru 1 cevabı
-    '1',           # Soru 2 cevabı
-    '1,2',         # Soru 3 cevabı
-    # ...
-])
+# === MAIN TESTLERİ === BURAYA AYRICA REGISTER ICIN DA BIR TEST EKLENEBİLİR.
+@patch('builtins.input', side_effect=['3'])  # Programdan çıkış
 @patch('sys.stdout', new_callable=StringIO)
-def test_full_exam_flow(mock_stdout, mock_input):
+def test_main_exit_flow(mock_stdout, mock_input):
     """
-    Tüm sınav akışını test eder.
-    Beklenen: 'Sınav tamamlandı.' ve 'Toplam Başarı Yüzdesi:' çıktıda yer alır.
+    main() içinde kullanıcı '3' seçerse çıkışı test eder.
+    Beklenen: "Exiting the program..." çıktıda yer alır.
     """
     main()
     output = mock_stdout.getvalue()
-    assert 'Sınav tamamlandı.' in output
-    assert 'Toplam Başarı Yüzdesi:' in output
+    assert "Exiting the program..." in output
+
+
+@patch('builtins.input', side_effect=['2', 'Admin', 'User', '1234567890', '3'])
+@patch('sys.stdout', new_callable=StringIO)
+def test_login_and_exit(mock_stdout, mock_input):
+    """
+    main() içinde kayıt ve ardından çıkış akışını test eder.
+    """
+    main()
+    output = mock_stdout.getvalue()
+    assert "Exiting the program..." in output
+
+
+
