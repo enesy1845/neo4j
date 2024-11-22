@@ -82,7 +82,7 @@ class Exam:
                         raise TimeUpException("Sınav süresi doldu.")
                     
                     # Fonksiyona sorunun indexini bildirerek çağırıyoruz
-                    indexResult = self.present_question(question, index, section_questions)
+                    indexResult = self.present_question(question, index, section_questions, section_number)
                     # Eğer result'a bağlı bir işlem yapacaksak burada değerlendirebiliriz
                     print(f"Soru {index + 1}: Dönüş değeri: {indexResult}")
                     if indexResult=="n":
@@ -181,20 +181,19 @@ class Exam:
         random.shuffle(section_questions)
         return section_questions
 
-    def present_question(self, question, index, section_questions):
+    def present_question(self, question, index, section_questions, section_number):
         """Kullanıcıya soruyu sunar ve cevabını alır."""
         while True:
             clear_screen()
             try:
                 keys = list(self.answers)
-                key = keys[index]
+                key = keys[(section_number-1) * 5 + index]
 
                 if isinstance(self.answers[key], list):  # Diziyi kontrol et
                     for item in self.answers[key]:
                         print(item)
                 else:
                     print(self.answers[key])  # Dizi değilse direkt yazdır
-
             except:
                 pass
             try:
