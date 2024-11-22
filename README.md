@@ -2,7 +2,6 @@
 
 **MultiPartQuizApp** is a secure, multi-section exam management system designed for both exam takers and administrators. It supports encrypted data processing, multiple question types, and detailed result tracking.
 
-````markdown
 ## Table of Contents
 
 - [Overview](#overview)
@@ -13,8 +12,6 @@
 - [License](#license)
 - [Contributing](#contributing)
 - [Contact](#contact)
-
----
 
 ## Overview
 
@@ -27,8 +24,7 @@ MultiPartQuizApp provides a secure platform for conducting exams with the follow
 
 This project is implemented in Python with a command-line interface for simplicity and security.
 
----
-
+````markdown
 ## Key Features
 
 1. **User Management**
@@ -138,7 +134,3 @@ Detailed guides are available in the `docs/` directory:
 - [Troubleshooting](./docs/Troubleshooting.md)
 
 **Thank you for using MultiPartQuizApp! Happy coding!**
-
-```
-
-```
