@@ -60,7 +60,7 @@ This project is implemented in Python with a command-line interface for simplici
 
 The project is organized as follows:
 
-```plaintext
+```
 MultiPartQuizApp/
 ├── data/                     # JSON data storage
 │   ├── answers/              # Correct answers
