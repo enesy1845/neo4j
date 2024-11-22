@@ -75,13 +75,14 @@ class Exam:
                     if self.time_up:
                         print("\nTime is up.")
                         raise TimeUpException("Time is up.")
-                    
-                    # Call the function with the question's index
-                    indexResult = self.present_question(question, index, section_questions)
-                    # Evaluate based on the returned value
-                    print(f"Question {index + 1}: Returned value: {indexResult}")
-                    if indexResult == "n":
+
+                     # Call the function with the question's index
+                    indexResult = self.present_question(question, index, section_questions, section_number)
+                    # Eğer result'a bağlı bir işlem yapacaksak burada değerlendirebiliriz
+                    print(f"Soru {index + 1}: Dönüş değeri: {indexResult}")
+                    if indexResult=="n":
                         # Move to the next index
+
                         index += 1
                     elif indexResult == "p":
                         # Move to the previous index
@@ -173,13 +174,15 @@ class Exam:
         random.shuffle(section_questions)
         return section_questions
 
-    def present_question(self, question, index, section_questions):
+
+    def present_question(self, question, index, section_questions, section_number):
         """Presents a question to the user and collects their answer."""
+
         while True:
             clear_screen()
             try:
                 keys = list(self.answers)
-                key = keys[index]
+                key = keys[(section_number-1) * 5 + index]
 
                 if isinstance(self.answers[key], list):  # Check if it's a list
                     for item in self.answers[key]:
