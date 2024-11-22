@@ -1,12 +1,8 @@
-İşte daha temiz, düzenli ve profesyonel bir formatta hazırlanmış yeni `README.md` dosyası:
-
-````markdown
 # MultiPartQuizApp
 
 **MultiPartQuizApp** is a secure, multi-section exam management system designed for both exam takers and administrators. It supports encrypted data processing, multiple question types, and detailed result tracking.
 
----
-
+````markdown
 ## Table of Contents
 
 - [Overview](#overview)
