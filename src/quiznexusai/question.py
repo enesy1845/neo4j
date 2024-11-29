@@ -1,5 +1,7 @@
 # src\question.py
 
+# src/question.py
+from inputhandler import InputHandler
 import os
 import uuid
 from quiznexusai.utils import read_json, write_json, ANSWERS_FILE, read_statistics,read_user_answers
