@@ -1,11 +1,10 @@
-# src/question.py
+# src\question.py
 
 import os
 import uuid
-from utils import read_json, write_json
+from quiznexusai.utils import read_json, write_json, ANSWERS_FILE, read_statistics,read_user_answers
 
-QUESTIONS_FOLDER = 'data/questions/'
-ANSWERS_FILE = 'data/answers/answers.json'
+QUESTIONS_DIR = 'data/questions/'  # Directory containing question files
 
 class QuestionManager:
     def __init__(self):
@@ -19,8 +18,8 @@ class QuestionManager:
     def add_question(self):
         """Adds a new question."""
         print("\n=== Add New Question ===")
-        question_type = input("Question type (true_false, single_choice, multiple_choice): ").strip().lower()
-        if question_type not in ['true_false', 'single_choice', 'multiple_choice']:
+        question_type = input("Question type (true_false, single_choice, multiple_choice, ordering): ").strip().lower()
+        if question_type not in ['true_false', 'single_choice', 'multiple_choice', 'ordering']:
             print("Invalid question type.")
             return
 
@@ -53,7 +52,7 @@ class QuestionManager:
                 return
 
         correct_answer_input = input("Correct answer(s) (separate multiple answers with commas): ").strip()
-        if question_type == 'multiple_choice':
+        if question_type == 'multiple_choice' or question_type == 'ordering':
             correct_answer = [ans.strip() for ans in correct_answer_input.split(',')]
             if not correct_answer:
                 print("You must enter at least one correct answer.")
@@ -64,7 +63,7 @@ class QuestionManager:
                 print("You must enter a correct answer.")
                 return
 
-        # Assign a unique ID
+        # Assign a unique UUID
         question_id = str(uuid.uuid4())
 
         question = {
@@ -77,23 +76,27 @@ class QuestionManager:
         if question_type != 'true_false':
             question['options'] = options
 
-        # Add the question to the correct section file
-        file_path = os.path.join(QUESTIONS_FOLDER, self.section_files[section])
-        questions = []
-        if os.path.exists(file_path):
-            questions = read_json(file_path)
-        questions.append(question)
-        write_json(questions, file_path)
+        # Determine where to write the question
+        if section in [1, 2, 3, 4]:
+            # Write to their respective section files (encrypted)
+            file_path = os.path.join(QUESTIONS_DIR, self.section_files[section])
+            questions = []
+            if os.path.exists(file_path):
+                questions = read_json(file_path, encrypted=True)
+            questions.append(question)
+            write_json(questions, file_path, encrypted=True)
+            print(f"Question added to Section {section}. Question ID: {question_id}")
+        else:
+            # No longer needed to write to encrypted_new_questions.json
+            print(f"Invalid section number: {section}")
 
         # Add the correct answer to answers.json
         answers = {}
         if os.path.exists(ANSWERS_FILE):
-            answers = read_json(ANSWERS_FILE)
+            answers = read_json(ANSWERS_FILE, encrypted=True)
         answers[question_id] = correct_answer
-        write_json(answers, ANSWERS_FILE)
-
-        print(f"Question added. Question ID: {question_id}")
-
+        write_json(answers, ANSWERS_FILE, encrypted=True)
+        
     def list_questions(self, section_number):
         """Lists questions in the specified section."""
         try:
@@ -111,13 +114,13 @@ class QuestionManager:
             sections = [section_number]
 
         for section in sections:
-            file_path = os.path.join(QUESTIONS_FOLDER, self.section_files[section])
+            file_path = os.path.join(QUESTIONS_DIR, self.section_files[section])
             if not os.path.exists(file_path):
                 print(f"\n=== Section {section} Questions ===")
                 print("Question file not found.")
                 continue
 
-            questions = read_json(file_path)
+            questions = read_json(file_path, encrypted=True)  # Read as encrypted
             print(f"\n=== Section {section} Questions ===")
             if not questions:
                 print("No questions available.")
@@ -134,12 +137,12 @@ class QuestionManager:
         """Deletes the question with the specified ID."""
         found = False
         for section, filename in self.section_files.items():
-            file_path = os.path.join(QUESTIONS_FOLDER, filename)
+            file_path = os.path.join(QUESTIONS_DIR, filename)
             if os.path.exists(file_path):
-                questions = read_json(file_path)
+                questions = read_json(file_path, encrypted=True)
                 new_questions = [q for q in questions if q['id'] != question_id]
                 if len(questions) != len(new_questions):
-                    write_json(new_questions, file_path)
+                    write_json(new_questions, file_path, encrypted=True)
                     found = True
                     print(f"Question ID {question_id} has been deleted.")
                     break
@@ -148,18 +151,18 @@ class QuestionManager:
 
         # Also remove from answers
         if os.path.exists(ANSWERS_FILE):
-            answers = read_json(ANSWERS_FILE)
+            answers = read_json(ANSWERS_FILE, encrypted=True)
             if question_id in answers:
                 del answers[question_id]
-                write_json(answers, ANSWERS_FILE)
+                write_json(answers, ANSWERS_FILE, encrypted=True)
 
     def update_question(self, question_id):
         """Updates the question with the specified ID."""
         found = False
         for section, filename in self.section_files.items():
-            file_path = os.path.join(QUESTIONS_FOLDER, filename)
+            file_path = os.path.join(QUESTIONS_DIR, filename)
             if os.path.exists(file_path):
-                questions = read_json(file_path)
+                questions = read_json(file_path, encrypted=True)
                 for q in questions:
                     if q['id'] == question_id:
                         print(f"\n=== Update Question ID {question_id} ===")
@@ -198,10 +201,10 @@ class QuestionManager:
                                         # Update the correct answer in answers.json
                                         answers = {}
                                         if os.path.exists(ANSWERS_FILE):
-                                            answers = read_json(ANSWERS_FILE)
+                                            answers = read_json(ANSWERS_FILE, encrypted=True)
                                         answers[question_id] = new_correct_answer
-                                        write_json(answers, ANSWERS_FILE)
-                        write_json(questions, file_path)
+                                        write_json(answers, ANSWERS_FILE, encrypted=True)
+                        write_json(questions, file_path, encrypted=True)
                         print(f"Question ID {question_id} has been updated.")
                         found = True
                         break
@@ -209,3 +212,4 @@ class QuestionManager:
                     break
         if not found:
             print(f"Question ID {question_id} not found.")
+

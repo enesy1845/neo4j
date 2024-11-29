@@ -1,491 +1,315 @@
 # MultiPartQuizApp
 
-**MultiPartQuizApp** is a secure, multi-section exam management system that allows users to take exams and enables admins to manage exam content. Featuring encrypted data processing, the system supports various question types and maintains detailed results for each user.
+## **Project Description**
 
-## Table of Contents
+MultiPartQuizApp is a comprehensive quiz and exam management system designed to facilitate timed, multi-section exams. Users can attempt quizzes divided into various sections, each with its own time limit. The system supports multiple user roles, including students, teachers, and administrators, each with distinct permissions and functionalities. Secure data handling through AES encryption ensures the protection of sensitive information, while detailed statistical analyses provide insights into performance metrics at class and school levels.
 
-- [Project Overview](#project-overview)
-- [Directory Structure](#directory-structure)
-- [Main Features](#main-features)
-- [Installation and Setup](#installation-and-setup)
-  - [1. Requirements](#1-requirements)
-  - [2. Cloning the Project](#2-cloning-the-project)
-  - [3. Setting Up the Conda Environment](#3-setting-up-the-conda-environment)
-  - [4. Installing Required Packages](#4-installing-required-packages)
-  - [5. Creating the First Admin Account](#5-creating-the-first-admin-account)
-  - [6. Running the Application](#6-running-the-application)
-- [Tests](#tests)
-- [Best Practices and Tips](#best-practices-and-tips)
-- [License](#license)
-- [Troubleshooting](#troubleshooting)
-- [About the Project](#about-the-project)
-- [Support and Contributions](#support-and-contributions)
+## **Features**
 
-## Project Overview
+- **Multi-Section Exams:** Each exam comprises multiple sections with individual time constraints.
+- **Diverse Question Types:** Supports True/False, Single Choice, Multiple Choice, and Ordering questions.
+- **User Roles:** Distinct interfaces and permissions for Students, Teachers, and Administrators.
+- **Secure Data Management:** Utilizes AES encryption to securely store and handle data.
+- **Statistical Analysis:** Provides detailed statistics and performance evaluations at class and school levels.
+- **Integration Testing:** Comprehensive test scenarios to ensure system integrity and reliability.
 
-The application comprises the following main features:
-
-- **User Management**: User registration, tracking exam attempts, and access management.
-- **Admin Management**: Admins can add, update, delete questions, and manage users.
-- **Question Management**: Handling different types of questions (True/False, Single Choice, Multiple Choice).
-- **Exam Management**: Timed exam administration and result recording.
-- **Encryption**: Encryption methods to ensure the security of all user and exam data.
-
-## Directory Structure
+## **Project Structure**
 
 ```
 MultiPartQuizApp/
-├── data/                     # JSON data storage
-│   ├── answers/              # Correct answers
-│   │   └── answers.json      # JSON file containing correct answers for questions
-│   ├── questions/            # Question files
-│   │   ├── multiple_choice_questions.json  # Multiple-choice questions
-│   │   ├── single_choice_questions.json    # Single-choice questions
-│   │   └── true_false_questions.json       # True/False questions
-│   └── users/                # User data
-│       └── users.json        # JSON file storing user and admin information
-├── docs/                     # Documentation
-│   └── README.md
-├── src/                      # Source code files
-│   ├── admin.py              # Admin management
-│   ├── exam.py               # Exam management
-│   ├── main.py               # Entry point of the application
-│   ├── question.py           # Question management
-│   ├── setup_admin.py        # Initial admin setup
-│   ├── user.py               # User management
-│   └── utils.py              # Utility functions
-├── test/                     # Unit tests
-│   ├── test_exam.py          # Tests for exam functionalities
-│   ├── test_integration.py   # Integration tests
-│   ├── test_question.py      # Tests for question management
-│   ├── test_user.py          # Tests for user management
+├── data/
+│   ├── answers/
+│   │   └── answers.json
+│   ├── classes/
+│   │   └── classes.json
+│   ├── questions/
+│   │   ├── section1_questions.json
+│   │   ├── section2_questions.json
+│   │   ├── section3_questions.json
+│   │   └── section4_questions.json
+│   ├── schools/
+│   │   └── schools.json
+│   ├── statistics/
+│   │   └── statistics.json
+│   ├── user_answers/
+│   │   └── user_answers.json
+│   └── users/
+│       └── users.json
+├── scripts/
+│   ├── decrypt_files.py
+│   ├── encrypt_files.py
+│   ├── simulate_student_actions.py
+│   └── test_data_setup.py
+src/
+├── quiznexusai/
+│   ├── __init__.py
+│   ├── admin.py
+│   ├── class_module.py
+│   ├── encryption.py
+│   ├── exam.py
+│   ├── main.py
+│   ├── question.py
+│   ├── result.py
+│   ├── school.py
+│   ├── statistics_module.py
+│   ├── teacher.py
+│   ├── user.py
+│   └── utils.py
+├── tests/
+│   └── test_integration.py
 ├── .gitignore
+├── environment.yml
 ├── LICENSE
-├── requirements.txt          # Required Python packages
-├── environment.yml           # Conda environment configuration
-└── README.md                 # Project documentation
+├── README.md
+└── setup.py
 ```
 
-## Main Features
+- **data/**: Directory containing all data files used by the application.
 
-### 1. User Management (`user.py`)
+  - **answers/**: Stores the correct answers for questions.
+  - **classes/**: Information about different classes.
+  - **questions/**: Separate JSON files for questions in each section.
+  - **schools/**: Information about different schools.
+  - **statistics/**: Statistical data related to exams and performance.
+  - **user_answers/**: Stores users' exam attempts and answers.
+  - **users/**: User information including students, teachers, and admins.
 
-- **Registration & Login**: Users can register, log in, and track their exam attempts.
-- **CRUD Operations**: Listing, updating, and deleting user information.
+- **scripts/**: Helper scripts for various tasks.
 
-### 2. Admin Management (`admin.py`)
+  - **decrypt_files.py**: Script to decrypt encrypted data files.
+  - **encrypt_files.py**: Script to encrypt data files.
+  - **simulate_student_actions.py**: Simulates student exam attempts.
+  - **test_data_setup.py**: Sets up test data by creating students and teachers.
 
-- **Question and User Management**: Admins can add, update, delete questions, and manage users.
-- **Admin Authentication**: Admin access requires master password verification.
+- **src/quiznexusai/**: Main application code.
 
-### 3. Question Management (`question.py`)
+  - **admin.py**: Administrator functionalities.
+  - **class_module.py**: Management of classes.
+  - **encryption.py**: Handles encryption and decryption processes.
+  - **exam.py**: Exam management and execution.
+  - **main.py**: Entry point of the application.
+  - **question.py**: Question management.
+  - **result.py**: Result calculation and reporting.
+  - **school.py**: School management.
+  - **statistics_module.py**: Statistics management.
+  - **teacher.py**: Teacher functionalities.
+  - **user.py**: User management including registration and login.
+  - **utils.py**: Utility functions and helpers.
 
-- **Support for Multiple Question Types**: True/False, Single Choice, and Multiple Choice questions.
-- **CRUD Operations**: Creating, listing, updating, and deleting questions.
+- **tests/**: Testing scripts.
 
-### 4. Exam Management (`exam.py`)
+  - **test_integration.py**: Integration tests to verify system functionality.
 
-- **Timed Exams**: Users can participate in exams with specified time limits.
-- **Result Calculation**: Points are calculated and recorded for each section.
+- **setup.py**: Configuration script for project setup.
+- **environment.yml**: Conda environment configuration file.
+- **README.md**: Project documentation.
+- **LICENSE**: Licensing information.
+- **.gitignore**: Specifies files and directories to be ignored by Git.
 
-### 5. Result Management (`utils.py` and `user.py`)
+## **Installation**
 
-- **Result Tracking**: User results are recorded and tracked for each section.
-- **Pass/Fail Assessment**: Determines whether the user meets the passing criteria.
+### **Prerequisites**
 
-## Installation and Setup
+- **Conda:** Ensure that [Conda](https://docs.conda.io/en/latest/) is installed on your system for package and environment management.
+- **Python 3.9:** The project is compatible with Python version 3.9.
 
-This section provides step-by-step instructions on how to set up and run the project from scratch on your computer.
+### **Steps**
 
-### **1. Requirements**
-
-Ensure the following software is installed on your computer for the project to run:
-
-- **Miniconda** or **Anaconda**
-- **Python 3.9 or higher**
-- **Git**
-
-**Check Installation:**
-
-```bash
-conda --version
-python --version
-git --version
-```
-
-If these commands return version information, the software is installed. Otherwise, download and install them from the official websites:
-
-- Miniconda: [https://docs.conda.io/en/latest/miniconda.html](https://docs.conda.io/en/latest/miniconda.html)
-- Python: [https://www.python.org/downloads/](https://www.python.org/downloads/)
-- Git: [https://git-scm.com/downloads](https://git-scm.com/downloads)
-
-### **2. Cloning the Project**
-
-Open your terminal or command prompt and follow these steps:
-
-1. **Navigate to the Directory Where You Want to Clone the Project:**
+1. **Clone the Repository**
 
    ```bash
-   cd Desktop  # Or any other desired directory
-   ```
-
-2. **Clone the Project:**
-
-   ```bash
-   git clone https://github.com/username/MultiPartQuizApp.git
-   ```
-
-   **Note:** Replace `username` with the actual GitHub username of the project repository.
-
-3. **Enter the Project Directory:**
-
-   ```bash
+   git clone https://github.com/your_username/MultiPartQuizApp.git
    cd MultiPartQuizApp
    ```
 
-### **3. Setting Up the Conda Environment**
-
-Virtual environments are used to isolate project dependencies.
-
-1. **Create the Conda Environment Using `environment.yml`:**
+2. **Set Up the Conda Environment**
 
    ```bash
    conda env create -f environment.yml
+   conda activate quiz_app_env
    ```
 
-   - **Explanation:**
-     - This command creates a new Conda environment based on the specifications in the `environment.yml` file, including Python version and required packages.
+3. **Run the Setup Script**
 
-2. **Activate the Environment:**
+   The `setup.py` script will automatically create the `.env` file required for encryption.
+
+   ```bash
+   python setup.py
+   ```
+
+4. **Generate AES Keys**
+
+   Generate the AES encryption key and IV by running the following script:
+
+   ```bash
+   python scripts/generate_keys.py
+   ```
+
+   Add the generated `AES_KEY` and `AES_IV` values to the `.env` file.
+
+5. **Set Up Test Data**
+
+   Before simulating student exams, set up the necessary test data by creating students and teachers:
+
+   ```bash
+   python scripts/test_data_setup.py
+   ```
+
+6. **Encrypt Data Files (If Needed)**
+
+   To encrypt specific data files, use the encryption script:
+
+   ```bash
+   python scripts/encrypt_files.py
+   ```
+
+   Similarly, to decrypt encrypted files:
+
+   ```bash
+   python scripts/decrypt_files.py
+   ```
+
+### **Troubleshooting**
+
+- **Conda Commands Not Working:**
+
+  - Ensure that Conda is correctly installed. Follow the [official Conda installation guide](https://docs.conda.io/projects/conda/en/latest/user-guide/install/index.html) if issues persist.
+
+- **AES Keys Not Generating:**
+
+  - Verify that the `.env` file is properly created and that you have the necessary permissions to write to it.
+
+- **Dependency Installation Errors:**
+
+  - Ensure that the `environment.yml` file specifies compatible package versions. Update Conda if necessary:
+
+    ```bash
+    conda update conda
+    ```
+
+## **Usage**
+
+### **Running the Application**
+
+Start the main application by executing:
+
+```bash
+python src/quiznexusai/main.py
+```
+
+### **User Roles**
+
+- **Administrator:**
+
+  - Create and manage users, teachers, schools, classes, and questions.
+  - Access detailed statistics and performance reports.
+
+- **Teacher:**
+
+  - Add, update, or delete questions within assigned sections.
+  - View statistics related to their classes and schools.
+
+- **Student:**
+  - Register and log in to attempt exams.
+  - View personal exam results and performance compared to class and school averages.
+
+### **Student Exam Simulation**
+
+To simulate student exam attempts, follow these steps:
+
+1. **Set Up Test Data (If Not Already Done)**
+
+   Ensure that students and teachers are created by running the test data setup script:
+
+   ```bash
+   python scripts/test_data_setup.py
+   ```
+
+2. **Simulate Student Exams**
+
+   Run the simulation script to perform automated exam attempts by students:
+
+   ```bash
+   python scripts/simulate_student_actions.py
+   ```
+
+   This script will automatically create exam attempts for the created students and update the statistical data accordingly.
+
+## **Tests**
+
+### **Running Integration Tests**
+
+To verify the integrity and functionality of the system, execute the integration tests as follows:
+
+1. **Activate the Conda Environment**
 
    ```bash
    conda activate quiz_app_env
    ```
 
-   - **Note:** If the environment name is different in your `environment.yml`, use the corresponding name.
-
-### **4. Installing Required Packages**
-
-Pip packages are managed separately to handle dependencies not available through Conda.
-
-1. **Upgrade pip:**
+2. **Run the Tests**
 
    ```bash
-   pip install --upgrade pip
+   pytest tests/test_integration.py
    ```
 
-2. **Install Required Packages:**
+   This command will execute all test scenarios defined in the `test_integration.py` file, ensuring that data setup, exam simulations, and statistical updates are functioning correctly.
+
+### **Purpose of Tests**
+
+- **Data Setup Verification:** Ensures that test data for schools, classes, students, and teachers are correctly created.
+- **Exam Simulation Validation:** Confirms that simulated exam attempts behave as expected.
+- **Statistics Accuracy:** Checks that statistical data is accurately updated based on exam results.
+
+## **Post-Installation**
+
+- **Create Admin Account:**
+
+  - If an admin account was not created during setup, run the setup script or use the registration feature to create the first admin user.
+
+- **Secure Your Environment:**
+  - Protect the `.env` file and AES keys by setting appropriate file permissions to prevent unauthorized access.
+
+## **Contributing**
+
+Contributions are welcome! To contribute to the project, follow these steps:
+
+1. **Fork the Repository**
+
+   Fork the project repository to your GitHub account.
+
+2. **Create a New Branch**
+
+   Create a new branch for your feature or bug fix:
 
    ```bash
-   pip install -r requirements.txt
+   git checkout -b feature/your-feature-name
    ```
 
-   **Content of `requirements.txt`:**
+3. **Make Changes**
 
-   ```
-   bcrypt==4.0.1
-   inputimeout==1.0.4
-   ```
+   Implement your changes and commit them with descriptive messages.
 
-   **Note:** Remember to add any additional dependencies to this file as needed for the project.
+4. **Push to Your Fork**
 
-### **5. Creating the First Admin Account**
-
-When running the program for the first time, if there is no admin user in the system, the first admin user will be created automatically.
-
-1. **Run the Application:**
+   Push your changes to your forked repository:
 
    ```bash
-   python ./src/main.py
+   git push origin feature/your-feature-name
    ```
 
-2. **Enter Admin Information:**
+5. **Create a Pull Request**
 
-   The program will prompt you to create the first admin user by requesting the necessary information:
+   Open a pull request from your forked repository to the main repository, detailing your changes and their purpose.
 
-   - Username
-   - Password
-   - Your Name
-   - Your Surname
-   - Your Phone Number
+## **License**
 
-   **Note:** This step is only performed during the first run. Subsequent runs will skip this step.
+This project is licensed under the [MIT License](LICENSE).
 
-### **6. Running the Application**
+## **Contact**
 
-1. **Start the Main Program:**
-
-   ```bash
-   python src/main.py
-   ```
-
-2. **Log In or Register:**
-
-   Upon running, the application will present you with options:
-
-   - `1`: Register
-   - `2`: Login
-   - `3`: Exit
-
-   **Admin Operations:**
-
-   - Log in as an admin to add, update, or delete questions.
-   - Manage users by listing and deleting them.
-   - Create new admins (a master password may be required).
-
-   **User Operations:**
-
-   - Register and log in as a user.
-   - Participate in exams and view your results.
+For questions, feedback, or support, please reach out to [email@example.com](mailto:email@example.com).
 
 ---
 
-## Tests
-
-Run all tests using the following command:
-
-```bash
-python -m unittest discover -s test
-```
-
-### Test Coverage
-
-- **test_user.py**: Tests for user registration, login, and attempt tracking.
-- **test_exam.py**: Tests for starting exams, time management, and question processing.
-- **test_question.py**: Tests for question management.
-- **test_integration.py**: Tests interactions between modules to ensure complete workflow validation.
-
-## Best Practices and Tips
-
-### 1. Using Conda Environments
-
-- Use Conda environments to isolate project dependencies.
-- To activate the environment:
-
-  ```bash
-  conda activate quiz_app_env
-  ```
-
-- To deactivate the environment:
-
-  ```bash
-  conda deactivate
-  ```
-
-### 2. Managing Dependencies
-
-- After installing new packages, update the `requirements.txt` file:
-
-  ```bash
-  pip freeze > requirements.txt
-  ```
-
-### 3. Security and Privacy
-
-- **Passwords and Sensitive Information**: User passwords are securely hashed using `bcrypt`.
-- **Master Password**: Change the master password used for creating admins to a strong password and store it securely.
-
-### 4. Debugging
-
-- **Logging**: Use `print` statements or logging as needed to identify and debug issues.
-- **User Inputs**: Validate user inputs to prevent potential errors.
-
-## License
-
-This project is licensed under the MIT License. See the [LICENSE](LICENSE) file for more information.
-
----
-
-## Troubleshooting
-
-### **1. Conda Commands Not Recognized**
-
-- **Ensure Conda is Added to PATH:**
-  - During installation, check the option to 'Add Anaconda to my PATH environment variable'.
-- **Initialize Conda for Your Shell:**
-  ```bash
-  conda init
-  ```
-- **Restart Your Terminal or PowerShell.**
-
-### **2. Module Not Found Errors**
-
-- **Ensure All Required Packages are Installed:**
-  ```bash
-  pip install -r requirements.txt
-  ```
-
-### **3. Virtual Environment Activation Issues**
-
-- **Run `conda init` Before Activating the Environment and Restart Your Terminal:**
-  ```bash
-  conda init
-  ```
-- **Set Execution Policy in PowerShell:**
-  ```powershell
-  Set-ExecutionPolicy -ExecutionPolicy RemoteSigned -Scope CurrentUser
-  ```
-  - **Explanation:**
-    - This allows PowerShell to execute scripts necessary for Conda.
-
-### **4. PowerShell Profile File Not Found**
-
-If you encounter issues related to the Conda initialization in PowerShell, follow these steps:
-
-1. **Check if the Profile Exists:**
-
-   ```powershell
-   Test-Path $PROFILE
-   ```
-
-   - **Output:**
-     - `True`: Profile exists.
-     - `False`: Profile does not exist.
-
-2. **Create the Profile if It Does Not Exist:**
-
-   ```powershell
-   New-Item -Type File -Path $PROFILE -Force
-   ```
-
-3. **Initialize Conda for PowerShell:**
-
-   ```powershell
-   conda init powershell
-   ```
-
-4. **Set Execution Policy:**
-
-   ```powershell
-   Set-ExecutionPolicy -ExecutionPolicy RemoteSigned -Scope CurrentUser
-   ```
-
-   - **Note:** Confirm the change by typing `Y` when prompted.
-
-5. **Restart PowerShell or Your Terminal.**
-
-### **5. Prefix Already Exists Error**
-
-If you encounter the following error:
-
-```
-CondaValueError: prefix already exists: C:\Users\yilma\Miniconda3\envs\quiz_app_env
-```
-
-- **Solution: Remove the Existing Environment and Recreate It:**
-  ```powershell
-  conda remove --name quiz_app_env --all
-  conda env create -f environment.yml
-  ```
-
-### **6. Conda Initialization Issues**
-
-If `conda activate` still doesn't work after following the above steps:
-
-- **Ensure Your `environment.yml` is Correct:**
-
-  - Remove the `prefix` line if present.
-  - Use a supported Python version (e.g., `python=3.10`).
-
-- **Sample `environment.yml`:**
-
-  ```yaml
-  name: quiz_app_env
-  channels:
-    - defaults
-    - conda-forge
-  dependencies:
-    - python=3.10
-    - pip
-    - pip:
-        - -r requirements.txt
-  ```
-
-- **Recreate the Environment:**
-  ```powershell
-  conda env create -f environment.yml
-  ```
-
-### **7. General Tips**
-
-- **Ensure You Are in the Correct Directory When Running Commands.**
-- **Verify the `environment.yml` File is Properly Formatted.**
-- **Check for Typos in Commands and File Paths.**
-
----
-
-## About the Project
-
-This project is a console-based application developed using Python. The user interface is interactive via the command line. The application provides a simple and secure solution for organizing and managing educational exams.
-
----
-
-## Support and Contributions
-
-For feedback or contributions related to the project, please reach out via GitHub.
-
----
-
-**Thank You and Happy Coding!**
-
----
-
-**Important Note:**
-
-- **`.env` File No Longer Used:**
-
-  - The previously used `.env` file and related code have been removed.
-  - Encryption processes and other sensitive information are managed securely within the code or through other secure methods.
-
-- **Summary of Installation Steps:**
-  1. Clone the project.
-  2. Create and activate the Conda environment using `environment.yml`.
-  3. Install required packages.
-  4. Run the application and create the first admin account.
-
----
-
-**Note:** This README file contains all the necessary information to set up and run the project smoothly. If you encounter any issues, refer to the [Troubleshooting](#troubleshooting) section or contact us for support.
-
----
-
-## Updated `environment.yml` Example
-
-Ensure your `environment.yml` file in the project root directory (`MultiPartQuizApp/`) looks like the following:
-
-```yaml
-name: quiz_app_env
-channels:
-  - defaults
-  - conda-forge
-dependencies:
-  - python=3.10
-  - pip
-  - pip:
-      - -r requirements.txt
-```
-
-**Notes:**
-
-- **Python Version:** Set to `python=3.10` for stability. Adjust as needed based on project requirements.
-- **Pip Packages:** Listed under `pip` to ensure packages in `requirements.txt` are installed correctly.
-- **Channels:** Includes `defaults` and `conda-forge` for a broader range of packages.
-
-## Using `environment.yml` to Create the Conda Environment
-
-After cloning the project and navigating to the project directory, run the following commands to set up your Conda environment:
-
-```bash
-conda env create -f environment.yml
-conda activate quiz_app_env
-```
-
-These steps will create the Conda environment as specified in the `environment.yml` file and activate it for use.
-
----
-
-If you follow all these steps and still encounter issues, please provide detailed error messages and context so that further assistance can be provided.
-
----
-
-**Happy Coding!**
+**Note:** All data files within the project are encrypted for security. Ensure that the AES keys in the `.env` file are kept confidential to maintain data integrity and protection.
