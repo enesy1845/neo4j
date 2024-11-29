@@ -134,7 +134,7 @@ src/
    The `setup.py` script will automatically create the `.env` file required for encryption.
 
    ```bash
-   python setup.py
+   python setup.py install
    ```
 
 4. **Generate AES Keys**
