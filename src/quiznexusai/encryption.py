@@ -20,11 +20,18 @@ Modules:
 import os
 from Crypto.Cipher import AES
 import base64
-from dotenv import load_dotenv
+from dotenv import load_dotenv,find_dotenv
 from Crypto.Util.Padding import pad, unpad  # Import standardized padding functions
 
 # Load environment variables from .env file
-load_dotenv()
+try:
+    dotenv_path = find_dotenv()
+    if dotenv_path:
+        load_dotenv(dotenv_path)
+    else:
+        print("`.env` dosyası bulunamadı.")
+except Exception as e:
+    print(f"Hata: {e}")
 
 # Fetch key and IV from environment variables
 key_b64 = os.getenv('AES_KEY')
