@@ -3,15 +3,6 @@
 from setuptools import setup, find_packages
 import os
 
-def create_env_file():
-    if not os.path.exists('.env'):
-        with open('.env', 'w') as env_file:
-            env_file.write('AES_KEY=<your_aes_key_here>\n')
-            env_file.write('AES_IV=<your_aes_iv_here>\n')
-
-create_env_file()
-
-
 setup(
     name='quiznexusai',
     version='1.0.0',

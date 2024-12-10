@@ -1,0 +1,18 @@
+services:
+  quiznexusai:
+    build: .
+    container_name: quiznexusai_app
+    environment:
+      - AES_KEY=${AES_KEY}
+      - AES_IV=${AES_IV}
+    volumes:
+      - ./data:/app/data
+      - ./logs:/app/logs
+    restart: unless-stopped
+    stdin_open: true
+    tty: true
+    healthcheck:
+      test: ["CMD", "python", "-c", "import sys; sys.exit(0)"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
