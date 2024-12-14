@@ -5,6 +5,7 @@ import os
 import threading
 import sys
 import platform
+from quiznexusai.token_generator import renew_token_if_needed
 from quiznexusai.question import QuestionManager
 from quiznexusai.utils import (
     clear_screen,
@@ -70,7 +71,7 @@ class Exam:
                 # Bölüm başlığı
                 print(f"\n=== Bölüm {section_number} ===")
                 input(f"Bölüm {section_number} başlıyor. Devam etmek için Enter tuşuna basın...")
-                
+                renew_token_if_needed()
                 # İlk bölüm başladığında zamanlayıcıyı başlat
                 if section_number == 1:
                     self.end_time = time.time() + self.duration
@@ -92,6 +93,7 @@ class Exam:
                 if section_number < self.sections:
                     print(f"\nBölüm {section_number} sona erdi.")
                     input(f"Bölüm {section_number + 1}'e geçmek için Enter tuşuna basın...")
+                    renew_token_if_needed()
                 else:
                     print(f"\nBölüm {section_number} sona erdi. Sınav sona erdi.")
 
@@ -100,6 +102,7 @@ class Exam:
         except Exception as e:
             print(f"\nBeklenmeyen bir hata oluştu: {e}")
             input("Devam etmek için Enter tuşuna basın...")
+            renew_token_if_needed()
         finally:
             # Sınavı bitir
             self.end_exam(all_questions_by_id)
@@ -207,6 +210,7 @@ class Exam:
                 
                 # Kullanıcının cevabını al
                 user_input = input("Cevabınız: ")
+                renew_token_if_needed()
 
                 if self.is_time_up():
                     print("\nSınav süresi doldu!")
@@ -215,9 +219,11 @@ class Exam:
                 if not user_input.strip():
                     print("\nLütfen bir cevap girin.")
                     input("Devam etmek için Enter tuşuna basın...")
+                    renew_token_if_needed()
                     continue  # Aynı soruyu tekrar sun
 
                 answers = self.process_input(user_input.strip(), question)
+                renew_token_if_needed()
                 self.answers[str(question['id'])] = answers
 
                 # Doğruluğu kontrol et ve kazanılan puanı hesapla
@@ -239,6 +245,7 @@ class Exam:
             except ValueError as ve:
                 print(f"\nHata: {ve}")
                 input("Devam etmek için Enter tuşuna basın...")
+                renew_token_if_needed()
                 continue  # Aynı soruyu tekrar sun
             except TimeUpException as tue:
                 # Sınav süresi dolduğunda işlemi sonlandır
@@ -246,6 +253,7 @@ class Exam:
             except Exception as e:
                 print(f"\nBeklenmeyen bir hata oluştu: {e}")
                 input("Devam etmek için Enter tuşuna basın...")
+                renew_token_if_needed()
                 continue  # Aynı soruyu tekrar sun
 
     def process_input(self, user_input, question):
@@ -341,6 +349,7 @@ class Exam:
         except Exception as e:
             print(f"Sonuçları hesaplarken bir hata oluştu: {e}")
             input("Devam etmek için Enter tuşuna basın...")
+            renew_token_if_needed()
             self.total_score = 0  # Varsayılan değer
             self.passed = False
 
