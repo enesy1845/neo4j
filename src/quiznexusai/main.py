@@ -6,7 +6,7 @@ from quiznexusai.exam import Exam
 from quiznexusai.admin import Admin
 from quiznexusai.teacher import Teacher
 from quiznexusai.utils import clear_screen, read_json, USERS_FILE
-
+from quiznexusai.token_generator import token_generator, renew_token_if_needed
 
 def main():
     # Check if any admin users exist
@@ -42,6 +42,7 @@ def main():
             elif choice == '2':
                 user = User.login()
                 if user:
+                    token_generator(user.user_id)
                     if user.role == 'admin':
                         admin = Admin(user)
                         admin.admin_menu()
@@ -74,7 +75,7 @@ def user_menu(user):
         print("3. View My Attempts")
         print("4. Logout")
         choice = input("Your choice: ").strip()
-
+        renew_token_if_needed()
         if choice == '1':
             if not user.can_attempt_exam():
                 print("You have no remaining attempts for the exam. Have a nice day!")
@@ -83,18 +84,22 @@ def user_menu(user):
             exam = Exam(user)
             exam.start_exam()
             input("\nExam completed. Press Enter to continue...")
+            renew_token_if_needed()
         elif choice == '2':
             user.view_results()
             input("Press Enter to continue...")
+            renew_token_if_needed()
         elif choice == '3':
             user.view_attempts()
             input("Press Enter to continue...")
+            renew_token_if_needed()
         elif choice == '4':
             print("Logging out...")
             break
         else:
             print("Invalid choice. Please try again.")
             input("Press Enter to continue...")
+            renew_token_if_needed()
 
 if __name__ == "__main__":
     main()

@@ -18,6 +18,7 @@ from quiznexusai.exam import Exam
 from quiznexusai.school import SchoolManager
 from quiznexusai.class_module import ClassManager
 from quiznexusai.statistics_module import StatisticsManager
+from quiznexusai.token_generator import renew_token_if_needed, token_generator
 
 
 class Admin:
@@ -33,10 +34,15 @@ class Admin:
         """Creates the first admin account in the system and saves it to the USERS_FILE."""
         print("=== Creating First Admin ===")
         username = input("Username for the first admin: ").strip()
+
         password = input("Password: ").strip()
+
         name = input("Your Name: ").strip()
+
         surname = input("Your Surname: ").strip()
+ 
         phone_number = input("Your Phone Number: ").strip()
+
 
         # Hash the password
         hashed_password = bcrypt.hashpw(password.encode('utf-8'), bcrypt.gensalt()).decode('utf-8')
@@ -72,6 +78,7 @@ class Admin:
         users.append(admin)
         write_json(users, USERS_FILE)
         print(f"First admin '{username}' has been created.")
+        token_generator(admin)
 
         # Return the created admin user
         return User(
@@ -101,11 +108,13 @@ class Admin:
             print("2. Admin Panel")
             print("3. Exit")
             choice = input("Your choice: ").strip()
+            renew_token_if_needed()
             if choice == '1':
                 # Start the exam
                 exam = Exam(self.admin_user)
                 exam.start_exam()
                 input("Press Enter to continue...")
+                renew_token_if_needed()
             elif choice == '2':
                 # Show the admin panel
                 self.admin_panel()
@@ -115,6 +124,7 @@ class Admin:
             else:
                 print("Invalid choice.")
                 input("Press Enter to continue...")
+                renew_token_if_needed()
 
     def admin_panel(self):
         """Admin operations panel."""
@@ -129,6 +139,7 @@ class Admin:
             print("6. View Statistics")
             print("7. Logout")
             choice = input("Your choice: ").strip()
+            renew_token_if_needed()
             if choice == '1':
                 self.manage_questions()
             elif choice == '2':
@@ -142,12 +153,14 @@ class Admin:
             elif choice == '6':
                 self.statistics_manager.view_admin_statistics()
                 input("Press Enter to continue...")
+                renew_token_if_needed()
             elif choice == '7':
                 print("Logging out...")
                 break
             else:
                 print("Invalid choice.")
                 input("Press Enter to continue...")
+                renew_token_if_needed()
 
     def manage_questions(self):
         """Manage questions."""
@@ -160,23 +173,29 @@ class Admin:
             print("4. List Questions")
             print("5. Back to Admin Panel")
             choice = input("Your choice: ").strip()
+            renew_token_if_needed()
             if choice == '1':
                 self.question_manager.add_question()
                 input("Press Enter to continue...")
+                renew_token_if_needed()
             elif choice == '2':
                 self.question_manager.update_question()
                 input("Press Enter to continue...")
+                renew_token_if_needed()
             elif choice == '3':
                 self.question_manager.delete_question()
                 input("Press Enter to continue...")
+                renew_token_if_needed()
             elif choice == '4':
                 self.question_manager.list_all_questions()
                 input("Press Enter to continue...")
+                renew_token_if_needed()
             elif choice == '5':
                 break
             else:
                 print("Invalid choice.")
                 input("Press Enter to continue...")
+                renew_token_if_needed()
 
     def manage_users(self):
         """Manage users."""
@@ -190,37 +209,50 @@ class Admin:
             print("5. Update User Role")
             print("6. Back to Admin Panel")
             choice = input("Your choice: ").strip()
+            renew_token_if_needed()
             if choice == '1':
                 User.list_users()
                 input("Press Enter to continue...")
+                renew_token_if_needed()
             elif choice == '2':
                 user_id = input("Enter the user ID to delete: ").strip()
+                renew_token_if_needed()
                 User.delete_user(user_id)
                 input("Press Enter to continue...")
             elif choice == '3':
                 user_id = input("Enter the user ID to update: ").strip()
+                renew_token_if_needed()
                 User.update_user(user_id)
                 input("Press Enter to continue...")
+                renew_token_if_needed()
             elif choice == '4':
                 self.create_new_admin()
                 input("Press Enter to continue...")
+                renew_token_if_needed()
             elif choice == '5':
                 self.update_user_role()
                 input("Press Enter to continue...")
+                renew_token_if_needed()
             elif choice == '6':
                 break
             else:
                 print("Invalid choice.")
                 input("Press Enter to continue...")
+                renew_token_if_needed()
 
     def create_new_admin(self):
         """Creates a new admin user."""
         print("=== Create New Admin ===")
         username = input("Username: ").strip()
+        renew_token_if_needed()
         password = input("Password: ").strip()
+        renew_token_if_needed()
         name = input("Your Name: ").strip()
+        renew_token_if_needed()
         surname = input("Your Surname: ").strip()
+        renew_token_if_needed()
         phone_number = input("Your Phone Number: ").strip()
+        renew_token_if_needed()
 
         # Check if the username is already taken
         users = []
@@ -263,6 +295,7 @@ class Admin:
     def update_user_role(self):
         """Updates the role of a user and assigns sections to teachers."""
         user_id_input = input("User ID to update role: ").strip()
+        renew_token_if_needed()
         if not user_id_input:
             print("Invalid user ID.")
             return
@@ -271,6 +304,7 @@ class Admin:
         user = next((u for u in users if u['user_id'] == user_id_input), None)
         if user:
             new_role = input("Enter new role (user/admin/teacher): ").strip().lower()
+            renew_token_if_needed()
             if new_role not in ['user', 'admin', 'teacher']:
                 print("Invalid role.")
                 return
@@ -278,6 +312,7 @@ class Admin:
             if new_role == 'teacher':
                 # Assign sections
                 sections_input = input("Assign sections to teacher (e.g., 1,2): ").strip()
+                renew_token_if_needed()
                 sections = [int(sec.strip()) for sec in sections_input.split(',') if sec.strip().isdigit()]
                 user['teacher_sections'] = sections
 
@@ -287,6 +322,7 @@ class Admin:
                 for idx, school in enumerate(schools, 1):
                     print(f"{idx}. {school['school_name']}")
                 school_choices = input("Enter the numbers of the schools separated by commas: ").strip()
+                renew_token_if_needed()
                 school_ids = []
                 for choice in school_choices.split(','):
                     if choice.strip().isdigit() and 1 <= int(choice.strip()) <= len(schools):
@@ -305,6 +341,7 @@ class Admin:
                         school_name = next((sch['school_name'] for sch in schools if sch['school_id'] == cls['school_id']), 'Unknown School')
                         print(f"{idx}. {cls['class_name']} (School: {school_name})")
                     class_choices = input("Enter the numbers of the classes separated by commas: ").strip()
+                    renew_token_if_needed()
                     class_ids = []
                     for choice in class_choices.split(','):
                         if choice.strip().isdigit() and 1 <= int(choice.strip()) <= len(filtered_classes):
@@ -325,6 +362,7 @@ class Admin:
             user = next((u for u in users if u['user_id'] == user_id_input), None)
             if user:
                 new_role = input("Enter new role (user/admin/teacher): ").strip().lower()
+                renew_token_if_needed()
                 if new_role not in ['user', 'admin', 'teacher']:
                     print("Invalid role.")
                     return
@@ -332,6 +370,7 @@ class Admin:
                 if new_role == 'teacher':
                     # Assign sections
                     sections_input = input("Assign sections to teacher (e.g., 1,2): ").strip()
+                    renew_token_if_needed()
                     sections = [int(sec.strip()) for sec in sections_input.split(',') if sec.strip().isdigit()]
                     user['teacher_sections'] = sections
 
@@ -341,6 +380,7 @@ class Admin:
                     for idx, school in enumerate(schools, 1):
                         print(f"{idx}. {school['school_name']}")
                     school_choices = input("Enter the numbers of the schools separated by commas: ").strip()
+                    renew_token_if_needed()
                     school_ids = []
                     for choice in school_choices.split(','):
                         if choice.strip().isdigit() and 1 <= int(choice.strip()) <= len(schools):
@@ -354,6 +394,7 @@ class Admin:
                         school_name = next((sch['school_name'] for sch in schools if sch['school_id'] == cls['school_id']), 'Unknown School')
                         print(f"{idx}. {cls['class_name']} (School: {school_name})")
                     class_choices = input("Enter the numbers of the classes separated by commas: ").strip()
+                    renew_token_if_needed()
                     class_ids = []
                     for choice in class_choices.split(','):
                         if choice.strip().isdigit() and 1 <= int(choice.strip()) <= len(classes):
@@ -380,23 +421,29 @@ class Admin:
             print("4. Delete Teacher")
             print("5. Go Back")
             choice = input("Your choice: ").strip()
+            renew_token_if_needed()
             if choice == '1':
                 self.list_teachers()
                 input("Press Enter to continue...")
+                renew_token_if_needed()
             elif choice == '2':
                 self.create_teacher()
                 input("Press Enter to continue...")
+                renew_token_if_needed()
             elif choice == '3':
                 self.update_teacher()
                 input("Press Enter to continue...")
+                renew_token_if_needed()
             elif choice == '4':
                 self.delete_teacher()
                 input("Press Enter to continue...")
+                renew_token_if_needed()
             elif choice == '5':
                 break
             else:
                 print("Invalid choice.")
                 input("Press Enter to continue...")
+                renew_token_if_needed()
 
     def list_teachers(self):
         """Lists all teachers."""
@@ -420,11 +467,13 @@ class Admin:
         """Updates a teacher's information."""
         self.list_teachers()
         teacher_id = input("Enter the ID of the teacher you want to update: ").strip()
+        renew_token_if_needed()
         users = read_json(USERS_FILE)
         teacher = next((u for u in users if u['user_id'] == teacher_id and u.get('role') == 'teacher'), None)
         if teacher:
             # Update sections
             sections_input = input("Assign sections to teacher (e.g., 1,2), leave blank to keep current: ").strip()
+            renew_token_if_needed()
             if sections_input:
                 sections = [int(sec.strip()) for sec in sections_input.split(',') if sec.strip().isdigit()]
                 teacher['teacher_sections'] = sections
@@ -435,6 +484,7 @@ class Admin:
             for idx, school in enumerate(schools, 1):
                 print(f"{idx}. {school['school_name']}")
             school_choices = input("Enter the numbers of the schools separated by commas, leave blank to keep current: ").strip()
+            renew_token_if_needed()
             if school_choices:
                 school_ids = []
                 for choice in school_choices.split(','):
@@ -452,6 +502,7 @@ class Admin:
                 school_name = next((sch['school_name'] for sch in schools if sch['school_id'] == cls['school_id']), 'Unknown School')
                 print(f"{idx}. {cls['class_name']} (School: {school_name})")
             class_choices = input("Enter the numbers of the classes separated by commas, leave blank to keep current: ").strip()
+            renew_token_if_needed()
             if class_choices:
                 class_ids = []
                 for choice in class_choices.split(','):
@@ -469,10 +520,12 @@ class Admin:
         """Deletes a teacher."""
         self.list_teachers()
         teacher_id = input("Enter the ID of the teacher you want to delete: ").strip()
+        renew_token_if_needed()
         users = read_json(USERS_FILE)
         teacher = next((u for u in users if u['user_id'] == teacher_id and u.get('role') == 'teacher'), None)
         if teacher:
             confirm = input(f"Are you sure you want to delete teacher '{teacher['name']} {teacher['surname']}'? (yes/no): ").strip().lower()
+            renew_token_if_needed()
             if confirm == 'yes':
                 users = [u for u in users if u['user_id'] != teacher_id]
                 write_json(users, USERS_FILE)
@@ -486,10 +539,15 @@ class Admin:
         """Creates a new teacher."""
         print("=== Create New Teacher ===")
         username = input("Username: ").strip()
+        renew_token_if_needed()
         password = input("Password: ").strip()
+        renew_token_if_needed()
         name = input("First Name: ").strip()
+        renew_token_if_needed()
         surname = input("Last Name: ").strip()
+        renew_token_if_needed()
         phone_number = input("Phone Number: ").strip()
+        
 
         # Check if the username is already taken
         users = read_json(USERS_FILE)
@@ -502,6 +560,7 @@ class Admin:
 
         # Assign sections
         sections_input = input("Assign sections to teacher (e.g., 1,2): ").strip()
+        renew_token_if_needed()
         sections = [int(sec.strip()) for sec in sections_input.split(',') if sec.strip().isdigit()]
         
         # Assign schools
@@ -510,6 +569,7 @@ class Admin:
         for idx, school in enumerate(schools, 1):
             print(f"{idx}. {school['school_name']}")
         school_choices = input("Enter the numbers of the schools separated by commas: ").strip()
+        renew_token_if_needed()
         school_ids = []
         for choice in school_choices.split(','):
             if choice.strip().isdigit() and 1 <= int(choice.strip()) <= len(schools):
@@ -528,6 +588,7 @@ class Admin:
                 school_name = next((sch['school_name'] for sch in schools if sch['school_id'] == cls['school_id']), 'Unknown School')
                 print(f"{idx}. {cls['class_name']} (School: {school_name})")
             class_choices = input("Enter the numbers of the classes separated by commas: ").strip()
+            renew_token_if_needed()
             class_ids = []
             for choice in class_choices.split(','):
                 if choice.strip().isdigit() and 1 <= int(choice.strip()) <= len(filtered_classes):

@@ -2,9 +2,8 @@ services:
   quiznexusai:
     build: .
     container_name: quiznexusai_app
-    environment:
-      - AES_KEY=${AES_KEY}
-      - AES_IV=${AES_IV}
+    env_file:
+      - .env  # .env dosyasını belirtin
     volumes:
       - ./data:/app/data
       - ./logs:/app/logs
