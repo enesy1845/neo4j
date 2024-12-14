@@ -36,12 +36,6 @@ coverage.xml
 .pytest_cache/
 test_data_setup.py
 
-# Virtual environments
-venv/
-ENV/
-env/
-.venv/
-#.env/
 
 # IDEs and editors
 .vscode/
@@ -52,5 +46,3 @@ env/
 # Logs
 *.log
 
-# Secrets
-.env
