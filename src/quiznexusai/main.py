@@ -6,7 +6,7 @@ from quiznexusai.exam import Exam
 from quiznexusai.admin import Admin
 from quiznexusai.teacher import Teacher
 from quiznexusai.utils import clear_screen, read_json, USERS_FILE
-from quiznexusai.token_generator import token_generator, verify_quiz_token, renew_token_if_needed
+from quiznexusai.token_generator import token_generator, renew_token_if_needed
 
 def main():
     # Check if any admin users exist
