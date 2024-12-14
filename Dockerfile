@@ -26,6 +26,7 @@ USER appuser
 # Copy scripts and data
 COPY scripts/ scripts/
 COPY data/ data/
+COPY .env .
 
 # Set environment variables for encryption
 ENV AES_KEY=${AES_KEY}
