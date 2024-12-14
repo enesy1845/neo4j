@@ -15,6 +15,8 @@ setup(
         'bcrypt>=3.1.7,<4.0.0',
         'python-dotenv>=0.15.0,<1.0.0',
         'pycryptodome>=3.9.0,<4.0.0',
+        'PyJWT>=2.0.0,<3.0.0',  # PyJWT bağımlılığı
+        'pytz>=2021.1,<2024.0',  # pytz bağımlılığı
         # Diğer runtime bağımlılıklar...
     ],
     extras_require={
