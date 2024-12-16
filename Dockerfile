@@ -1,39 +1,21 @@
-# Use an official Python runtime as a parent image
+# Python 3.10 Slim imajını kullan
 FROM python:3.10-slim
 
-# Set environment variables
-ENV PYTHONDONTWRITEBYTECODE=1
-ENV PYTHONUNBUFFERED=1
-
-# Set working directory
+# Çalışma dizinini ayarla
 WORKDIR /app
 
-# Install system dependencies
-RUN apt-get update && apt-get install -y --no-install-recommends \
-    build-essential \
-    && rm -rf /var/lib/apt/lists/*
+# Gereksinim dosyasını kopyala
+COPY requirements.txt .
 
-# Install Python dependencies
-COPY setup.py .
-COPY src/ src/
-RUN pip install --upgrade pip
-RUN pip install .
+# Gereksinimleri yükle
+RUN pip install --no-cache-dir -r requirements.txt
 
-# Create a non-root user
-RUN adduser --disabled-password --gecos '' appuser
-USER appuser
+# Tüm proje dosyalarını kopyala
+COPY . .
 
-# Copy scripts and data
-COPY scripts/ scripts/
-COPY data/ data/
-COPY .env .
+# Uygulamanın çalıştırılacağı komut
+# Örneğin, test senaryosunu çalıştırmak için:
+CMD ["python", "tests/test_scenario.py"]
 
-# Set environment variables for encryption
-ENV AES_KEY=${AES_KEY}
-ENV AES_IV=${AES_IV}
-
-# Expose ports if necessary (optional)
-# EXPOSE 8000
-
-# Define the default command to run the application
-CMD ["python", "src/quiznexusai/main.py"]
+# Veya ana uygulamayı çalıştırmak için:
+# CMD ["python", "main.py"]

@@ -37,6 +37,7 @@ coverage.xml
 test_data_setup.py
 
 
+
 # IDEs and editors
 .vscode/
 .idea/
@@ -45,4 +46,5 @@ test_data_setup.py
 
 # Logs
 *.log
+
 
