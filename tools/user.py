@@ -100,3 +100,10 @@ def update_user(admin_user, username, **kwargs):
             return True
     print("User not found.")
     return False
+
+def login_panel():
+    print("\n=== Login ===")
+    username = input("Username: ")
+    password = input("Password: ")  
+    user = login_user(username, password)
+    return user

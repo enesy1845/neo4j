@@ -6,35 +6,6 @@
                 "7-a": {
                     "sections": {
                         "1": {
-                            "correct_questions": 2,
-                            "wrong_questions": 8,
-                            "average_score": 100.0,
-                            "section_percentage": 200.0
-                        },
-                        "2": {
-                            "correct_questions": 1,
-                            "wrong_questions": 9,
-                            "average_score": 50.0,
-                            "section_percentage": 100.0
-                        },
-                        "3": {
-                            "correct_questions": 2,
-                            "wrong_questions": 8,
-                            "average_score": 75.0,
-                            "section_percentage": 100.0
-                        },
-                        "4": {
-                            "correct_questions": 3,
-                            "wrong_questions": 7,
-                            "average_score": 100.0,
-                            "section_percentage": 100.0
-                        }
-                    },
-                    "average_score": 81.25
-                },
-                "7-b": {
-                    "sections": {
-                        "1": {
                             "correct_questions": 0,
                             "wrong_questions": 0,
                             "average_score": 0,
@@ -61,66 +32,95 @@
                     },
                     "average_score": 0.0
                 },
-                "7-c": {
+                "7-b": {
                     "sections": {
                         "1": {
-                            "correct_questions": 10,
-                            "wrong_questions": 20,
-                            "average_score": 239.0625,
-                            "section_percentage": 300.0
+                            "correct_questions": 4,
+                            "wrong_questions": 16,
+                            "average_score": 125.0,
+                            "section_percentage": 200.0
                         },
                         "2": {
-                            "correct_questions": 8,
-                            "wrong_questions": 22,
-                            "average_score": 73.4375,
+                            "correct_questions": 2,
+                            "wrong_questions": 18,
+                            "average_score": 37.5,
                             "section_percentage": 0.0
                         },
                         "3": {
-                            "correct_questions": 7,
-                            "wrong_questions": 23,
-                            "average_score": 104.6875,
-                            "section_percentage": 100.0
+                            "correct_questions": 5,
+                            "wrong_questions": 15,
+                            "average_score": 125.0,
+                            "section_percentage": 200.0
                         },
                         "4": {
-                            "correct_questions": 5,
-                            "wrong_questions": 25,
-                            "average_score": 92.1875,
+                            "correct_questions": 8,
+                            "wrong_questions": 12,
+                            "average_score": 156.25,
                             "section_percentage": 100.0
                         }
                     },
-                    "average_score": 127.34375
+                    "average_score": 110.9375
+                },
+                "7-c": {
+                    "sections": {
+                        "1": {
+                            "correct_questions": 6,
+                            "wrong_questions": 14,
+                            "average_score": 150.0,
+                            "section_percentage": 200.0
+                        },
+                        "2": {
+                            "correct_questions": 2,
+                            "wrong_questions": 18,
+                            "average_score": 56.25,
+                            "section_percentage": 100.0
+                        },
+                        "3": {
+                            "correct_questions": 4,
+                            "wrong_questions": 16,
+                            "average_score": 56.25,
+                            "section_percentage": 0.0
+                        },
+                        "4": {
+                            "correct_questions": 2,
+                            "wrong_questions": 18,
+                            "average_score": 18.75,
+                            "section_percentage": 0.0
+                        }
+                    },
+                    "average_score": 70.3125
                 },
                 "7-d": {
                     "sections": {
                         "1": {
-                            "correct_questions": 2,
-                            "wrong_questions": 8,
-                            "average_score": 75.0,
+                            "correct_questions": 3,
+                            "wrong_questions": 7,
+                            "average_score": 100.0,
                             "section_percentage": 100.0
                         },
                         "2": {
-                            "correct_questions": 1,
-                            "wrong_questions": 9,
-                            "average_score": 25.0,
+                            "correct_questions": 3,
+                            "wrong_questions": 7,
+                            "average_score": 75.0,
                             "section_percentage": 0.0
                         },
                         "3": {
-                            "correct_questions": 1,
-                            "wrong_questions": 9,
-                            "average_score": 50.0,
-                            "section_percentage": 100.0
+                            "correct_questions": 2,
+                            "wrong_questions": 8,
+                            "average_score": 100.0,
+                            "section_percentage": 200.0
                         },
                         "4": {
-                            "correct_questions": 1,
-                            "wrong_questions": 9,
-                            "average_score": 50.0,
-                            "section_percentage": 100.0
+                            "correct_questions": 0,
+                            "wrong_questions": 10,
+                            "average_score": 0.0,
+                            "section_percentage": 0.0
                         }
                     },
-                    "average_score": 50.0
+                    "average_score": 68.75
                 }
             },
-            "average_score": 64.6484375
+            "average_score": 62.5
         }
     ]
 }

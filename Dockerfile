@@ -15,7 +15,7 @@ COPY . .
 
 # Uygulamanın çalıştırılacağı komut
 # Örneğin, test senaryosunu çalıştırmak için:
-CMD ["python", "tests/test_scenario.py"]
+#CMD ["python", "tests/test_scenario.py"]
 
 # Veya ana uygulamayı çalıştırmak için:
-# CMD ["python", "main.py"]
+ CMD ["python", "main.py"]

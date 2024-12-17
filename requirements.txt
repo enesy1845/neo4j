@@ -1,3 +1,6 @@
 bcrypt==4.0.1
 rich==13.3.2
 uuid
+PyJWT==2.8.0
+pytz==2024.1
+
