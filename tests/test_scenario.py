@@ -1,158 +1,117 @@
 # tests/test_scenario.py
 
 import sys
-import os
 import random
 from datetime import datetime
 from pathlib import Path
 
-# Proje dizinini sys.path'e ekleyin
 BASE_DIR = Path(__file__).resolve().parent.parent
 sys.path.append(str(BASE_DIR))
 
-from tools.user import register_user, login_user
+from tools.database import init_db, get_db
+from tools.user import register_user
 from tools.exam import select_questions, process_results
-from tools.utils import load_json, save_json
-from tools.result import view_results  # view_results fonksiyonunu içe aktarın
+from tools.models import User, Exam, ExamAnswer, Statistics
+from tools.result import view_results
+from tools.utils import DEFAULT_SCHOOL_NAME
+from sqlalchemy.orm import Session
 
-def create_random_students(num_students=5):
+def reset_db_except_questions_and_answers(db: Session):
+    db.query(ExamAnswer).delete()
+    db.query(Statistics).delete()
+    db.query(Exam).delete()
+    db.query(User).filter(User.role != 'admin').delete()
+    db.commit()
+    print("Database reset completed (except questions and answers).")
+
+def create_teachers(db: Session, num_teachers=5):
+    for i in range(num_teachers):
+        username = f"teacher{i}"
+        password = "password123"
+        name = f"TeacherName{i}"
+        surname = f"TeacherSurname{i}"
+        class_name = "7-d"
+        role = "teacher"
+        registered_section = str(random.randint(1,4))
+        register_user(db, username, password, name, surname, class_name, role, registered_section)
+
+def create_students(db: Session, num_students=10):
+    classes = ["7-a", "7-b", "7-c", "7-d"]
     for i in range(num_students):
         username = f"student{i}"
         password = "password123"
         name = f"StudentName{i}"
         surname = f"StudentSurname{i}"
-        class_name = random.choice(["7-a", "7-b", "7-c", "7-d"])  # Doğru sınıf isimleri
+        class_name = random.choice(classes)
         role = "student"
-        registered_section = ""
-        success = register_user(username, password, name, surname, class_name, role, registered_section)
-        if success:
-            print(f"Registration successful for {username}.")
-        else:
-            print(f"Registration failed for {username}.")
+        register_user(db, username, password, name, surname, class_name, role)
 
-def create_teacher(username="teacher1", password="password123"):
-    success = register_user(
-        username=username,
-        password=password,
-        name="TeacherName",
-        surname="TeacherSurname",
-        class_name="7-d",  # Öğretmeni '7-d' sınıfına atayın
-        role="teacher",
-        registered_section="1"
-    )
-    if success:
-        print(f"Teacher {username} registered successfully.")
-    else:
-        print(f"Failed to register teacher {username}.")
-
-def simulate_exam_for_student(student_username, student_password, exam_number):
-    # Öğrenciye giriş yap
-    user = login_user(student_username, student_password)
-    if not user:
-        print(f"Login failed for {student_username}.")
-        return
-    # Sınav için soruları seç
-    selected_questions = select_questions(user)
+def simulate_exam_for_student(db: Session, user: User):
+    selected_questions = select_questions(db, user)
     if not selected_questions:
-        print(f"No questions available for {student_username}.")
+        print(f"No questions available for {user.username}.")
         return
-    # Rastgele cevaplar üret
+
     user_answers = {}
-    answers = load_json(BASE_DIR / 'answers' / 'answers.json')  # Doğru cevapları yükle
     for section, questions in selected_questions.items():
-        for question in questions:
-            q_id = question['id']
-            q_type = question['type']
-            correct_answer = answers.get(q_id)
-            if q_type == 'true_false':
+        for q in questions:
+            # Basit random cevaplar üret
+            if q.type == 'true_false':
                 user_answer = random.choice(['true', 'false'])
-            elif q_type == 'single_choice':
-                options = ['A', 'B', 'C', 'D']
-                user_answer = random.choice(options)
-            elif q_type == 'multiple_choice':
-                options = ['A', 'B', 'C', 'D']
-                selected = random.sample(options, random.randint(1, 4))
-                user_answer = ','.join(selected)
-            elif q_type == 'ordering':
-                options = ['A', 'B', 'C', 'D']
-                user_answer = ','.join(random.sample(options, len(options)))
+            elif q.type == 'single_choice':
+                user_answer = random.choice(['a', 'b', 'c', 'd'])
+            elif q.type == 'multiple_choice':
+                options = ['a', 'b', 'c', 'd']
+                chosen = random.sample(options, random.randint(1,4))
+                user_answer = ','.join(chosen)
+            elif q.type == 'ordering':
+                options = ['a','b','c','d']
+                random.shuffle(options)
+                user_answer = ','.join(options)
             else:
                 user_answer = ""
-            user_answers[q_id] = user_answer
-    # Sınav bitiş zamanını kaydet (simüle edilmiş)
-    end_time = datetime.now().isoformat()
-    # Sonuçları işle
-    process_results(user, selected_questions, user_answers, end_time)
-    print(f"Sınav {exam_number} tamamlandı for {student_username}.")
-    
-    # Öğrencinin sonuçlarını görüntüle
-    view_results(user)
+            user_answers[q.id] = user_answer
 
-def simulate_exams_for_all_students(num_students=5, exams_per_student=2):
-    for i in range(num_students):
-        username = f"student{i}"
-        password = "password123"
-        for exam_num in range(1, exams_per_student + 1):
-            simulate_exam_for_student(username, password, exam_num)
+    end_time = datetime.now()
+    process_results(db, user, selected_questions, user_answers, end_time)
+    print(f"Exam completed for {user.username}.")
 
-def view_teacher_statistics():
-    from main import view_teacher_statistics  # Ana dosyanızın adını doğru şekilde kullanın
-    # Öğretmen bilgilerini al (örneğin, varsayılan öğretmen)
-    teacher_username = "teacher1"  # Test için oluşturduğunuz öğretmenin kullanıcı adını kullanın
-    teacher_password = "password123"
-    user = login_user(teacher_username, teacher_password)
-    if not user:
-        print(f"Login failed for {teacher_username}.")
-        return
-    view_teacher_statistics(user)
+def view_all_students_results(db: Session):
+    students = db.query(User).filter(User.role == 'student').all()
+    for s in students:
+        view_results(db, s)
 
-def reset_files():
-    files_to_reset = [
-        BASE_DIR / 'users' / 'users.json',
-        BASE_DIR / 'users' / 'statistics.json',
-        BASE_DIR / 'users' / 'user_answers.json',
-    ]
-    for file in files_to_reset:
-        if file.exists():
-            file.unlink()
-            print(f"Deleted {file}")
-    print("All files have been reset.")
-
-def initialize_files():
-    # Sıfırlama sonrası admin kullanıcıyı oluşturmak için initialize_user fonksiyonunu çağırabilirsiniz
-    success = register_user(
-        username="admin",
-        password="adminpass",
-        name="Admin",
-        surname="User",
-        class_name="7-a",  # Admin için bir sınıf atayın
-        role="admin",
-        registered_section=""
-    )
-    if success:
-        print("Admin user initialized.")
-    else:
-        print("Failed to initialize admin user.")
+def view_all_teachers_stats(db: Session):
+    from main import view_teacher_statistics
+    teachers = db.query(User).filter(User.role == 'teacher').all()
+    for t in teachers:
+        view_teacher_statistics(db, t)
 
 def run_test_scenario():
-    # Test öncesi reset
-    reset_files()
-    # Initialize admin user
-    initialize_files()
-    # 1. Öğretmen kullanıcıyı oluştur
-    create_teacher()
-    # 2. Öğrencileri oluştur
-    create_random_students(num_students=5)
-    # 3. Her öğrenci için iki sınavı simüle et
-    simulate_exams_for_all_students(num_students=5, exams_per_student=2)
-    # 4. Öğretmen istatistiklerini görüntüle
-    view_teacher_statistics()
+    with next(get_db()) as db:
+        init_db()
+        reset_db_except_questions_and_answers(db)
+        admin_user = db.query(User).filter(User.role == 'admin').first()
+        if not admin_user:
+            admin_user = db.query(User).filter(User.role == 'admin').first()
+
+        create_teachers(db, 5)
+        create_students(db, 10)
+        db.commit()
+
+        students = db.query(User).filter(User.role == 'student').all()
+        for s in students:
+            simulate_exam_for_student(db, s)
+
+        view_all_students_results(db)
+        view_all_teachers_stats(db)
+        from main import view_admin_statistics
+        view_admin_statistics(db)
 
 def run_tests():
-    # Burada mevcut test senaryosu kodunuz olacak
-    print("Running test scenarios...")
-    # Örneğin, mevcut test senaryosu fonksiyonlarını çağırabilirsiniz
+    print("Running updated test scenario...")
     run_test_scenario()
+    print("Test scenario completed.")
 
 if __name__ == "__main__":
     run_tests()

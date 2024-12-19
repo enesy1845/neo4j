@@ -1,12 +1,35 @@
 services:
+  db:
+    image: postgres:14
+    container_name: postgres_db
+    environment:
+      - POSTGRES_DB=${DB_NAME}
+      - POSTGRES_USER=${DB_USER}
+      - POSTGRES_PASSWORD=${DB_PASSWORD}
+    ports:
+      - "5432:5432"
+    volumes:
+      - db_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USER} -d ${DB_NAME}"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
   app:
     build: .
     container_name: python_app
-    volumes:
-      - .:/app
+    depends_on:
+      db:
+        condition: service_healthy
     environment:
       - PYTHONUNBUFFERED=1
-    # İsteğe bağlı: Uygulamanızın çalışması için gerekli portları açın
-    # ports:
-    #   - "8000:8000"
-    # İsteğe bağlı: Diğer servisler (örneğin, veritabanı) ekleyebilirsiniz
+    env_file:
+      - .env
+    #command: sh -c "python migrate_questions.py && python tests/test_scenario.py"
+    command: sh -c "python tests/test_scenario.py"
+    volumes:
+      - .:/app
+
+volumes:
+  db_data:

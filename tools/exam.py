@@ -1,211 +1,162 @@
 # tools/exam.py
 
 import uuid
-import json
 import random
 from datetime import datetime
-from tools.utils import load_json, save_json
+from sqlalchemy.orm import Session
+from tools.models import Question, Answer, Exam, ExamAnswer, User, Statistics
 
-QUESTIONS_DIR = 'questions/'
-ANSWERS_FILE = 'answers/answers.json'
-USER_ANSWERS_FILE = 'users/user_answers.json'
-STATISTICS_FILE = 'users/statistics.json'
+def load_questions(db: Session):
+    return db.query(Question).all()
 
-def load_questions():
-    questions = []
-    for section in range(1, 5):
-        file_path = f"{QUESTIONS_DIR}questions_section{section}.json"
-        data = load_json(file_path)
-        questions.extend(data.get('questions', []))
-    return questions
-
-def select_questions(user):
-    if user['attempts'] >= 2:
+def select_questions(db: Session, user):
+    if user.attempts >= 2:
         print("You have no remaining exam attempts.")
         return None
-    questions = load_questions()
-    selected_questions = {}
+    questions = load_questions(db)
     sections = {1: [], 2: [], 3: [], 4: []}
-    # Select 5 random questions from each section
-    for section in range(1,5):
-        section_questions = [q for q in questions if q['section'] == section]
-        if len(section_questions) < 5:
-            selected = section_questions
-        else:
-            selected = random.sample(section_questions, 5)
-        sections[section] = selected
-    selected_questions = sections
-    return selected_questions
+    for sec in range(1,5):
+        sec_qs = [q for q in questions if q.section == sec]
+        selected = sec_qs if len(sec_qs) < 5 else random.sample(sec_qs, 5)
+        sections[sec] = selected
+    return sections
 
-def start_exam(user):
-    selected_questions = select_questions(user)
+def start_exam(db: Session, user):
+    selected_questions = select_questions(db, user)
     if not selected_questions:
         return
-    # Start timer (e.g., 30 minutes)
-    import threading
-    time_limit = 30 * 60  # 30 minutes in seconds
-    timer = threading.Timer(time_limit, lambda: print("\nTime is up! Exam ended."))
-    print("Exam started. You have 30 minutes.")
-    timer.start()
+    print("Exam started. You have 30 minutes. (Simulated)")
     user_answers = {}
     for section, qs in selected_questions.items():
         print(f"\n--- Section {section} ---")
         for q in qs:
-            print(f"Q: {q['question']} ({q['type']})")
+            print(f"Q: {q.question} ({q.type})")
             user_response = input("Your answer: ")
-            user_answers[q['id']] = user_response
-    timer.cancel()
-    end_time = datetime.now().isoformat()
-    process_results(user, selected_questions, user_answers, end_time)
+            user_answers[q.id] = user_response
+    end_time = datetime.now()
+    process_results(db, user, selected_questions, user_answers, end_time)
 
-def process_results(user, selected_questions, user_answers, end_time):
-    answers = load_json(ANSWERS_FILE)
+def process_results(db: Session, user, selected_questions, user_answers, end_time):
     total_score = 0
     section_scores = {1:0, 2:0, 3:0, 4:0}
     section_correct = {1:0, 2:0, 3:0, 4:0}
     section_wrong = {1:0, 2:0, 3:0, 4:0}
-    
+
     for section, qs in selected_questions.items():
         for q in qs:
+            ans = db.query(Answer).filter(Answer.question_id == q.id).first()
+            correct_answer = ans.correct_answer.strip().lower()
+            user_answer = user_answers.get(q.id, "").strip().lower()
             correct = False
-            correct_answer = answers.get(q['id'])
-            user_answer = user_answers.get(q['id'])
-            if q['type'] == 'true_false' or q['type'] == 'single_choice':
-                if user_answer.strip().lower() == correct_answer.strip().lower():
+            if q.type in ['true_false', 'single_choice']:
+                if user_answer == correct_answer:
                     correct = True
-            elif q['type'] == 'multiple_choice' or q['type'] == 'ordering':
-                if isinstance(correct_answer, list):
-                    user_ans_set = set([ans.strip().lower() for ans in user_answer.split(',')])
-                    correct_ans_set = set([ans.strip().lower() for ans in correct_answer])
-                    if user_ans_set == correct_ans_set:
-                        correct = True
+            elif q.type in ['multiple_choice', 'ordering']:
+                correct_ans_set = set([a.strip().lower() for a in correct_answer.split(',')])
+                user_ans_set = set([a.strip().lower() for a in user_answer.split(',')])
+                if user_ans_set == correct_ans_set:
+                    correct = True
+
             if correct:
-                section_scores[section] += q['points']
+                section_scores[section] += q.points
                 section_correct[section] += 1
             else:
                 section_wrong[section] += 1
+
     total_score = sum(section_scores.values())
-    score_avg = (total_score / 20) * 100  # Assuming total possible points = 20
-    
-    # Determine pass/fail based on sections
+    score_avg = (total_score / 20) * 100 if total_score > 0 else 0
+
     passed = True
     for sec in range(1,5):
-        section_percentage = (section_scores[sec] / 5) * 100  # Assuming each section is 5 points
+        section_percentage = (section_scores[sec]/5)*100 if section_scores[sec] > 0 else 0
         if section_percentage < 75:
             passed = False
     if score_avg < 75:
         passed = False
     result = "Passed" if passed else "Failed"
-    
-    # Update user attempts and scores
-    user['attempts'] += 1
-    user['last_attempt_date'] = datetime.now().isoformat()
-    if user['attempts'] == 1:
-        user['score1'] = total_score
-    elif user['attempts'] == 2:
-        user['score2'] = total_score
-        user['score_avg'] = (user['score1'] + user['score2']) / 2 if user['attempts'] == 2 else user['score1']
-    
-    # Save updated user data
-    users_data = load_json('users/users.json')
-    for u in users_data['users']:
-        if u['username'] == user['username']:
-            u.update(user)
-            break
-    save_json('users/users.json', users_data)
-    
-    # Save exam answers
-    exam_id = str(uuid.uuid4())
-    exam_record = {
-        "exam_id": exam_id,
-        "user_id": user['user_id'],
-        "class_name": user['class_name'],
-        "school_name": user['school_name'],
-        "start_time": datetime.now().isoformat(),
-        "end_time": end_time,
-        "sections": []
-    }
-    
+
+    user.attempts += 1
+    user.last_attempt_date = datetime.now()
+    if user.attempts == 1:
+        user.score1 = total_score
+    elif user.attempts == 2:
+        user.score2 = total_score
+        user.score_avg = (user.score1 + user.score2) / 2
+    db.commit()
+
+    exam = Exam(
+        user_id=user.user_id,
+        class_name=user.class_name,
+        school_name=user.school_name,
+        start_time=datetime.now(),
+        end_time=end_time
+    )
+    db.add(exam)
+    db.commit()
+    db.refresh(exam)
+
     for section, qs in selected_questions.items():
-        section_record = {
-            "section_number": section,
-            "questions": []
-        }
         for q in qs:
-            correct_answer = answers.get(q['id'])
-            user_answer = user_answers.get(q['id'])
+            ans = db.query(Answer).filter(Answer.question_id == q.id).first()
+            correct_answer = ans.correct_answer.strip().lower()
+            user_answer = user_answers.get(q.id, "").strip().lower()
+
             is_correct = False
-            if q['type'] == 'true_false' or q['type'] == 'single_choice':
-                if user_answer.strip().lower() == correct_answer.strip().lower():
+            if q.type in ['true_false', 'single_choice']:
+                if user_answer == correct_answer:
                     is_correct = True
-            elif q['type'] == 'multiple_choice' or q['type'] == 'ordering':
-                if isinstance(correct_answer, list):
-                    user_ans_set = set([ans.strip().lower() for ans in user_answer.split(',')])
-                    correct_ans_set = set([ans.strip().lower() for ans in correct_answer])
-                    if user_ans_set == correct_ans_set:
-                        is_correct = True
-            question_record = {
-                "question_id": q['id'],
-                "question_text": q['question'],
-                "question_type": q['type'],
-                "user_answer": user_answer,
-                "correct_answer": correct_answer,
-                "is_correct": is_correct,
-                "points_earned": q['points'] if is_correct else 0
-            }
-            section_record['questions'].append(question_record)
-        exam_record['sections'].append(section_record)
-    user_answers_data = load_json(USER_ANSWERS_FILE)
-    user_answers_data['exams'].append(exam_record)
-    save_json(USER_ANSWERS_FILE, user_answers_data)
-    
-    # Update statistics
-    statistics = load_json(STATISTICS_FILE)
-    for school in statistics['schools']:
-        if school['school_name'] == user['school_name']:
-            class_name = user['class_name']
-            if class_name not in school['classes']:
-                # Sınıfı ekle
-                school['classes'][class_name] = {
-                    "sections": {
-                        "1": {"correct_questions": 0, "wrong_questions": 0, "average_score": 0, "section_percentage": 0},
-                        "2": {"correct_questions": 0, "wrong_questions": 0, "average_score": 0, "section_percentage": 0},
-                        "3": {"correct_questions": 0, "wrong_questions": 0, "average_score": 0, "section_percentage": 0},
-                        "4": {"correct_questions": 0, "wrong_questions": 0, "average_score": 0, "section_percentage": 0}
-                    },
-                    "average_score": 0.0
-                }
-                print(f"Class {class_name} added to statistics.")
-            
-            for sec in range(1,5):
-                soru_bolumu = f"section-{sec}"
-                if str(sec) not in school['classes'][class_name]['sections']:
-                    # Bölümü ekle
-                    school['classes'][class_name]['sections'][str(sec)] = {
-                        "correct_questions": 0,
-                        "wrong_questions": 0,
-                        "average_score": 0.0,
-                        "section_percentage": 0
-                    }
-                    print(f"Section {sec} added to class {class_name}.")
-                
-                school['classes'][class_name]['sections'][str(sec)]['correct_questions'] += section_correct[sec]
-                school['classes'][class_name]['sections'][str(sec)]['wrong_questions'] += section_wrong[sec]
-                # Update average score
-                previous_avg = school['classes'][class_name]['sections'][str(sec)]['average_score']
-                new_percentage = (section_scores[sec] / 5) * 100  # Assuming each section is 5 points
-                new_avg = (previous_avg + new_percentage) / 2
-                school['classes'][class_name]['sections'][str(sec)]['average_score'] = new_avg
-                # Update section_percentage
-                school['classes'][class_name]['sections'][str(sec)]['section_percentage'] = new_percentage
-            # Update class average
-            class_sections = school['classes'][class_name]['sections']
-            class_avg = sum([sec_data['average_score'] for sec_data in class_sections.values()]) / len(class_sections)
-            school['classes'][class_name]['average_score'] = class_avg
-            # Update school average
-            school_classes = school['classes']
-            school_avg = sum([cls_data['average_score'] for cls_data in school_classes.values()]) / len(school_classes)
-            school['average_score'] = school_avg
-            break
-    save_json(STATISTICS_FILE, statistics)
+            elif q.type in ['multiple_choice', 'ordering']:
+                correct_ans_set = set([a.strip().lower() for a in correct_answer.split(',')])
+                user_ans_set = set([a.strip().lower() for a in user_answer.split(',')])
+                if user_ans_set == correct_ans_set:
+                    is_correct = True
+            points_earned = q.points if is_correct else 0
+
+            exam_ans = ExamAnswer(
+                exam_id=exam.exam_id,
+                question_id=q.id,
+                user_answer=user_answers.get(q.id, ""),
+                is_correct=is_correct,
+                points_earned=points_earned
+            )
+            db.add(exam_ans)
+    db.commit()
+
+    update_statistics(db, user.school_name, user.class_name, section_correct, section_wrong, section_scores)
     print(f"Exam Finished. Your Score: {total_score}/20. Result: {result}\n")
+
+def update_statistics(db: Session, school_name, class_name, section_correct, section_wrong, section_scores):
+    for sec in range(1,5):
+        stat = db.query(Statistics).filter(
+            Statistics.school_name == school_name,
+            Statistics.class_name == class_name,
+            Statistics.section_number == sec
+        ).first()
+        if not stat:
+            stat = Statistics(
+                school_name=school_name,
+                class_name=class_name,
+                section_number=sec,
+                correct_questions=0,
+                wrong_questions=0,
+                average_score=0.0,
+                section_percentage=0.0
+            )
+            db.add(stat)
+            db.commit()
+            db.refresh(stat)
+
+        stat.correct_questions += section_correct[sec]
+        stat.wrong_questions += section_wrong[sec]
+        # exam.py içindeki update_statistics fonksiyonunda
+
+        # Önce bölümün maksimum puanını hesaplayın:
+        max_section_points = sum(q.points for q in db.query(Question).filter(Question.section == sec).all())
+
+        # Ardından new_percentage hesaplamasını güncelleyin:
+        new_percentage = (section_scores[sec] / max_section_points) * 100 if max_section_points > 0 else 0
+
+        
+        stat.average_score = (stat.average_score + new_percentage) / 2
+        stat.section_percentage = new_percentage
+        db.commit()
