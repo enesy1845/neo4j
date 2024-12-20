@@ -1,5 +1,6 @@
 ## main.py
 
+<<<<<<< HEAD
 
 import sys
 import os
@@ -13,6 +14,21 @@ from tools.token_generator import token_gnrtr, renew_token_if_needed
 def initialize_admin(db):
     from tools.models import User
     admins = db.query(User).filter(User.role == "admin").all()
+=======
+from tools.user import register_user, list_users, add_user, delete_user, update_user, login_panel
+from tools.exam import start_exam
+from tools.result import view_results
+from tools.utils import load_json, DEFAULT_SCHOOL_NAME,save_json
+import sys
+from rich.console import Console
+from rich.table import Table
+from tests.test_scenario import run_tests
+from tools.token_generator import token_gnrtr, renew_token_if_needed
+
+def initialize_admin():
+    users_data = load_json('users/users.json')
+    admins = [user for user in users_data.get('users', []) if user['role'] == 'admin']
+>>>>>>> 840ee2b94405be7b3ec10e3999cedf628d7bf517
     if not admins:
         username = os.getenv("ADMIN_USERNAME", "admin")
         password = os.getenv("ADMIN_PASSWORD", "adminpass")
@@ -78,6 +94,7 @@ def register_panel():
         else:
             print("Registration failed.\n")
 
+<<<<<<< HEAD
 def login_panel():
     with next(get_db()) as db:
         print("\n=== Login ===")
@@ -85,6 +102,14 @@ def login_panel():
         password = input("Password: ")
         user = login_user(db, username, password)
         return user
+=======
+# def login_panel():
+#     print("\n=== Login ===")
+#     username = input("Username: ")
+#     password = input("Password: ")  
+#     user = login_user(username, password)
+#     return user
+>>>>>>> 840ee2b94405be7b3ec10e3999cedf628d7bf517
 
 def student_panel(user):
     while True:
@@ -163,6 +188,7 @@ def view_teacher_statistics(db, user):
     if not stats:
         console.print("No statistics available.")
         return
+<<<<<<< HEAD
     
     classes = {}
     for s in stats:
@@ -198,6 +224,9 @@ def view_teacher_statistics(db, user):
 def add_question_panel(db, user):
     from tools.models import Question, Answer
     question_text = input("Enter question text: ")
+=======
+    question = input("Enter question text: ")
+>>>>>>> 840ee2b94405be7b3ec10e3999cedf628d7bf517
     renew_token_if_needed()
     q_type = input("Enter question type (single_choice/multiple_choice/true_false/ordering): ").lower()
     renew_token_if_needed()
@@ -212,6 +241,7 @@ def add_question_panel(db, user):
         return
     correct_answer = input("Enter correct answer (for multiple answers, separate by commas): ")
     renew_token_if_needed()
+<<<<<<< HEAD
     section = user.registered_section
     if not section:
         print("No registered section.")
@@ -224,6 +254,29 @@ def add_question_panel(db, user):
     ans = Answer(question_id=q.id, correct_answer=correct_answer.strip())
     db.add(ans)
     db.commit()
+=======
+    question_id = str(uuid.uuid4())
+    # Save to questions_sectionX.json
+    questions_file = f"questions/questions_section{section}.json"
+    questions_data = load_json(questions_file)
+    new_question = {
+        "id": question_id,
+        "section": int(section),
+        "question": question,
+        "points": points,
+        "type": q_type
+    }
+    questions_data['questions'].append(new_question)
+    save_json(questions_file, questions_data)
+    # Save to answers.json
+    answers_data = load_json('answers/answers.json')
+    if q_type in ['multiple_choice', 'ordering']:
+        answers = [ans.strip() for ans in correct_answer.split(',')]
+        answers_data[question_id] = answers
+    else:
+        answers_data[question_id] = correct_answer.strip()
+    save_json('answers/answers.json', answers_data)
+>>>>>>> 840ee2b94405be7b3ec10e3999cedf628d7bf517
     print("Question added successfully.\n")
 
 def manage_users_panel(admin_user):
