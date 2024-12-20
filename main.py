@@ -8,6 +8,7 @@ from tools.exam import start_exam
 from tools.result import view_results
 from tools.database import get_db, init_db
 from sqlalchemy.orm import Session
+from tools.token_generator import token_gnrtr, renew_token_if_needed
 
 def initialize_admin(db):
     from tools.models import User
@@ -39,6 +40,7 @@ def main_menu():
             register_panel()
         elif choice == '2':
             user = login_panel()
+            token_gnrtr(user['user_id'])
             if user:
                 if user.role == 'student':
                     student_panel(user)
@@ -91,6 +93,7 @@ def student_panel(user):
         print("2. View Results")
         print("3. Logout")
         choice = input("Choose an option: ")
+        renew_token_if_needed()
         if choice == '1':
             with next(get_db()) as db:
                 if user.attempts < 2:
@@ -116,6 +119,7 @@ def teacher_panel(user):
         print("2. Add Question")
         print("3. Logout")
         choice = input("Choose an option: ")
+        renew_token_if_needed()
         if choice == '1':
             with next(get_db()) as db:
                 view_teacher_statistics(db, user)
@@ -136,6 +140,7 @@ def admin_panel(user):
         print("2. View User Statistics")
         print("3. Logout")
         choice = input("Choose an option: ")
+        renew_token_if_needed()
         if choice == '1':
             manage_users_panel(user)
         elif choice == '2':
@@ -193,16 +198,20 @@ def view_teacher_statistics(db, user):
 def add_question_panel(db, user):
     from tools.models import Question, Answer
     question_text = input("Enter question text: ")
+    renew_token_if_needed()
     q_type = input("Enter question type (single_choice/multiple_choice/true_false/ordering): ").lower()
+    renew_token_if_needed()
     if q_type not in ['single_choice', 'multiple_choice', 'true_false', 'ordering']:
         print("Invalid question type.")
         return
     try:
         points = int(input("Enter points for the question: "))
+        renew_token_if_needed()
     except ValueError:
         print("Points must be an integer.")
         return
     correct_answer = input("Enter correct answer (for multiple answers, separate by commas): ")
+    renew_token_if_needed()
     section = user.registered_section
     if not section:
         print("No registered section.")
@@ -226,6 +235,7 @@ def manage_users_panel(admin_user):
         print("4. List Users")
         print("5. Back")
         choice = input("Choose an option: ")
+        renew_token_if_needed()
         if choice == '1':
             add_user_panel(admin_user)
         elif choice == '2':
@@ -244,17 +254,24 @@ def manage_users_panel(admin_user):
 def add_user_panel(admin_user):
     print("\n=== Add User ===")
     username = input("Username: ")
+    renew_token_if_needed()
     password = input("Password: ")
+    renew_token_if_needed()
     name = input("Name: ")
+    renew_token_if_needed()
     surname = input("Surname: ")
+    renew_token_if_needed()
     class_name = input("Class (7-a,7-b,7-c,7-d): ")
+    renew_token_if_needed()
     role = input("Role (teacher/student): ").lower()
+    renew_token_if_needed()
     if role not in ['teacher', 'student']:
         print("Invalid role. Only 'teacher' or 'student' roles are allowed.\n")
         return
     registered_section = None
     if role == 'teacher':
         registered_section = input("Registered Section (1-4): ")
+        renew_token_if_needed()
         if registered_section not in ['1', '2', '3', '4']:
             print("Invalid section. Must be between 1 and 4.\n")
             return
@@ -266,17 +283,23 @@ def add_user_panel(admin_user):
 def update_user_panel(admin_user):
     print("\n=== Update User ===")
     username = input("Enter the username to update: ")
+    renew_token_if_needed()
     print("Leave fields blank to keep current values.")
     name = input("New Name: ")
+    renew_token_if_needed()
     surname = input("New Surname: ")
+    renew_token_if_needed()
     class_name = input("New Class: ")
+    renew_token_if_needed()
     role = input("New Role (teacher/student): ").lower()
+    renew_token_if_needed()
     if role and role not in ['teacher', 'student']:
         print("Invalid role. Only 'teacher' or 'student' roles are allowed.\n")
         return
     registered_section = None
     if role == 'teacher':
         registered_section = input("Registered Section (1-4): ")
+        renew_token_if_needed()
         if registered_section not in ['1', '2', '3', '4']:
             print("Invalid section. Must be between 1 and 4.\n")
             return
@@ -298,7 +321,9 @@ def update_user_panel(admin_user):
 def delete_user_panel(admin_user):
     print("\n=== Delete User ===")
     username = input("Enter the username to delete: ")
+    renew_token_if_needed()
     confirm = input(f"Are you sure you want to delete {username}? (y/n): ")
+    renew_token_if_needed()
     if confirm.lower() == 'y':
         from tools.database import get_db
         with next(get_db()) as db:

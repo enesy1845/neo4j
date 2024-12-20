@@ -88,3 +88,10 @@ def update_user(db: Session, admin_user, username, **kwargs):
     db.commit()
     print("User updated.")
     return True
+
+def login_panel():
+    print("\n=== Login ===")
+    username = input("Username: ")
+    password = input("Password: ")  
+    user = login_user(username, password)
+    return user
