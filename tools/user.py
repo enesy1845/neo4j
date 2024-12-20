@@ -78,7 +78,6 @@ def update_user(db: Session, admin_user, username, **kwargs):
     if admin_user.role.lower() != 'admin':
         print("Only admins can update users.")
         return False
-<<<<<<< HEAD
     user = db.query(User).filter(User.username == username).first()
     if not user:
         print("User not found.")
@@ -89,19 +88,6 @@ def update_user(db: Session, admin_user, username, **kwargs):
     db.commit()
     print("User updated.")
     return True
-=======
-    users_data = load_json(USERS_FILE)
-    for user in users_data.get('users', []):
-        if user['username'] == username:
-            for key, value in kwargs.items():
-                if key in user and value:
-                    user[key] = value
-            save_json(USERS_FILE, users_data)
-            print("User updated.")
-            return True
-    print("User not found.")
-    return False
->>>>>>> 840ee2b94405be7b3ec10e3999cedf628d7bf517
 
 def login_panel():
     print("\n=== Login ===")
