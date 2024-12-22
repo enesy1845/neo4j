@@ -1,15 +1,14 @@
 ## main.py
-
-
 import sys
 import os
-from tools.user import register_user, login_user, list_users, add_user, delete_user, update_user
+from tools.user import register_user, login_panel, list_users, add_user, delete_user, update_user
 from tools.exam import start_exam
 from tools.result import view_results
 from tools.database import get_db, init_db
 from sqlalchemy.orm import Session
+from tools.token_generator import renew_token_if_needed, token_gnrtr
 
-def initialize_admin(db):
+def initialize_admin(db: Session):
     from tools.models import User
     admins = db.query(User).filter(User.role == "admin").all()
     if not admins:
@@ -25,32 +24,46 @@ def initialize_admin(db):
         print("Admin kullanıcı(ları) zaten mevcut.\n")
 
 def main_menu():
-    init_db()
-    with next(get_db()) as db:
-        initialize_admin(db)
+    try:
+        # Veritabanı başlatma
+        init_db()
+        print("Veritabanı başlatıldı.")
+        with next(get_db()) as db:
+            initialize_admin(db)
+            
 
-    while True:
-        print("=== Welcome to the Examination System ===")
-        print("1. Register")
-        print("2. Login")
-        print("3. Exit")
-        choice = input("Choose an option: ")
-        if choice == '1':
-            register_panel()
-        elif choice == '2':
-            user = login_panel()
-            if user:
-                if user.role == 'student':
-                    student_panel(user)
-                elif user.role == 'teacher':
-                    teacher_panel(user)
-                elif user.role == 'admin':
-                    admin_panel(user)
-        elif choice == '3':
-            print("Goodbye!")
-            sys.exit()
-        else:
-            print("Invalid choice.\n")
+        while True:
+            print("\n=== Welcome to the Examination System ===")
+            print("1. Register")
+            print("2. Login")
+            print("3. Exit")
+            choice = input("Choose an option: ").strip()
+
+            if choice == '1':
+                register_panel()
+            elif choice == '2':
+                user = login_panel(db)
+                if user:
+                    token_gnrtr(user.user_id)
+                    if user.role == 'student':
+                        student_panel(user)
+                    elif user.role == 'teacher':
+                        teacher_panel(user)
+                    elif user.role == 'admin':
+                        admin_panel(user)
+                    else:
+                        print("Unknown role. Please contact the administrator.")
+                else:
+                    print("Login failed. Please try again.")
+            elif choice == '3':
+                print("Goodbye!")
+                break
+            else:
+                print("Invalid choice. Please enter 1, 2, or 3.\n")
+    except Exception as e:
+        print(f"An error occurred: {e}")
+        sys.exit(1)
+
 
 def register_panel():
     with next(get_db()) as db:
@@ -76,13 +89,12 @@ def register_panel():
         else:
             print("Registration failed.\n")
 
-def login_panel():
-    with next(get_db()) as db:
-        print("\n=== Login ===")
-        username = input("Username: ")
-        password = input("Password: ")
-        user = login_user(db, username, password)
-        return user
+# def login_panel():
+#     print("\n=== Login ===")
+#     username = input("Username: ")
+#     password = input("Password: ")  
+#     user = login_user(username, password)
+#     return user
 
 def student_panel(user):
     while True:
@@ -91,6 +103,7 @@ def student_panel(user):
         print("2. View Results")
         print("3. Logout")
         choice = input("Choose an option: ")
+        renew_token_if_needed()
         if choice == '1':
             with next(get_db()) as db:
                 if user.attempts < 2:
@@ -116,6 +129,8 @@ def teacher_panel(user):
         print("2. Add Question")
         print("3. Logout")
         choice = input("Choose an option: ")
+        renew_token_if_needed()
+        print("token gecti")
         if choice == '1':
             with next(get_db()) as db:
                 view_teacher_statistics(db, user)
@@ -136,6 +151,7 @@ def admin_panel(user):
         print("2. View User Statistics")
         print("3. Logout")
         choice = input("Choose an option: ")
+        renew_token_if_needed()
         if choice == '1':
             manage_users_panel(user)
         elif choice == '2':
@@ -193,16 +209,20 @@ def view_teacher_statistics(db, user):
 def add_question_panel(db, user):
     from tools.models import Question, Answer
     question_text = input("Enter question text: ")
+    renew_token_if_needed()
     q_type = input("Enter question type (single_choice/multiple_choice/true_false/ordering): ").lower()
+    renew_token_if_needed()
     if q_type not in ['single_choice', 'multiple_choice', 'true_false', 'ordering']:
         print("Invalid question type.")
         return
     try:
         points = int(input("Enter points for the question: "))
+        renew_token_if_needed()
     except ValueError:
         print("Points must be an integer.")
         return
     correct_answer = input("Enter correct answer (for multiple answers, separate by commas): ")
+    renew_token_if_needed()
     section = user.registered_section
     if not section:
         print("No registered section.")
@@ -226,6 +246,7 @@ def manage_users_panel(admin_user):
         print("4. List Users")
         print("5. Back")
         choice = input("Choose an option: ")
+        renew_token_if_needed()
         if choice == '1':
             add_user_panel(admin_user)
         elif choice == '2':
@@ -244,17 +265,24 @@ def manage_users_panel(admin_user):
 def add_user_panel(admin_user):
     print("\n=== Add User ===")
     username = input("Username: ")
+    renew_token_if_needed()
     password = input("Password: ")
+    renew_token_if_needed()
     name = input("Name: ")
+    renew_token_if_needed()
     surname = input("Surname: ")
+    renew_token_if_needed()
     class_name = input("Class (7-a,7-b,7-c,7-d): ")
+    renew_token_if_needed()
     role = input("Role (teacher/student): ").lower()
+    renew_token_if_needed()
     if role not in ['teacher', 'student']:
         print("Invalid role. Only 'teacher' or 'student' roles are allowed.\n")
         return
     registered_section = None
     if role == 'teacher':
         registered_section = input("Registered Section (1-4): ")
+        renew_token_if_needed()
         if registered_section not in ['1', '2', '3', '4']:
             print("Invalid section. Must be between 1 and 4.\n")
             return
@@ -266,17 +294,23 @@ def add_user_panel(admin_user):
 def update_user_panel(admin_user):
     print("\n=== Update User ===")
     username = input("Enter the username to update: ")
+    renew_token_if_needed()
     print("Leave fields blank to keep current values.")
     name = input("New Name: ")
+    renew_token_if_needed()
     surname = input("New Surname: ")
+    renew_token_if_needed()
     class_name = input("New Class: ")
+    renew_token_if_needed()
     role = input("New Role (teacher/student): ").lower()
+    renew_token_if_needed()
     if role and role not in ['teacher', 'student']:
         print("Invalid role. Only 'teacher' or 'student' roles are allowed.\n")
         return
     registered_section = None
     if role == 'teacher':
         registered_section = input("Registered Section (1-4): ")
+        renew_token_if_needed()
         if registered_section not in ['1', '2', '3', '4']:
             print("Invalid section. Must be between 1 and 4.\n")
             return
@@ -298,7 +332,9 @@ def update_user_panel(admin_user):
 def delete_user_panel(admin_user):
     print("\n=== Delete User ===")
     username = input("Enter the username to delete: ")
+    renew_token_if_needed()
     confirm = input(f"Are you sure you want to delete {username}? (y/n): ")
+    renew_token_if_needed()
     if confirm.lower() == 'y':
         from tools.database import get_db
         with next(get_db()) as db:
