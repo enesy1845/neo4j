@@ -3,6 +3,7 @@ import datetime
 import os
 import pytz
 from tools.user import login_panel
+from tools.database import get_db, init_db
 
 tokenTimeExtension=300 #seconden
 tokenMinute=1
@@ -12,7 +13,7 @@ def token_gnrtr(user_id):
     expiration_time = datetime.datetime.now(pytz.utc) + datetime.timedelta(minutes=tokenMinute)
     # Token içeriği (payload)
     payload = {
-        "user_id": user_id,
+        "user_id": str(user_id),
         "exp": expiration_time.timestamp()
     }
     
@@ -54,9 +55,10 @@ def renew_token_if_needed():
     except jwt.ExpiredSignatureError:
         decoded_payload = jwt.decode(token, SECRET_KEY, algorithms=["HS256"],options={"verify_exp": False}) 
         user_id = decoded_payload["user_id"]
-        user = login_panel()
+        with next(get_db()) as db:
+            user = login_panel(db)
         
-        if user and user["user_id"] == user_id:
+        if user and str(user.user_id) == user_id:
             # Eğer user_id'ler eşleşiyorsa, token'ı yenileyerek devam et
             new_exp = datetime.datetime.now() + datetime.timedelta(minutes=tokenMinute)  # Yeni expiration süresi
             decoded_payload["exp"] = new_exp.timestamp()

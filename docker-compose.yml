@@ -1,3 +1,4 @@
+version: '3'
 services:
   db:
     image: postgres:14
@@ -18,15 +19,13 @@ services:
 
   app:
     build: .
-    container_name: python_app
+    container_name: multipartquizapp-app
     depends_on:
-      db:
-        condition: service_healthy
+      - db
     environment:
       - PYTHONUNBUFFERED=1
     env_file:
       - .env
-    #command: sh -c "python migrate_questions.py && python tests/test_scenario.py"
     command: sh -c "python tests/test_scenario.py"
     volumes:
       - .:/app

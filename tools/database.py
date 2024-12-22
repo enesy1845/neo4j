@@ -1,6 +1,7 @@
 # tools/database.py
 
 import os
+import time
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker, declarative_base
 from dotenv import load_dotenv
@@ -17,7 +18,18 @@ DATABASE_URL = f"postgresql://{DB_USER}:{DB_PASSWORD}@{DB_HOST}:{DB_PORT}/{DB_NA
 
 Base = declarative_base()
 
-engine = create_engine(DATABASE_URL, future=True)
+retries = 5
+while retries > 0:
+    try:
+        engine = create_engine(DATABASE_URL, future=True)
+        break
+    except Exception as e:
+        print(f"Database connection failed: {e}")
+        retries -= 1
+        time.sleep(5)
+        
+
+
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 
 def get_db():
@@ -29,4 +41,10 @@ def get_db():
 
 def init_db():
     from tools.models import User, Question, Answer, Exam, ExamAnswer, Statistics
-    Base.metadata.create_all(bind=engine)
+    User.__table__.create(bind=engine, checkfirst=True)
+    Question.__table__.create(bind=engine, checkfirst=True)
+    Answer.__table__.create(bind=engine, checkfirst=True)
+    Exam.__table__.create(bind=engine, checkfirst=True)
+    ExamAnswer.__table__.create(bind=engine, checkfirst=True)
+    Statistics.__table__.create(bind=engine, checkfirst=True)
+
