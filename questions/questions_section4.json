@@ -1,0 +1,159 @@
+{
+	"questions": [
+		{
+			"id": "550e8400-e29b-41d4-a716-44665544003E",
+			"section": 4,
+			"question": "The chemical formula of water is H2O.",
+			"points": 5,
+			"type": "true_false"
+		},
+		{
+			"id": "550e8400-e29b-41d4-a716-44665544003F",
+			"section": 4,
+			"question": "Iron is denoted by the symbol 'Fe' on the periodic table.",
+			"points": 5,
+			"type": "true_false"
+		},
+		{
+			"id": "550e8400-e29b-41d4-a716-446655440040",
+			"section": 4,
+			"question": "The sun revolves around the Earth.",
+			"points": 5,
+			"type": "true_false"
+		},
+		{
+			"id": "550e8400-e29b-41d4-a716-446655440041",
+			"section": 4,
+			"question": "Sound travels faster in air than in water.",
+			"points": 5,
+			"type": "true_false"
+		},
+		{
+			"id": "550e8400-e29b-41d4-a716-446655440042",
+			"section": 4,
+			"question": "Jupiter is the largest planet in our solar system.",
+			"points": 5,
+			"type": "true_false"
+		},
+		{
+			"id": "550e8400-e29b-41d4-a716-446655440043",
+			"section": 4,
+			"question": "Mount Everest is the tallest mountain in the world.",
+			"points": 5,
+			"type": "true_false"
+		},
+		{
+			"id": "550e8400-e29b-41d4-a716-446655440044",
+			"section": 4,
+			"question": "Which unit is used to measure electric current?",
+			"options": ["Volt", "Ampere", "Ohm", "Watt"],
+			"points": 5,
+			"type": "single_choice"
+		},
+		{
+			"id": "550e8400-e29b-41d4-a716-446655440045",
+			"section": 4,
+			"question": "Which of Newton's laws expresses the principle of inertia?",
+			"options": ["1st Law", "2nd Law", "3rd Law", "4th Law"],
+			"points": 5,
+			"type": "single_choice"
+		},
+		{
+			"id": "550e8400-e29b-41d4-a716-446655440046",
+			"section": 4,
+			"question": "What is the approximate value of the speed of light?",
+			"options": [
+				"300,000 km/s",
+				"150,000 km/s",
+				"100,000 km/s",
+				"50,000 km/s"
+			],
+			"points": 5,
+			"type": "single_choice"
+		},
+		{
+			"id": "550e8400-e29b-41d4-a716-446655440047",
+			"section": 4,
+			"question": "What is the chemical formula for water?",
+			"options": ["CO2", "H2O", "O2", "NaCl"],
+			"points": 5,
+			"type": "single_choice"
+		},
+		{
+			"id": "550e8400-e29b-41d4-a716-446655440048",
+			"section": 4,
+			"question": "Which element has the symbol 'Fe'?",
+			"options": ["Iron", "Copper", "Gold", "Silver"],
+			"points": 5,
+			"type": "single_choice"
+		},
+		{
+			"id": "550e8400-e29b-41d4-a716-446655440049",
+			"section": 4,
+			"question": "Which of the following energy types are renewable energy sources?",
+			"options": [
+				"Solar Energy",
+				"Wind Energy",
+				"Fossil Fuels",
+				"Geothermal Energy",
+				"Nuclear Energy"
+			],
+			"points": 10,
+			"type": "multiple_choice"
+		},
+		{
+			"id": "550e8400-e29b-41d4-a716-44665544004A",
+			"section": 4,
+			"question": "Which of the following are fundamental physical quantities?",
+			"options": ["Mass", "Time", "Speed", "Force", "Length"],
+			"points": 10,
+			"type": "multiple_choice"
+		},
+		{
+			"id": "550e8400-e29b-41d4-a716-44665544004B",
+			"section": 4,
+			"question": "Which of the following are electromagnetic waves?",
+			"options": [
+				"Radio Waves",
+				"Microwaves",
+				"Sound Waves",
+				"Infrared Rays",
+				"Water Waves"
+			],
+			"points": 10,
+			"type": "multiple_choice"
+		},
+		{
+			"id": "550e8400-e29b-41d4-a716-44665544004C",
+			"section": 4,
+			"question": "Which of the following are fundamental forces in physics?",
+			"options": ["Gravity", "Friction", "Inertia", "Electromagnetism"],
+			"points": 10,
+			"type": "multiple_choice"
+		},
+		{
+			"id": "550e8400-e29b-41d4-a716-44665544004D",
+			"section": 4,
+			"question": "Which of the following shapes have four sides?",
+			"options": ["Triangle", "Rectangle", "Circle", "Square"],
+			"points": 10,
+			"type": "multiple_choice"
+		},
+		{
+			"id": "550e8400-e29b-41d4-a716-44665544004E",
+			"section": 4,
+			"question": "Arrange the planets in order from the Sun.",
+			"options": ["Earth", "Mars", "Mercury", "Venus"],
+			"points": 5,
+			"type": "ordering"
+		},
+		{
+			"id": "550e8400-e29b-41d4-a716-44665544004F",
+			"section": 4,
+			"question": "Order the states of matter from lowest to highest energy.",
+			"options": ["Gas", "Solid", "Plasma", "Liquid"],
+			"points": 5,
+			"type": "ordering"
+		}
+	]
+}
