@@ -2,13 +2,14 @@ import jwt
 import datetime
 import os
 import pytz
+from rich import _console
 from tools.user import login_panel
 from tools.database import get_db, init_db
 
+SECRET_KEY = os.getenv("SECRET_KEY")
 tokenTimeExtension=300 #seconden
 tokenMinute=1
 
-SECRET_KEY = "123456789012345qQwertyuiopasdfghjklzxcvbnm67890123456789012"
 def token_gnrtr(user_id):
     expiration_time = datetime.datetime.now(pytz.utc) + datetime.timedelta(minutes=tokenMinute)
     # Token içeriği (payload)
@@ -16,7 +17,6 @@ def token_gnrtr(user_id):
         "user_id": str(user_id),
         "exp": expiration_time.timestamp()
     }
-    
     # Token oluşturma
     token = jwt.encode(payload, SECRET_KEY, algorithm="HS256")
     os.environ["ACCESS_TOKEN"] = token
