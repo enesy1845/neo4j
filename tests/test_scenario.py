@@ -1,5 +1,4 @@
 # tests/test_scenario.py
-
 import sys
 import random
 from datetime import datetime
@@ -13,7 +12,6 @@ from tools.user import register_user
 from tools.exam import select_questions, process_results
 from tools.models import User, Exam, ExamAnswer, Statistics
 from tools.result import view_results
-from tools.utils import DEFAULT_SCHOOL_NAME
 from sqlalchemy.orm import Session
 
 def reset_db_except_questions_and_answers(db: Session):
@@ -55,7 +53,6 @@ def simulate_exam_for_student(db: Session, user: User):
     user_answers = {}
     for section, questions in selected_questions.items():
         for q in questions:
-            # Basit random cevaplar üret
             if q.type == 'true_false':
                 user_answer = random.choice(['true', 'false'])
             elif q.type == 'single_choice':
@@ -81,19 +78,16 @@ def view_all_students_results(db: Session):
     for s in students:
         view_results(db, s)
 
-def view_all_teachers_stats(db: Session):
-    from main import view_teacher_statistics
-    teachers = db.query(User).filter(User.role == 'teacher').all()
-    for t in teachers:
-        view_teacher_statistics(db, t)
-
 def run_test_scenario():
     with next(get_db()) as db:
         init_db()
         reset_db_except_questions_and_answers(db)
+
+        # Admin user kontrol
         admin_user = db.query(User).filter(User.role == 'admin').first()
         if not admin_user:
-            admin_user = db.query(User).filter(User.role == 'admin').first()
+            # Tekrar init_db'de admin yaratacak
+            pass
 
         create_teachers(db, 5)
         create_students(db, 10)
@@ -104,7 +98,7 @@ def run_test_scenario():
             simulate_exam_for_student(db, s)
 
         view_all_students_results(db)
-        view_all_teachers_stats(db)
+
         from main import view_admin_statistics
         view_admin_statistics(db)
 

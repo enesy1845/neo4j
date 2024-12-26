@@ -30,7 +30,6 @@ def main_menu():
         print("Veritabanı başlatıldı.")
         with next(get_db()) as db:
             initialize_admin(db)
-            
 
         while True:
             print("\n=== Welcome to the Examination System ===")
@@ -42,19 +41,20 @@ def main_menu():
             if choice == '1':
                 register_panel()
             elif choice == '2':
-                user = login_panel(db)
-                if user:
-                    token_gnrtr(user.user_id)
-                    if user.role == 'student':
-                        student_panel(user)
-                    elif user.role == 'teacher':
-                        teacher_panel(user)
-                    elif user.role == 'admin':
-                        admin_panel(user)
+                with next(get_db()) as db:
+                    user = login_panel(db)
+                    if user:
+                        token_gnrtr(user.user_id)
+                        if user.role == 'student':
+                            student_panel(user)
+                        elif user.role == 'teacher':
+                            teacher_panel(user)
+                        elif user.role == 'admin':
+                            admin_panel(user)
+                        else:
+                            print("Unknown role. Please contact the administrator.")
                     else:
-                        print("Unknown role. Please contact the administrator.")
-                else:
-                    print("Login failed. Please try again.")
+                        print("Login failed. Please try again.")
             elif choice == '3':
                 print("Goodbye!")
                 break
@@ -63,7 +63,6 @@ def main_menu():
     except Exception as e:
         print(f"An error occurred: {e}")
         sys.exit(1)
-
 
 def register_panel():
     with next(get_db()) as db:
@@ -77,24 +76,19 @@ def register_panel():
         if role not in ['teacher', 'student']:
             print("Invalid role selected. Only 'teacher' or 'student' roles are allowed.")
             return
+
         registered_section = None
         if role == 'teacher':
             registered_section = input("Registered Section (1-4): ")
             if registered_section not in ['1', '2', '3', '4']:
                 print("Invalid section. Must be between 1 and 4.")
                 return
+
         success = register_user(db, username, password, name, surname, class_name, role, registered_section)
         if success:
             print("Registration successful.\n")
         else:
             print("Registration failed.\n")
-
-# def login_panel():
-#     print("\n=== Login ===")
-#     username = input("Username: ")
-#     password = input("Password: ")  
-#     user = login_user(username, password)
-#     return user
 
 def student_panel(user):
     while True:
@@ -104,6 +98,7 @@ def student_panel(user):
         print("3. Logout")
         choice = input("Choose an option: ")
         renew_token_if_needed()
+
         if choice == '1':
             with next(get_db()) as db:
                 if user.attempts < 2:
@@ -112,10 +107,12 @@ def student_panel(user):
                     db.refresh(user)
                 else:
                     print("You have no remaining exam attempts.\n")
+
         elif choice == '2':
             with next(get_db()) as db:
                 user = db.merge(user)
                 view_results(db, user)
+
         elif choice == '3':
             print("Logged out.\n")
             break
@@ -131,13 +128,16 @@ def teacher_panel(user):
         choice = input("Choose an option: ")
         renew_token_if_needed()
         print("token gecti")
+
         if choice == '1':
             with next(get_db()) as db:
                 view_teacher_statistics(db, user)
+
         elif choice == '2':
             with next(get_db()) as db:
                 user = db.merge(user)
                 add_question_panel(db, user)
+
         elif choice == '3':
             print("Logged out.\n")
             break
@@ -152,6 +152,7 @@ def admin_panel(user):
         print("3. Logout")
         choice = input("Choose an option: ")
         renew_token_if_needed()
+
         if choice == '1':
             manage_users_panel(user)
         elif choice == '2':
@@ -166,15 +167,14 @@ def admin_panel(user):
 def view_teacher_statistics(db, user):
     from rich.console import Console
     from rich.table import Table
-    from tools.utils import DEFAULT_SCHOOL_NAME
     from tools.models import Statistics
     console = Console()
 
-    stats = db.query(Statistics).filter(Statistics.school_name == DEFAULT_SCHOOL_NAME).all()
+    stats = db.query(Statistics).filter(Statistics.school_id == user.school_id).all()
     if not stats:
         console.print("No statistics available.")
         return
-    
+
     classes = {}
     for s in stats:
         if s.class_name not in classes:
@@ -188,16 +188,20 @@ def view_teacher_statistics(db, user):
         table.add_column("Doğru Sayısı (DS)", style="green")
         table.add_column("Yanlış Sayısı (YS)", style="red")
         table.add_column("Ortalama Skor (%)", style="magenta")
+
         for sec_data in sections_data:
             soru_bolumu = f"{sec_data.section_number}s."
             ds = sec_data.correct_questions
             ys = sec_data.wrong_questions
             avg = sec_data.average_score
             table.add_row(soru_bolumu, str(ds), str(ys), f"{avg:.2f}%")
+
+        # Sınıf ortalamasını hesapla
         class_avg = sum([sd.average_score for sd in sections_data]) / len(sections_data)
         console.print(table)
         console.print(f"Sınıf Ortalaması: [bold green]{class_avg:.2f}%[/bold green]")
 
+    # Okul genel ortalama
     all_avg = sum([s.average_score for s in stats]) / len(stats)
     console.print(f"\n[bold underline]Okul Genel İstatistikleri[/bold underline]")
     school_table = Table(show_header=True, header_style="bold blue")
@@ -205,6 +209,7 @@ def view_teacher_statistics(db, user):
     school_table.add_column("Ortalama Skor (%)", style="magenta")
     school_table.add_row("Okul Ortalaması", f"{all_avg:.2f}%")
     console.print(school_table)
+
 
 def add_question_panel(db, user):
     from tools.models import Question, Answer
@@ -215,27 +220,47 @@ def add_question_panel(db, user):
     if q_type not in ['single_choice', 'multiple_choice', 'true_false', 'ordering']:
         print("Invalid question type.")
         return
+
     try:
         points = int(input("Enter points for the question: "))
         renew_token_if_needed()
     except ValueError:
         print("Points must be an integer.")
         return
+
     correct_answer = input("Enter correct answer (for multiple answers, separate by commas): ")
     renew_token_if_needed()
+
     section = user.registered_section
     if not section:
         print("No registered section.")
         return
-    q = Question(section=int(section), question=question_text, points=points, type=q_type)
+
+    # External ID'yi benzersiz bir şekilde oluşturuyoruz
+    external_id = str(uuid.uuid4())
+
+    # Question nesnesini external_id ile oluşturuyoruz
+    q = Question(
+        external_id=external_id,
+        section=int(section),
+        question=question_text,
+        points=points,
+        type=q_type
+    )
     db.add(q)
     db.commit()
     db.refresh(q)
 
-    ans = Answer(question_id=q.id, correct_answer=correct_answer.strip())
+    # Answer nesnesini ekliyoruz
+    ans = Answer(
+        question_id=q.id,  # Bu artık UUID
+        correct_answer=correct_answer.strip()
+    )
     db.add(ans)
     db.commit()
-    print("Question added successfully.\n")
+
+    print(f"Question added successfully with external_id: {external_id}\n")
+
 
 def manage_users_panel(admin_user):
     while True:
@@ -247,6 +272,7 @@ def manage_users_panel(admin_user):
         print("5. Back")
         choice = input("Choose an option: ")
         renew_token_if_needed()
+
         if choice == '1':
             add_user_panel(admin_user)
         elif choice == '2':
@@ -262,6 +288,7 @@ def manage_users_panel(admin_user):
         else:
             print("Invalid choice.\n")
 
+
 def add_user_panel(admin_user):
     print("\n=== Add User ===")
     username = input("Username: ")
@@ -276,9 +303,11 @@ def add_user_panel(admin_user):
     renew_token_if_needed()
     role = input("Role (teacher/student): ").lower()
     renew_token_if_needed()
+
     if role not in ['teacher', 'student']:
         print("Invalid role. Only 'teacher' or 'student' roles are allowed.\n")
         return
+
     registered_section = None
     if role == 'teacher':
         registered_section = input("Registered Section (1-4): ")
@@ -286,10 +315,12 @@ def add_user_panel(admin_user):
         if registered_section not in ['1', '2', '3', '4']:
             print("Invalid section. Must be between 1 and 4.\n")
             return
+
     from tools.database import get_db
     with next(get_db()) as db:
         add_user(db, admin_user, username=username, password=password, name=name, surname=surname,
                  class_name=class_name, role=role, registered_section=registered_section)
+
 
 def update_user_panel(admin_user):
     print("\n=== Update User ===")
@@ -304,9 +335,11 @@ def update_user_panel(admin_user):
     renew_token_if_needed()
     role = input("New Role (teacher/student): ").lower()
     renew_token_if_needed()
+
     if role and role not in ['teacher', 'student']:
         print("Invalid role. Only 'teacher' or 'student' roles are allowed.\n")
         return
+
     registered_section = None
     if role == 'teacher':
         registered_section = input("Registered Section (1-4): ")
@@ -314,6 +347,7 @@ def update_user_panel(admin_user):
         if registered_section not in ['1', '2', '3', '4']:
             print("Invalid section. Must be between 1 and 4.\n")
             return
+
     update_fields = {}
     if name:
         update_fields['name'] = name
@@ -325,9 +359,11 @@ def update_user_panel(admin_user):
         update_fields['role'] = role
     if registered_section:
         update_fields['registered_section'] = registered_section
+
     from tools.database import get_db
     with next(get_db()) as db:
         update_user(db, admin_user, username, **update_fields)
+
 
 def delete_user_panel(admin_user):
     print("\n=== Delete User ===")
@@ -342,13 +378,15 @@ def delete_user_panel(admin_user):
     else:
         print("Deletion cancelled.\n")
 
+
 def view_admin_statistics(db: Session):
     from tools.models import Statistics
     stats = db.query(Statistics).all()
     for s in stats:
-        print(f"\nSchool: {s.school_name}")
+        print(f"\nSchoolID: {s.school_id}")
         print(f"  Class: {s.class_name}")
-        print(f"    Section {s.section_number} - Correct: {s.correct_questions}, Wrong: {s.wrong_questions}, Average Score: {s.average_score}, Percentage: {s.section_percentage}%")
+        print(f"    Section {s.section_number} - Correct: {s.correct_questions}, Wrong: {s.wrong_questions}, Average Score: {s.average_score:.2f}, Percentage: {s.section_percentage:.2f}%")
+
 
 if __name__ == "__main__":
     main_menu()
