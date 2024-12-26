@@ -1,11 +1,21 @@
 # tools/models.py
-
 import uuid
 from sqlalchemy import Column, String, Integer, Float, Boolean, DateTime, ForeignKey, Text
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import relationship
 from tools.database import Base
 from datetime import datetime
+
+class School(Base):
+    __tablename__ = "schools"
+    school_id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    name = Column(String(255), unique=True, nullable=False)
+
+    # İlişkiler
+    users = relationship("User", back_populates="school")
+    exams = relationship("Exam", back_populates="school")
+    statistics = relationship("Statistics", back_populates="school")
+
 
 class User(Base):
     __tablename__ = "users"
@@ -22,24 +32,33 @@ class User(Base):
     score2 = Column(Float, default=0)
     score_avg = Column(Float, default=0)
     class_name = Column(String(50), nullable=False)
-    school_name = Column(String(255), nullable=False)
     registered_section = Column(String(50), nullable=True)
+
+    school_id = Column(UUID(as_uuid=True), ForeignKey("schools.school_id"), nullable=False)
+    school = relationship("School", back_populates="users")
 
     exams = relationship("Exam", back_populates="user")
 
+
 class Question(Base):
     __tablename__ = "questions"
+    # Otomatik UUID PK
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    # JSON’daki "id" -> external_id
+    external_id = Column(String, unique=True, nullable=False)
+
     section = Column(Integer, nullable=False)
     question = Column(Text, nullable=False)
     points = Column(Integer, nullable=False, default=1)
     type = Column(String(50), nullable=False)
 
+    # Soru -> Cevap ilişkisi
     answer = relationship("Answer", back_populates="question", uselist=False)
 
 class Answer(Base):
     __tablename__ = "answers"
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    # Artık question_id, Question.id (UUID) ile eşleşiyor
     question_id = Column(UUID(as_uuid=True), ForeignKey("questions.id"), nullable=False)
     correct_answer = Column(Text, nullable=False)
 
@@ -50,12 +69,16 @@ class Exam(Base):
     exam_id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
     user_id = Column(UUID(as_uuid=True), ForeignKey("users.user_id"), nullable=False)
     class_name = Column(String(50), nullable=False)
-    school_name = Column(String(255), nullable=False)
     start_time = Column(DateTime, default=datetime.utcnow)
     end_time = Column(DateTime, nullable=True)
 
+    # Okul bilgisi
+    school_id = Column(UUID(as_uuid=True), ForeignKey("schools.school_id"), nullable=False)
+    school = relationship("School", back_populates="exams")
+
     user = relationship("User", back_populates="exams")
     exam_answers = relationship("ExamAnswer", back_populates="exam")
+
 
 class ExamAnswer(Base):
     __tablename__ = "exam_answers"
@@ -68,13 +91,17 @@ class ExamAnswer(Base):
 
     exam = relationship("Exam", back_populates="exam_answers")
 
+
 class Statistics(Base):
     __tablename__ = "statistics"
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
-    school_name = Column(String(255), nullable=False)
     class_name = Column(String(50), nullable=False)
     section_number = Column(Integer, nullable=False)
     correct_questions = Column(Integer, default=0)
     wrong_questions = Column(Integer, default=0)
     average_score = Column(Float, default=0.0)
     section_percentage = Column(Float, default=0.0)
+
+    # Okul bilgisi
+    school_id = Column(UUID(as_uuid=True), ForeignKey("schools.school_id"), nullable=False)
+    school = relationship("School", back_populates="statistics")
