@@ -7,6 +7,7 @@ from tools.result import view_results
 from tools.database import get_db, init_db
 from sqlalchemy.orm import Session
 from tools.token_generator import renew_token_if_needed, token_gnrtr
+import uuid
 
 def initialize_admin(db: Session):
     from tools.models import User
