@@ -37,25 +37,45 @@ def start_exam(db: Session, user):
     end_time = datetime.now()
     process_results(db, user, selected_questions, user_answers, end_time)
 
-def process_results(db: Session, user, selected_questions, user_answers, end_time):
-    total_score = 0
-    section_scores = {1:0, 2:0, 3:0, 4:0}
-    section_correct = {1:0, 2:0, 3:0, 4:0}
-    section_wrong = {1:0, 2:0, 3:0, 4:0}
+# tools/exam.py
 
+def process_results(db, user, selected_questions, user_answers, end_time):
+    from tools.models import Exam, ExamAnswer, Answer
+    from datetime import datetime
+    from tools.statistics_utils import update_statistics
+
+    # Bölümler için doğru, yanlış ve puan bilgilerini saklamak için sözlükler
+    section_correct = {}
+    section_wrong = {}
+    section_scores = {}
+    section_max_scores = {}
+
+    # Her bölüm için gerekli başlatmalar (1'den 4'e kadar örnek, sizde farklı ise güncelleyin)
+    for section in range(1, 5):
+        section_correct[section] = 0
+        section_wrong[section] = 0
+        section_scores[section] = 0
+        section_max_scores[section] = 0  # Her bölümün maksimum puanı (sorulardaki "points" toplamı)
+
+    # 1) Skor ve doğru/yanlış sayıları hesaplama
     for section, qs in selected_questions.items():
         for q in qs:
             ans = db.query(Answer).filter(Answer.question_id == q.id).first()
+            if not ans:
+                print(f"[WARNING] No answer found for question: {q.question}. Marking as incorrect.")
+                section_wrong[section] += 1
+                continue
+
             correct_answer = ans.correct_answer.strip().lower()
             user_answer = user_answers.get(q.id, "").strip().lower()
-            correct = False
 
+            correct = False
             if q.type in ['true_false', 'single_choice']:
                 if user_answer == correct_answer:
                     correct = True
             elif q.type in ['multiple_choice', 'ordering']:
-                correct_ans_set = set([a.strip().lower() for a in correct_answer.split(',')])
-                user_ans_set = set([a.strip().lower() for a in user_answer.split(',')])
+                correct_ans_set = set(a.strip().lower() for a in correct_answer.split(','))
+                user_ans_set = set(a.strip().lower() for a in user_answer.split(','))
                 if user_ans_set == correct_ans_set:
                     correct = True
 
@@ -65,33 +85,53 @@ def process_results(db: Session, user, selected_questions, user_answers, end_tim
             else:
                 section_wrong[section] += 1
 
-    total_score = sum(section_scores.values())
-    score_avg = (total_score / 20) * 100 if total_score > 0 else 0
+            # Her bölümün maksimum puanını toplama
+            section_max_scores[section] += q.points
 
-    # Geçme kriteri (örnek)
+    # 2) Her bölümün yüzdelik başarısını hesaplama
+    section_percentages = {}
+    for section in section_correct.keys():
+        total_questions = section_correct[section] + section_wrong[section]
+        if total_questions > 0:
+            section_percentage = (section_correct[section] / total_questions) * 100
+        else:
+            section_percentage = 0.0
+        section_percentages[section] = section_percentage
+
+    # 3) Genel yüzdeyi hesaplama (ortalama)
+    general_percentage = sum(section_percentages.values()) / len(section_percentages) if len(section_percentages) > 0 else 0.0
+
+    # 4) Geçme kriterini belirleme
+    # Her bölümde en az %75 doğruluk ve genel yüzde en az %75 ise geçilmiş sayılacak
     passed = True
-    for sec in range(1,5):
-        section_percentage = (section_scores[sec]/5)*100 if section_scores[sec] > 0 else 0
-        if section_percentage < 75:
+    for section, percentage in section_percentages.items():
+        if percentage < 75:
             passed = False
+            break  # Bir bölümde kriter sağlanmazsa genel olarak başarısız
 
-    if score_avg < 75:
+    if general_percentage < 75:
         passed = False
 
     result = "Passed" if passed else "Failed"
 
-    # Kullanıcının attempts bilgisini güncelle
+    # 5) Öğrenciye her bölümün yüzdesini ve genel puanı göstermek
+    print("\n=== Bölüm Bazlı Sonuçlar ===")
+    for section in sorted(section_percentages.keys()):
+        print(f"Section {section}: % {section_percentages[section]:.2f}")
+    print(f"Genel Puan: % {general_percentage:.2f} - Sonuç: {result}\n")
+
+    # 6) Kullanıcının attempts bilgisini güncelleme
     user.attempts += 1
     user.last_attempt_date = datetime.now()
     if user.attempts == 1:
-        user.score1 = total_score
+        user.score1 = general_percentage
     elif user.attempts == 2:
-        user.score2 = total_score
+        user.score2 = general_percentage
         user.score_avg = (user.score1 + user.score2) / 2
 
     db.commit()
 
-    # Exam kaydı
+    # 7) Exam kaydı oluşturma
     exam = Exam(
         user_id=user.user_id,
         class_name=user.class_name,
@@ -103,10 +143,12 @@ def process_results(db: Session, user, selected_questions, user_answers, end_tim
     db.commit()
     db.refresh(exam)
 
-    # ExamAnswer kayıtları
+    # 8) ExamAnswer kayıtlarını oluşturma
     for section, qs in selected_questions.items():
         for q in qs:
             ans = db.query(Answer).filter(Answer.question_id == q.id).first()
+            if not ans:
+                continue  # Cevap yoksa atla
             correct_answer = ans.correct_answer.strip().lower()
             user_answer = user_answers.get(q.id, "").strip().lower()
             is_correct = False
@@ -115,8 +157,8 @@ def process_results(db: Session, user, selected_questions, user_answers, end_tim
                 if user_answer == correct_answer:
                     is_correct = True
             elif q.type in ['multiple_choice', 'ordering']:
-                correct_ans_set = set([a.strip().lower() for a in correct_answer.split(',')])
-                user_ans_set = set([a.strip().lower() for a in user_answer.split(',')])
+                correct_ans_set = set(a.strip().lower() for a in correct_answer.split(','))
+                user_ans_set = set(a.strip().lower() for a in user_answer.split(','))
                 if user_ans_set == correct_ans_set:
                     is_correct = True
 
@@ -131,7 +173,9 @@ def process_results(db: Session, user, selected_questions, user_answers, end_tim
             db.add(exam_ans)
             db.commit()
 
-    # İstatistikleri güncelle
+    # 9) İstatistikleri güncelleme
     update_statistics(db, user.school_id, user.class_name, section_correct, section_wrong, section_scores)
 
-    print(f"Exam Finished. Your Score: {total_score}/20. Result: {result}\n")
+    print("Exam Finished.\n")
+
+
