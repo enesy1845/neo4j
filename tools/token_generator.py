@@ -1,64 +1,42 @@
 # tools/token_generator.py
+
 import jwt
 import datetime
 import os
 import pytz
-from rich import _console
-from tools.user import login_panel
+from fastapi import Depends, HTTPException, status
+from fastapi.security import OAuth2PasswordBearer
+from sqlalchemy.orm import Session
+
 from tools.database import get_db
+from tools.models import User
 
-SECRET_KEY = os.getenv("SECRET_KEY")
-tokenTimeExtension=300 #seconden
-tokenMinute=1
+SECRET_KEY = os.getenv("SECRET_KEY", "TEST_SECRET_KEY")
+ALGORITHM = "HS256"
+ACCESS_TOKEN_EXPIRE_MINUTES = 60
 
-def token_gnrtr(user_id):
-    expiration_time = datetime.datetime.now(pytz.utc) + datetime.timedelta(minutes=tokenMinute)
+oauth2_scheme = OAuth2PasswordBearer(tokenUrl="auth/login")
+
+def create_access_token(user_id: str):
+    expire = datetime.datetime.now(pytz.utc) + datetime.timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
     payload = {
-        "user_id": str(user_id),
-        "exp": expiration_time.timestamp()
+        "user_id": user_id,
+        "exp": expire.timestamp()
     }
-    # Token oluşturma
-    token = jwt.encode(payload, SECRET_KEY, algorithm="HS256")
-    os.environ["ACCESS_TOKEN"] = token
+    token = jwt.encode(payload, SECRET_KEY, algorithm=ALGORITHM)
     return token
 
-def renew_token_if_needed():
-    token = os.getenv("ACCESS_TOKEN")
-    if not token:
-        print("Token bulunamadı. Program sonlanıyor...")
-        exit(1)
+def get_current_user(token: str = Depends(oauth2_scheme), db: Session = Depends(get_db)):
     try:
-        decoded_payload = jwt.decode(token, SECRET_KEY, algorithms=["HS256"])
-        exp_time = datetime.datetime.fromtimestamp(decoded_payload["exp"], pytz.utc)
-        remaining_time = (exp_time - datetime.datetime.now(pytz.utc)).total_seconds()
-        user_id = decoded_payload["user_id"]
-
-        if remaining_time < 0:
-            print("Token süresi dolmuş, çıkılıyor...")
-            exit(1)
-
-        if remaining_time < tokenTimeExtension:
-            new_exp = datetime.datetime.now() + datetime.timedelta(minutes=tokenMinute)
-            decoded_payload["exp"] = new_exp.timestamp()
-            new_token = jwt.encode(decoded_payload, SECRET_KEY, algorithm="HS256")
-            os.environ["ACCESS_TOKEN"] = new_token
-        else:
-            print("Token geçerli.")
-
+        decoded_payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
+        user_id = decoded_payload.get("user_id")
+        if not user_id:
+            raise HTTPException(status_code=401, detail="Invalid token payload.")
+        user = db.query(User).filter(User.user_id == user_id).first()
+        if not user:
+            raise HTTPException(status_code=401, detail="User not found.")
+        return user
     except jwt.ExpiredSignatureError:
-        decoded_payload = jwt.decode(token, SECRET_KEY, algorithms=["HS256"], options={"verify_exp": False})
-        user_id = decoded_payload["user_id"]
-        with next(get_db()) as db:
-            user = login_panel(db)
-            if user and str(user.user_id) == user_id:
-                new_exp = datetime.datetime.now() + datetime.timedelta(minutes=tokenMinute)
-                decoded_payload["exp"] = new_exp.timestamp()
-                new_token = jwt.encode(decoded_payload, SECRET_KEY, algorithm="HS256")
-                os.environ["ACCESS_TOKEN"] = new_token
-                print("Token yenilendi, programa devam ediliyor.")
-            else:
-                print("Token süresi dolmuş ve user_id eşleşmedi. Program sonlanıyor...")
-                exit(1)
+        raise HTTPException(status_code=401, detail="Token expired.")
     except jwt.InvalidTokenError:
-        print("Geçersiz token. Program sonlanıyor...")
-        exit(1)
+        raise HTTPException(status_code=401, detail="Invalid token.")
