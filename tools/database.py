@@ -1,4 +1,5 @@
 # tools/database.py
+
 import os
 import time
 from sqlalchemy import create_engine
@@ -36,10 +37,11 @@ def get_db():
     finally:
         db.close()
 
-
 def init_db():
     from tools.models import User, Question, Answer, Exam, ExamAnswer, Statistics, School
-    # Tabloları oluştur
+    from tools.migrate_questions import questions_already_migrated, main as migrate_questions_main
+
+    # Tablolar oluştur
     School.__table__.create(bind=engine, checkfirst=True)
     User.__table__.create(bind=engine, checkfirst=True)
     Question.__table__.create(bind=engine, checkfirst=True)
@@ -48,21 +50,17 @@ def init_db():
     ExamAnswer.__table__.create(bind=engine, checkfirst=True)
     Statistics.__table__.create(bind=engine, checkfirst=True)
 
-    # Tablolar oluşturulduktan sonra varsayılan verileri ekle (School vb.)
     seed_initial_data()
 
+    with next(get_db()) as db:
+        if not questions_already_migrated(db):
+            migrate_questions_main()
+        else:
+            print("Sorular ve cevaplar zaten migrate edilmiş.")
 
 def seed_initial_data():
-    """
-    Proje her başlatıldığında, eğer DefaultSchool yoksa ekler.
-    Ardından soru ve cevap verilerini migrate_questions.py üzerinden kontrol eder.
-    Daha önce eklenmediyse ekler.
-    """
     from tools.models import School
-    from migrate_questions import questions_already_migrated, main as migrate_questions_main
-
     with next(get_db()) as db:
-        # Varsayılan okul ekle
         default_school = db.query(School).filter(School.name == "DefaultSchool").first()
         if not default_school:
             new_school = School(name="DefaultSchool")
@@ -70,9 +68,5 @@ def seed_initial_data():
             db.commit()
             db.refresh(new_school)
             print("DefaultSchool eklendi.")
-
-        # Sorular zaten migrate edilmiş mi kontrol et
-        if not questions_already_migrated(db):
-            migrate_questions_main()
         else:
-            print("Sorular ve cevaplar zaten migrate edilmiş.")
+            print("DefaultSchool zaten mevcut.")
