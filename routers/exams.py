@@ -30,12 +30,7 @@ class StartExamResponse(BaseModel):
     message: str
     questions: list[SectionQuestions]
 
-class SubmitExamRequest(BaseModel):
-    answers: Dict[str, str]
-    # örnek: { "question_id":"user_answer", ... }
-
-class SubmitExamResponse(BaseModel):
-    message: str
+#SubmitExamRequest,SubmitExamResponse
 
 # ========== Endpoints ==========
 
@@ -67,21 +62,4 @@ def start_exam_endpoint(db: Session = Depends(get_db), current_user: User = Depe
         ))
     return {"message": "Exam started", "questions": response_data}
 
-@router.post("/submit", response_model=SubmitExamResponse, summary="Submit exam answers")
-def submit_exam_endpoint(
-    body: SubmitExamRequest,
-    db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_user)
-):
-    if current_user.role != "student":
-        raise HTTPException(status_code=403, detail="Only students can submit exam answers.")
-    if current_user.attempts >= 2:
-        raise HTTPException(status_code=400, detail="You have no remaining exam attempts.")
-
-    selected_questions = select_questions(db, current_user)
-    if not selected_questions:
-        raise HTTPException(status_code=400, detail="No questions available.")
-
-    end_time = datetime.now()
-    process_results(db, current_user, selected_questions, body.answers, end_time)
-    return {"message": "Exam submitted successfully."}
+#submit_exam_endpoint - post

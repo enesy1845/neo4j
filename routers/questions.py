@@ -20,18 +20,9 @@ class AddQuestionRequest(BaseModel):
     points: int
     correct_answer: str
 
-class AddQuestionResponse(BaseModel):
-    message: str
-    external_id: str
+#AddQuestionResponse
+#QuestionResponse
 
-class QuestionResponse(BaseModel):
-    id: str
-    external_id: str
-    section: int
-    question: str
-    points: int
-    type: str
-    correct_answer: str | None
 
 # ========== Endpoints ==========
 
@@ -71,22 +62,4 @@ def add_question(
 
     return {"message": "Question added successfully", "external_id": external_id}
 
-@router.get("/", response_model=List[QuestionResponse], summary="List all questions")
-def list_all_questions(db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
-    if current_user.role not in ["teacher", "admin"]:
-        raise HTTPException(status_code=403, detail="Not authorized to list questions.")
-
-    questions = db.query(Question).all()
-    result = []
-    for q in questions:
-        ans = db.query(Answer).filter(Answer.question_id == q.id).first()
-        result.append(QuestionResponse(
-            id=str(q.id),
-            external_id=q.external_id,
-            section=q.section,
-            question=q.question,
-            points=q.points,
-            type=q.type,
-            correct_answer=ans.correct_answer if ans else None
-        ))
-    return result
+#list_all_questions - get

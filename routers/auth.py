@@ -23,13 +23,8 @@ class RegisterRequest(BaseModel):
 class RegisterResponse(BaseModel):
     message: str
 
-class LoginRequest(BaseModel):
-    username: str
-    password: str
+#LoginRequest,LoginResponse
 
-class LoginResponse(BaseModel):
-    access_token: str
-    token_type: str = "bearer"
 
 # ========== Endpoints ==========
 
@@ -52,10 +47,4 @@ def register_endpoint(request: RegisterRequest, db: Session = Depends(get_db)):
         )
     return {"message": "Registration successful."}
 
-@router.post("/login", response_model=LoginResponse)
-def login_endpoint(request: LoginRequest, db: Session = Depends(get_db)):
-    user = login_user(db, request.username, request.password)
-    if not user:
-        raise HTTPException(status_code=400, detail="Invalid credentials.")
-    token = create_access_token(str(user.user_id))
-    return {"access_token": token, "token_type": "bearer"}
+#login-post

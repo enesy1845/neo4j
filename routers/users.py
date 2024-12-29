@@ -44,38 +44,6 @@ def list_all_users(db: Session = Depends(get_db), current_user: User = Depends(g
     # FastAPI otomatik olarak her User nesnesini UserResponse’a dönüştürecek (orm_mode = True).
     return users
 
-@router.delete("/{username}", summary="Delete a user")
-def delete_user_endpoint(username: str,
-                         db: Session = Depends(get_db),
-                         current_user: User = Depends(get_current_user)):
-    if current_user.role != "admin":
-        raise HTTPException(status_code=403, detail="Only admins can delete users.")
-    success = delete_user(db, current_user, username)
-    if not success:
-        raise HTTPException(status_code=404, detail="User not found or not deleted.")
-    return {"message": f"User {username} deleted successfully."}
+#delete_user_endpoint - delete
 
-@router.put("/{username}", summary="Update a user")
-def update_user_endpoint(username: str,
-                         request: UpdateUserRequest,
-                         db: Session = Depends(get_db),
-                         current_user: User = Depends(get_current_user)):
-    if current_user.role != "admin":
-        raise HTTPException(status_code=403, detail="Only admins can update users.")
-
-    update_fields = {}
-    if request.name is not None:
-        update_fields["name"] = request.name
-    if request.surname is not None:
-        update_fields["surname"] = request.surname
-    if request.class_name is not None:
-        update_fields["class_name"] = request.class_name
-    if request.role is not None:
-        update_fields["role"] = request.role
-    if request.registered_section is not None:
-        update_fields["registered_section"] = request.registered_section
-
-    success = update_user(db, current_user, username, **update_fields)
-    if not success:
-        raise HTTPException(status_code=404, detail="User not found or not updated.")
-    return {"message": f"User {username} updated successfully."}
+#update_user_endpoint - put
