@@ -39,7 +39,7 @@ def get_db():
 
 def init_db():
     from tools.models import User, Question, Answer, Exam, ExamAnswer, Statistics, School
-    from tools.migrate_questions import questions_already_migrated, main as migrate_questions_main
+    from migrate_questions import questions_already_migrated, main as migrate_questions_main
 
     # Tablolar oluştur
     School.__table__.create(bind=engine, checkfirst=True)
