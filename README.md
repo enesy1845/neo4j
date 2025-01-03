@@ -1,7 +1,3 @@
-
----
-
-```md
 # Exam Management System
 
 A simple exam management system that allows:
