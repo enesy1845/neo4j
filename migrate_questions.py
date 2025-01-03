@@ -22,7 +22,6 @@ def main():
         if questions_already_migrated(db):
             print("Questions already migrated. Skipping.")
             return
-        
         # 1) Soruları ekle
         for section in range(1, 5):
             q_file = QUESTIONS_DIR / f"questions_section{section}.json"
@@ -45,8 +44,8 @@ def main():
                     type=q_item["type"]
                 )
                 db.add(new_q)
-                db.commit()
-        
+        db.commit()  # Tüm soruları ekledikten sonra commit
+
         # 2) Cevapları ekle
         if not ANSWERS_FILE.exists():
             print("Answers file not found. Skipping answers.")
@@ -63,10 +62,9 @@ def main():
                     correct_answer = str(ans_value).strip()
                 new_a = Answer(question_id=q.id, correct_answer=correct_answer)
                 db.add(new_a)
-                db.commit()
             else:
                 print(f"No answer found for question external_id={ext_id}")
-
+        db.commit()  # Tüm cevapları ekledikten sonra commit
         print("Migration completed successfully.")
 
 if __name__ == "__main__":
