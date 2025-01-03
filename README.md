@@ -1,8 +1,10 @@
-````md
+
+---
+
+```md
 # Exam Management System
 
 A simple exam management system that allows:
-
 - **Students** to take exams and view results.
 - **Teachers** to add questions and view statistics.
 - **Admins** to manage users and view global school statistics.
@@ -51,12 +53,10 @@ ADMIN_PASSWORD=ADMIN
 ADMIN_NAME=ADMIN
 ADMIN_SURNAME=ADMIN
 ```
-````
 
 ### Build & Run with Docker
 
 1. **Build the images**:
-
    ```bash
    docker-compose build
    ```
@@ -69,7 +69,6 @@ ADMIN_SURNAME=ADMIN
    - `app` service will run migrations (if needed) and then start the main FastAPI app.
 
 Once running:
-
 - The FastAPI application (with Swagger) will be accessible on [http://localhost:8000/docs](http://localhost:8000/docs) (assuming default port 8000).
 
 ---
@@ -91,11 +90,9 @@ Here, you can test all endpoints (login, register, add questions, etc.) interact
 You can run the test suite in two ways:
 
 1. **Inside Docker** (recommended for consistent environment):
-
    ```bash
    docker-compose run --rm app pytest --maxfail=1 -v -s
    ```
-
    - `--maxfail=1` stops after the first failing test.
    - `-v` (verbose) shows test names and outcomes.
    - `-s` ensures print/log output is shown.
@@ -199,3 +196,4 @@ Contributions are welcome. For bug reports and feature requests, please open an 
 ---
 
 **Enjoy testing & managing your exams!** If you have any questions or run into any issues, feel free to reach out.
+```
