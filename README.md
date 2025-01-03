@@ -1,124 +1,201 @@
 ````md
 # Exam Management System
 
-This project is a simple exam management system that allows students to take exams, teachers to add questions and view statistics, and administrators to manage users and view global school statistics. It also includes the functionality to migrate questions and answers from JSON files into a PostgreSQL database on the first run.
+A simple exam management system that allows:
 
-## Features
+- **Students** to take exams and view results.
+- **Teachers** to add questions and view statistics.
+- **Admins** to manage users and view global school statistics.
+- **Automated Migration** of questions and answers from JSON files into a PostgreSQL database upon first run.
 
-- **Student Panel:** Take exams (up to 2 attempts) and view results.
-- **Teacher Panel:** View statistics and add new questions.
-- **Admin Panel:** Manage users (add, update, delete, list) and view administrative statistics.
-- **Automatic Database Migration:** Automatically imports questions and answers from JSON files into PostgreSQL on the first run.
+## Table of Contents
 
-## Prerequisites
+1. [Prerequisites](#prerequisites)
+2. [Installation & Setup](#installation--setup)
+   - [Environment Variables](#environment-variables)
+   - [Build & Run with Docker](#build--run-with-docker)
+3. [Usage](#usage)
+   - [Accessing Swagger UI](#accessing-swagger-ui)
+   - [Running Tests](#running-tests)
+   - [Connecting to the Database](#connecting-to-the-database)
+   - [Viewing & Dropping Tables](#viewing--dropping-tables)
+4. [Common Commands](#common-commands)
+5. [Troubleshooting](#troubleshooting)
+6. [License](#license)
+7. [Contributing](#contributing)
 
-- Docker & Docker Compose installed.
-- Optional: `psql` client if you want to directly inspect the database.
+---
 
-## Installation & Setup
+## 1. Prerequisites
 
-1. **Environment Variables (.env)**  
-   Ensure you have a `.env` file in the project root with the following (adapt as needed):
+- **Docker** & **Docker Compose** installed.
+- (Optional) `psql` client if you want to directly interact with the PostgreSQL database.
 
-   ```env
-   DB_HOST=db
-   DB_NAME=mydatabase
-   DB_USER=myuser
-   DB_PASSWORD=mypassword
-   DB_PORT=5432
+---
 
-   ADMIN_USERNAME=ADMIN
-   ADMIN_PASSWORD=ADMIN
-   ADMIN_NAME=ADMIN
-   ADMIN_SURNAME=ADMIN
-   ```
+## 2. Installation & Setup
+
+### Environment Variables
+
+Create a `.env` file in the project root (if it doesn’t already exist) with the following content (adjust values as needed):
+
+```env
+DB_HOST=db
+DB_NAME=mydatabase
+DB_USER=myuser
+DB_PASSWORD=mypassword
+DB_PORT=5432
+
+ADMIN_USERNAME=ADMIN
+ADMIN_PASSWORD=ADMIN
+ADMIN_NAME=ADMIN
+ADMIN_SURNAME=ADMIN
+```
 ````
 
-2. **Build and Run with Docker**  
-   Build the images and start the containers:
+### Build & Run with Docker
+
+1. **Build the images**:
 
    ```bash
    docker-compose build
-   docker-compose up
    ```
 
-   - The `db` service (PostgreSQL) will start.
-   - The `app` service will run `migrate_questions.py` once and then start `main.py`.
-   - If questions have already been migrated, it will skip the migration on subsequent runs.
+2. **Start the containers**:
+   ```bash
+   docker-compose up
+   ```
+   - `db` service (PostgreSQL) will start.
+   - `app` service will run migrations (if needed) and then start the main FastAPI app.
 
-3. **Interacting with the System**  
-   When `main.py` is running, it prompts for user input (registration, login, etc.) directly in the console. However, if you are running this in an environment where `input()` might cause issues, consider running the test scenario instead of the main program.
+Once running:
 
-## Running the Test Scenario
+- The FastAPI application (with Swagger) will be accessible on [http://localhost:8000/docs](http://localhost:8000/docs) (assuming default port 8000).
 
-If you want to run the test scenario (non-interactive), edit the `docker-compose.yml` file and change the `app` command:
+---
 
-```yaml
-command: sh -c "python migrate_questions.py && python tests/test_scenario.py"
+## 3. Usage
+
+### Accessing Swagger UI
+
+When the application is running, you can view the API documentation (Swagger UI) at:
+
+```
+http://localhost:8000/docs
 ```
 
-Then rebuild and run again:
+Here, you can test all endpoints (login, register, add questions, etc.) interactively.
 
-```bash
-docker-compose down
-docker-compose build
-docker-compose up
-```
+### Running Tests
 
-The test scenario will run automatically without any user input required.
+You can run the test suite in two ways:
 
-## Updating the Code
+1. **Inside Docker** (recommended for consistent environment):
 
-If you make changes to the source code, simply rebuild and run again:
+   ```bash
+   docker-compose run --rm app pytest --maxfail=1 -v -s
+   ```
 
-```bash
-docker-compose down
-docker-compose build
-docker-compose up
-```
+   - `--maxfail=1` stops after the first failing test.
+   - `-v` (verbose) shows test names and outcomes.
+   - `-s` ensures print/log output is shown.
 
-## Database Inspection
+2. **Locally** (if you have Python 3.10+ and dependencies installed):
+   ```bash
+   pytest --maxfail=1 -v -s
+   ```
 
-You can connect to the PostgreSQL database running in the `db` container:
+### Connecting to the Database
+
+If you need to inspect or modify data in the PostgreSQL database:
 
 ```bash
 docker-compose exec db psql -U myuser -d mydatabase
 ```
 
-Once inside the `psql` terminal, you can list tables and inspect data:
+- Replace `myuser` and `mydatabase` with your actual credentials from the `.env` file if they differ.
 
-```sql
-\dt
-SELECT * FROM users;
-```
+#### Viewing & Dropping Tables
 
-## Common Issues & Solutions
+Once you are inside the `psql` terminal:
 
-- **`input()` Error in Docker:**  
-  If `input()` causes issues inside the Docker environment (e.g., when running `main.py`), switch the command to run the test scenario or run the code outside Docker in a suitable environment.
-
-- **Environment Variables in PowerShell:**  
-  On Windows PowerShell, use `$Env:VAR_NAME` instead of `$VAR_NAME` to reference environment variables.
-
-- **Package Installation (e.g., `rich`):**  
-  If `rich` or other packages fail to install, ensure your network connection is stable, your `requirements.txt` is correct, and that you have updated `pip`:
-  ```bash
-  pip install --upgrade pip
-  pip install rich
+- **List Tables**:
+  ```sql
+  \dt
   ```
-
-## License
-
-This project is licensed under the MIT License. See the [LICENSE](LICENSE) file for details.
-
-## Contributing
-
-Contributions are welcome. Please see the [CONTRIBUTING.md](CONTRIBUTING.md) file for guidelines.
+- **View Table Structure**:
+  ```sql
+  \d table_name
+  ```
+- **Select All Data**:
+  ```sql
+  SELECT * FROM table_name;
+  ```
+- **Drop a Table** (e.g., dropping `users` table):
+  ```sql
+  DROP TABLE users;
+  ```
+- **Drop All Tables** (dangerous, will remove everything):
+  ```sql
+  DROP SCHEMA public CASCADE;
+  CREATE SCHEMA public;
+  ```
 
 ---
 
-If you have any further questions or issues, feel free to reach out!
+## 4. Common Commands
 
-```
+Here’s a quick reference for the most common Docker commands:
 
-```
+- **Build & Start Containers**:
+  ```bash
+  docker-compose up --build
+  ```
+- **Stop Containers**:
+  ```bash
+  docker-compose down
+  ```
+- **Rebuild Without Cache**:
+  ```bash
+  docker-compose build --no-cache
+  ```
+- **Attach to Container Logs**:
+  ```bash
+  docker-compose logs -f
+  ```
+- **Run a Single Command in a Service**:
+  ```bash
+  docker-compose run --rm app [command]
+  ```
+
+---
+
+## 5. Troubleshooting
+
+- **Issues with `input()` in Docker**:  
+  If you experience problems using `input()` within Docker (e.g., when running `main.py` interactively), use the test commands or run your Python code locally.
+
+- **Port Collisions**:  
+  If port `8000` is in use, change the port mapping in `docker-compose.yml` (e.g., `8001:8000`).
+
+- **Environment Variable Not Found**:  
+  Make sure your `.env` file is properly structured and is referenced by `docker-compose.yml` with `env_file: .env`.
+
+- **Invalid `registered_section`**:  
+  If you see a `ValueError: invalid literal for int()` error, ensure that the teacher user’s `registered_section` is set to a numeric value like `"1"`.
+
+---
+
+## 6. License
+
+This project is licensed under the MIT License. See the [LICENSE](LICENSE) file for details.
+
+---
+
+## 7. Contributing
+
+Contributions are welcome. For bug reports and feature requests, please open an issue. Pull requests should target the `main` branch and follow the guidelines in [CONTRIBUTING.md](CONTRIBUTING.md).
+
+---
+
+**Enjoy testing & managing your exams!** If you have any questions or run into any issues, feel free to reach out.
