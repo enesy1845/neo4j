@@ -1,0 +1,24 @@
+{% extends "base.html" %}
+{% block content %}
+<h2>Register</h2>
+{% if error %}
+<div style="color: red;">{{ error }}</div>
+{% endif %}
+<form method="post" action="/register">
+    <label>Kullanıcı Adı:</label>
+    <input type="text" name="username" required><br>
+    <label>Şifre:</label>
+    <input type="password" name="password" required><br>
+    <label>Ad:</label>
+    <input type="text" name="name" required><br>
+    <label>Soyad:</label>
+    <input type="text" name="surname" required><br>
+    <label>Sınıf:</label>
+    <input type="text" name="class_name" required><br>
+    <label>Rol (admin/teacher/student):</label>
+    <input type="text" name="role" required><br>
+    <label>Registered Section (Teacher için gerekliyse):</label>
+    <input type="text" name="registered_section"><br>
+    <button type="submit">Kayıt Ol</button>
+</form>
+{% endblock %}

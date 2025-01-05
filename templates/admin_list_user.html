@@ -1,0 +1,20 @@
+{% extends "base.html" %}
+{% block content %}
+<h2>Kullanıcı Listesi</h2>
+<table border="1">
+    <tr>
+        <th>UserID</th>
+        <th>Username</th>
+        <th>Role</th>
+        <th>Class</th>
+    </tr>
+    {% for u in users %}
+    <tr>
+        <td>{{ u.user_id }}</td>
+        <td>{{ u.username }}</td>
+        <td>{{ u.role }}</td>
+        <td>{{ u.class_name }}</td>
+    </tr>
+    {% endfor %}
+</table>
+{% endblock %}

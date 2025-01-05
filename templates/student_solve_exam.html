@@ -1,0 +1,36 @@
+{% extends "base.html" %}
+{% block content %}
+<h2>Sınav Ekranı</h2>
+
+<div id="timer">Kalan Süre: <span id="timeLeft"></span> saniye</div>
+
+<form id="examForm" method="post" action="/student_submit_exam">
+    <input type="hidden" name="exam_id" value="{{ exam_id }}">
+
+    {% for section_data in sections %}
+    <h3>Section {{ section_data.section }}</h3>
+    {% for q in section_data.questions %}
+    <div style="margin-bottom: 15px; border:1px solid #ccc; padding:10px;">
+        <p><strong>{{ q.question }}</strong> (Puan: {{ q.points }})</p>
+        <!-- Basitçe tek bir input koyduk. Soru tipine göre Radio, Checkbox, vs. yapabilirsiniz -->
+        <label>Cevabınız:</label>
+        <input type="text" name="answer_{{ q.question_id }}" />
+    </div>
+    {% endfor %}
+    {% endfor %}
+
+    <button type="submit">Sınavı Gönder</button>
+</form>
+{% endblock %}
+
+{% block scripts %}
+{{ super() }}
+<script>
+    // 300 saniyelik (5 dakika) geri sayım
+    let totalTime = 300;
+    startCountdown(totalTime, () => {
+        // Süre dolduğunda otomatik form gönderimi isterseniz:
+        document.getElementById("examForm").submit();
+    });
+</script>
+{% endblock %}
