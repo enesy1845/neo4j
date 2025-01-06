@@ -23,8 +23,15 @@ class RegisterRequest(BaseModel):
 class RegisterResponse(BaseModel):
     message: str
 
-#LoginRequest,LoginResponse
+# (Yeni) LoginRequest, LoginResponse
+class LoginRequest(BaseModel):
+    username: str
+    password: str
 
+class LoginResponse(BaseModel):
+    access_token: str
+    token_type: str = "bearer"
+    role: str
 
 # ========== Endpoints ==========
 
@@ -47,4 +54,16 @@ def register_endpoint(request: RegisterRequest, db: Session = Depends(get_db)):
         )
     return {"message": "Registration successful."}
 
-#login-post
+# (Yeni) /login endpoint
+@router.post("/login", response_model=LoginResponse)
+def login_endpoint(body: LoginRequest, db: Session = Depends(get_db)):
+    user = login_user(db, body.username, body.password)
+    if not user:
+        raise HTTPException(status_code=401, detail="Invalid username or password.")
+
+    token = create_access_token(str(user.user_id))
+    return {
+        "access_token": token,
+        "token_type": "bearer",
+        "role": user.role  # <=== Kullanıcının rolünü de ekliyoruz
+}

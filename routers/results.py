@@ -1,7 +1,7 @@
 # routers/results.py
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
-from typing import List
+from typing import List,Optional
 from pydantic import BaseModel
 from tools.database import get_db
 from tools.models import User, Exam, ExamAnswer, Question
@@ -21,7 +21,7 @@ class AnswerDetail(BaseModel):
 class ExamDetail(BaseModel):
     exam_id: str
     start_time: str
-    end_time: str
+    end_time: Optional[str] = None  # <-- Artık None kabul edilir.
     score_avg: float
     answers: List[AnswerDetail]
 
