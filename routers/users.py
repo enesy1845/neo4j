@@ -74,4 +74,4 @@ def update_user_endpoint(username: str,
     success = update_user(db, current_user, username, **update_fields)
     if not success:
         raise HTTPException(status_code=404, detail="User not found or not updated.")
-    return {"message": f"User {username} updated successfully."}      
+    return {"message": f"User {username} updated successfully."}
