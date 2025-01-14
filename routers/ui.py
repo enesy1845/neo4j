@@ -172,35 +172,49 @@ def student_solve_exam(request: Request):
 #####################################################################
 
 @ui_router.post("/student_submit_exam", response_class=HTMLResponse)
-async def student_submit_exam(request: Request, exam_id: str = Form(...)):
+async def student_submit_exam(
+    request: Request,
+    exam_id: str = Form(...),
+    db: Session = Depends(get_db)
+):
     token = get_token_from_session(request)
     if not token:
         return RedirectResponse(url="/login")
 
-    form_data = await request.form()
+    # Asenkron okumak için 'await'
+    form_data = await request.form()  # artık 'form_data' gerçek MultiDict
+
+    # multiple_choice checkbox verilerini ayrıştırmak istiyorsanız:
     answers_payload = {}
-    for key, value in form_data.items():
+
+    # Bu şekilde form_data'dan tüm key-value çiftlerini alabilirsiniz:
+    for key in form_data.keys():
         if key.startswith("answer_"):
             question_id = key.replace("answer_", "")
-            answers_payload[question_id] = value
+            value = form_data.getlist(key)  # checkbox birden fazla olabilir
+            if len(value) == 1:
+                # Radio/true_false/single_choice gibi tekil veri olabilir
+                answers_payload[question_id] = value[0]
+            else:
+                # Multiple choice
+                answers_payload[question_id] = ",".join(value)
 
+    # Artık answers_payload'ı exams/submit'e gönderelim
     submit_data = {
         "exam_id": exam_id,
         "answers": answers_payload
     }
 
-    # ASENKRON Client ve await
     async with httpx.AsyncClient() as client:
         r = await client.post(
             f"{API_BASE_URL}/exams/submit",
             headers={"Authorization": f"Bearer {token}"},
             json=submit_data
         )
-
-    if r.status_code == 200:
-        return RedirectResponse(url="/student_view_results", status_code=status.HTTP_303_SEE_OTHER)
-    else:
-        return HTMLResponse(f"Sınav gönderilemedi: {r.text}", status_code=400)
+        if r.status_code == 200:
+            return RedirectResponse(url="/student_view_results", status_code=status.HTTP_303_SEE_OTHER)
+        else:
+            return HTMLResponse(f"Sınav gönderilemedi: {r.text}", status_code=400)
 
 #####################################################################
 # STUDENT: SONUÇLARI GÖRÜNTÜLE
