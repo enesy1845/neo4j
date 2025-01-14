@@ -37,6 +37,23 @@ class QuestionResponse(BaseModel):
 
     class Config:
         orm_mode = True
+# (Yeni) AddQuestionResponse modeli
+class AddQuestionResponse(BaseModel):
+    message: str
+    external_id: str
+
+# (Yeni) QuestionResponse modeli
+class QuestionResponse(BaseModel):
+    id: str
+    external_id: str
+    section: int
+    question: str
+    points: int
+    q_type: str
+    correct_answer: str
+
+    class Config:
+        orm_mode = True
 
 # ========== Endpoints ==========
 
@@ -74,6 +91,10 @@ def add_question(
     db.add(ans)
     db.commit()
 
+    return {
+        "message": "Question added successfully",
+        "external_id": external_id
+    }
     return {
         "message": "Question added successfully",
         "external_id": external_id
