@@ -27,7 +27,15 @@ class RegisterResponse(BaseModel):
 class LoginRequest(BaseModel):
     username: str
     password: str
+# (Yeni) LoginRequest, LoginResponse
+class LoginRequest(BaseModel):
+    username: str
+    password: str
 
+class LoginResponse(BaseModel):
+    access_token: str
+    token_type: str = "bearer"
+    role: str
 class LoginResponse(BaseModel):
     access_token: str
     token_type: str = "bearer"
@@ -65,5 +73,5 @@ def login_endpoint(body: LoginRequest, db: Session = Depends(get_db)):
     return {
         "access_token": token,
         "token_type": "bearer",
-        "role": user.role  # <=== Kullanıcının rolünü de ekliyoruz
-}
+        "role": user.role  # <=== Kullanıcının rolünü de ekliyoruz
+    }

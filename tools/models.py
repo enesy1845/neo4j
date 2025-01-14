@@ -5,6 +5,7 @@ from sqlalchemy.dialects.postgresql import UUID as PGUUID
 from sqlalchemy.orm import relationship
 from tools.database import Base
 from datetime import datetime
+import json
 
 # Association Table for Exam and Question
 exam_question_association = Table(
@@ -42,6 +43,7 @@ class User(Base):
     school = relationship("School", back_populates="users")
     exams = relationship("Exam", back_populates="user", cascade="all, delete-orphan")
 
+
 class Question(Base):
     __tablename__ = "questions"
     id = Column(PGUUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
@@ -50,8 +52,31 @@ class Question(Base):
     question = Column(Text, nullable=False)
     points = Column(Integer, nullable=False, default=1)
     type = Column(String(50), nullable=False)
+    choices = Column(Text, nullable=True)
+
+    # Answer ile 1-1
     answer = relationship("Answer", back_populates="question", uselist=False)
-    exams = relationship("Exam", secondary=exam_question_association, back_populates="selected_questions")
+
+    # DÜZELTME:
+    # 'exams' => 'relationship("Exam", secondary=exam_question_association, back_populates="selected_questions")'
+    # demek istiyoruz
+    exams = relationship(
+        "Exam",
+        secondary=exam_question_association,
+        back_populates="selected_questions"  # <-- karşının ismi 'selected_questions'
+    )
+
+
+    def get_choices_list(self):
+        """
+        Kolonumuz Text biçiminde JSON sakladığı için bu fonksiyonla python list/dict'e çevirebiliriz.
+        """
+        if self.choices:
+            try:
+                return json.loads(self.choices)
+            except:
+                pass
+        return []
 
 class Answer(Base):
     __tablename__ = "answers"
@@ -68,11 +93,17 @@ class Exam(Base):
     start_time = Column(DateTime, default=datetime.utcnow)
     end_time = Column(DateTime, nullable=True)
     school_id = Column(PGUUID(as_uuid=True), ForeignKey("schools.school_id", ondelete='CASCADE'), nullable=False)
+
     school = relationship("School", back_populates="exams")
     user = relationship("User", back_populates="exams")
     exam_answers = relationship("ExamAnswer", back_populates="exam", cascade="all, delete-orphan")
-    selected_questions = relationship("Question", secondary=exam_question_association, back_populates="exams")
 
+    # DÜZELTME:
+    selected_questions = relationship(
+        "Question",
+        secondary=exam_question_association,
+        back_populates="exams"  # <-- Karşı taraftaki 'exams' ile eşleşiyor
+    )
 class ExamAnswer(Base):
     __tablename__ = "exam_answers"
     id = Column(PGUUID(as_uuid=True), primary_key=True, default=uuid.uuid4)

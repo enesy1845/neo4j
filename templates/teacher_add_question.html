@@ -1,0 +1,24 @@
+{% extends "base.html" %}
+{% block content %}
+<h2>Yeni Soru Ekle</h2>
+<form method="post" action="/teacher_add_question">
+    <label>Soru Metni:</label>
+    <input type="text" name="question_text" required><br>
+
+    <label>Soru Tipi:</label>
+    <select name="q_type">
+        <option value="single_choice">Single Choice</option>
+        <option value="multiple_choice">Multiple Choice</option>
+        <option value="true_false">True/False</option>
+        <option value="ordering">Ordering</option>
+    </select><br>
+
+    <label>Puan:</label>
+    <input type="number" name="points" value="1" required><br>
+
+    <label>Doğru Cevap:</label>
+    <input type="text" name="correct_answer" required><br>
+
+    <button type="submit">Gönder</button>
+</form>
+{% endblock %}

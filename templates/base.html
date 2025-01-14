@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="UTF-8">
+    <title>Quiz App</title>
+    <link rel="stylesheet" href="/static/style.css" />
+</head>
+
+<body>
+    <header>
+        <h1>Quiz App</h1>
+        <nav>
+            <a href="/">Ana Menü</a>
+            <a href="/logout">Çıkış Yap</a>
+        </nav>
+    </header>
+    <section>
+        {% block content %}{% endblock %}
+    </section>
+
+    <script src="/static/js/timer.js"></script>
+    {% block scripts %}{% endblock %}
+</body>
+
+</html>

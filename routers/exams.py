@@ -3,6 +3,7 @@ from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 from datetime import datetime
 from typing import Dict, List,Optional
+from typing import Dict, List,Optional
 from pydantic import BaseModel
 from uuid import UUID
 
@@ -20,6 +21,8 @@ class QuestionItem(BaseModel):
     question: str
     type: str
     points: int
+    # Yeni ekledik:
+    choices: Optional[List[str]] = None
     # Yeni ekledik:
     choices: Optional[List[str]] = None
 
@@ -79,7 +82,7 @@ def start_exam_endpoint(db: Session = Depends(get_db), current_user: User = Depe
                 type=q.type,
                 points=q.points,
                 # DB’de JSON sakladık, UI'ya python list olarak göndermek için:
-                #choices=q.get_choices_list()  
+                choices=q.get_choices_list()  
             ))
         response_data.append(SectionQuestions(
             section=section,
