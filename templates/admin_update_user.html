@@ -3,27 +3,39 @@
 <h2>Update User: {{ user_info.username }}</h2>
 
 <form method="post" action="/admin_update_user">
+    <!-- Gizli input'ta username -->
     <input type="hidden" name="username" value="{{ user_info.username }}">
 
-    <label>Ad:</label>
-    <input type="text" name="name" value="{{ user_info.name }}"><br>
+    <div class="form-row">
+        <label>Ad:</label>
+        <input type="text" name="name" value="{{ user_info.name }}">
+    </div>
 
-    <label>Soyad:</label>
-    <input type="text" name="surname" value="{{ user_info.surname }}"><br>
+    <div class="form-row">
+        <label>Soyad:</label>
+        <input type="text" name="surname" value="{{ user_info.surname }}">
+    </div>
 
-    <label>Sınıf:</label>
-    <input type="text" name="class_name" value="{{ user_info.class_name }}"><br>
+    <div class="form-row">
+        <label>Sınıf:</label>
+        <input type="text" name="class_name" value="{{ user_info.class_name }}">
+    </div>
 
-    <label>Rol (student/teacher/admin?):</label>
-    <input type="text" name="role" value="{{ user_info.role }}"><br>
+    <div class="form-row">
+        <label>Rol (student/teacher/admin?):</label>
+        <input type="text" name="role" value="{{ user_info.role }}">
+    </div>
 
-    <label>Registered Section:</label>
-    <input type="text" name="registered_section" value="{{ user_info.registered_section or '' }}"><br>
+    <div class="form-row">
+        <label>Registered Section:</label>
+        <input type="text" name="registered_section" value="{{ user_info.registered_section or '' }}">
+    </div>
 
-    <label>Yeni Parola (Boş bırakırsan değişmez):</label>
-    <input type="password" name="new_password"><br>
+    <div class="form-row">
+        <label>Yeni Parola (Boş bırakırsan değişmez):</label>
+        <input type="password" name="new_password">
+    </div>
 
     <button type="submit">Update User</button>
 </form>
-
 {% endblock %}
