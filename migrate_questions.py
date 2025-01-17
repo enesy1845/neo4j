@@ -1,5 +1,4 @@
 # tools/migrate_questions.py
-
 import json
 from pathlib import Path
 from sqlalchemy.orm import Session
@@ -22,33 +21,36 @@ def main():
         if questions_already_migrated(db):
             print("Questions already migrated. Skipping.")
             return
-        
+
         # 1) Soruları ekle
         for section in range(1, 5):
             q_file = QUESTIONS_DIR / f"questions_section{section}.json"
             if not q_file.exists():
                 print(f"{q_file} not found, skipping.")
                 continue
+
             q_data = load_json(q_file)
             questions_list = q_data.get("questions", [])
-
             for q_item in questions_list:
                 ext_id = q_item["id"]
                 existing_q = db.query(Question).filter(Question.external_id == ext_id).first()
                 if existing_q:
                     print(f"Question with external_id={ext_id} already exists. Skipping.")
                     continue
-                
-                # "choices" var mı kontrol edelim
-                choices_data = q_item.get("choices", None)
+
+                # "choices"/"options" var mı kontrol edelim
+                # Bazı JSON dosyalarında "choices" yerine "options" kullanılıyor olabilir.
+                choices_data = q_item.get("choices") or q_item.get("options")
+
                 if choices_data:
-                    # JSON string olarak saklayacağız:
+                    # DB’de JSON string olarak saklayacağız:
                     choices_str = json.dumps(choices_data)
                 else:
                     # Eğer yoksa ama type true_false ise default olarak ["True","False"] gibi bir atama yapabiliriz
                     if q_item["type"] == "true_false":
-                        choices_str = json.dumps(["True", "False"])
+                        choices_str = json.dumps(["True","False"])
                     else:
+                        # Hiç yoksa None
                         choices_str = None
 
                 new_q = Question(
@@ -66,9 +68,9 @@ def main():
         if not ANSWERS_FILE.exists():
             print("Answers file not found. Skipping answers.")
             return
+
         a_data = load_json(ANSWERS_FILE)
         questions_in_db = db.query(Question).all()
-
         for q in questions_in_db:
             ext_id = q.external_id
             if ext_id in a_data:
@@ -77,12 +79,12 @@ def main():
                     correct_answer = ",".join(str(a).strip() for a in ans_value)
                 else:
                     correct_answer = str(ans_value).strip()
-                
                 new_a = Answer(question_id=q.id, correct_answer=correct_answer)
                 db.add(new_a)
+                db.commit()
             else:
                 print(f"No answer found for question external_id={ext_id}")
-        db.commit()
+
         print("Migration completed successfully.")
 
 if __name__ == "__main__":

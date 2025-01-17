@@ -8,12 +8,11 @@ from tools.database import get_db
 from sqlalchemy.orm import Session
 
 ui_router = APIRouter()
-
 # Jinja2 templates (main.py’de tanımladığımızla aynı klasör)
 templates = Jinja2Templates(directory="templates")
 
 API_BASE_URL = "http://app:8000"
-# Eğer Docker içinde farklı bir host/port ise ona göre ayarlayın, 
+# Eğer Docker içinde farklı bir host/port ise ona göre ayarlayın,
 # örn: "http://app:8000" vs.
 
 def get_token_from_session(request: Request) -> str | None:
@@ -32,7 +31,6 @@ def main_menu(request: Request):
 #####################################################################
 # REGISTER
 #####################################################################
-
 @ui_router.get("/register", response_class=HTMLResponse)
 def register_page(request: Request):
     return templates.TemplateResponse("register.html", {"request": request})
@@ -59,7 +57,7 @@ def register_submit(
     }
     if registered_section:
         payload["registered_section"] = registered_section
-    
+
     with httpx.Client() as client:
         r = client.post(f"{API_BASE_URL}/auth/register", json=payload)
         if r.status_code == 200:
@@ -75,7 +73,6 @@ def register_submit(
 #####################################################################
 # LOGIN
 #####################################################################
-
 @ui_router.get("/login", response_class=HTMLResponse)
 def login_page(request: Request):
     return templates.TemplateResponse("login.html", {"request": request})
@@ -92,7 +89,6 @@ def login_submit(
             data = r.json()
             token = data.get("access_token")
             role = data.get("role")  # role bilgisi geldi
-
             if not token:
                 return templates.TemplateResponse("login.html", {
                     "request": request,
@@ -115,10 +111,10 @@ def login_submit(
                 "request": request,
                 "error": r.json().get("detail", "Login error")
             })
+
 #####################################################################
 # LOGOUT
 #####################################################################
-
 @ui_router.get("/logout")
 def logout(request: Request):
     request.session.clear()
@@ -127,20 +123,18 @@ def logout(request: Request):
 #####################################################################
 # STUDENT MENU
 #####################################################################
-
 @ui_router.get("/student_menu", response_class=HTMLResponse)
 def student_menu(request: Request):
     token = get_token_from_session(request)
     if not token:
         return RedirectResponse(url="/login")
-    # Aslında rol kontrolü yapmak istiyorsanız, token decode veya /users/current 
+    # Aslında rol kontrolü yapmak istiyorsanız, token decode veya /users/current
     # endpoint ile rol check yapılabilir. Demo’da basit tutulmuştur.
     return templates.TemplateResponse("student_menu.html", {"request": request})
 
 #####################################################################
 # STUDENT: SINAV BAŞLAT (Soruları Çek)
 #####################################################################
-
 @ui_router.get("/student_solve_exam", response_class=HTMLResponse)
 def student_solve_exam(request: Request):
     token = get_token_from_session(request)
@@ -156,9 +150,8 @@ def student_solve_exam(request: Request):
             data = r.json()
             exam_id = data["exam_id"]
             questions = data["questions"]  # section-based question list
-            # Soru tipleri vs. data yapısı -> bu data’yı template'e paslayıp 
+            # Soru tipleri vs. data yapısı -> bu data’yı template'e paslayıp
             # form halinde kullanıcıya göstereceğiz.
-            
             return templates.TemplateResponse("student_solve_exam.html", {
                 "request": request,
                 "exam_id": exam_id,
@@ -170,7 +163,6 @@ def student_solve_exam(request: Request):
 #####################################################################
 # STUDENT: SINAV CEVAPLARINI GÖNDER
 #####################################################################
-
 @ui_router.post("/student_submit_exam", response_class=HTMLResponse)
 async def student_submit_exam(
     request: Request,
@@ -186,7 +178,6 @@ async def student_submit_exam(
 
     # multiple_choice checkbox verilerini ayrıştırmak istiyorsanız:
     answers_payload = {}
-
     # Bu şekilde form_data'dan tüm key-value çiftlerini alabilirsiniz:
     for key in form_data.keys():
         if key.startswith("answer_"):
@@ -219,13 +210,12 @@ async def student_submit_exam(
 #####################################################################
 # STUDENT: SONUÇLARI GÖRÜNTÜLE
 #####################################################################
-
 @ui_router.get("/student_view_results", response_class=HTMLResponse)
 def student_view_results(request: Request):
     token = get_token_from_session(request)
     if not token:
         return RedirectResponse(url="/login")
-    
+
     # /students/results endpoint’inden verilerimizi alalım
     with httpx.Client() as client:
         r = client.get(
@@ -245,7 +235,6 @@ def student_view_results(request: Request):
 #####################################################################
 # ADMIN (Örnek): TÜM KULLANICILARI LİSTELE
 #####################################################################
-
 @ui_router.get("/admin_menu", response_class=HTMLResponse)
 def admin_menu(request: Request):
     token = get_token_from_session(request)
@@ -259,6 +248,7 @@ def admin_list_users(request: Request):
     token = get_token_from_session(request)
     if not token:
         return RedirectResponse(url="/login")
+
     with httpx.Client() as client:
         r = client.get(
             f"{API_BASE_URL}/users/",
@@ -276,7 +266,6 @@ def admin_list_users(request: Request):
 #####################################################################
 # TEACHER (Örnek): SORU EKLEME
 #####################################################################
-
 @ui_router.get("/teacher_menu", response_class=HTMLResponse)
 def teacher_menu(request: Request):
     token = get_token_from_session(request)
@@ -321,10 +310,6 @@ def teacher_add_question_submit(
         else:
             return HTMLResponse(f"Soru eklenemedi: {r.text}", status_code=400)
 
-#####################################################################
-# TEACHER: İSTATİSTİK GÖRÜNTÜLEME
-#####################################################################
-
 @ui_router.get("/teacher_view_stats", response_class=HTMLResponse)
 def teacher_view_stats(request: Request):
     token = get_token_from_session(request)
@@ -343,3 +328,94 @@ def teacher_view_stats(request: Request):
             })
         else:
             return HTMLResponse(f"İstatistik alınamadı: {r.text}", status_code=400)
+
+#####################################################################
+# ADMIN: UPDATE USER & DELETE USER
+#####################################################################
+@ui_router.get("/admin_update_user", response_class=HTMLResponse)
+def admin_update_user_form(request: Request, username: str):
+    """
+    Admin'in güncelleyeceği kullanıcıyı form üzerinden görüntülemesi.
+    """
+    token = get_token_from_session(request)
+    if not token:
+        return RedirectResponse(url="/login")
+
+    # Önce kullanıcı bilgilerini çekelim, formda gösterelim
+    with httpx.Client() as client:
+        r = client.get(f"{API_BASE_URL}/users/", headers={"Authorization": f"Bearer {token}"})
+        if r.status_code != 200:
+            return HTMLResponse(f"Kullanıcı bilgileri alınamadı: {r.text}", status_code=400)
+        
+        all_users = r.json()
+        target_user = None
+        for u in all_users:
+            if u["username"] == username:
+                target_user = u
+                break
+        
+        if not target_user:
+            return HTMLResponse("Güncellenecek kullanıcı bulunamadı", status_code=404)
+
+    return templates.TemplateResponse("admin_update_user.html", {
+        "request": request,
+        "user_info": target_user
+    })
+
+@ui_router.post("/admin_update_user", response_class=HTMLResponse)
+def admin_update_user_submit(
+    request: Request,
+    username: str = Form(...),
+    name: str = Form(...),
+    surname: str = Form(...),
+    class_name: str = Form(...),
+    role: str = Form(...),
+    registered_section: str = Form(""),
+    new_password: str = Form(""),
+):
+    """
+    Admin'in gönderdiği update formunu PUT /users/{username} endpointine iletir.
+    """
+    token = get_token_from_session(request)
+    if not token:
+        return RedirectResponse(url="/login")
+
+    payload = {
+        "name": name,
+        "surname": surname,
+        "class_name": class_name,
+        "role": role,
+        "registered_section": registered_section
+    }
+    if new_password.strip():
+        payload["new_password"] = new_password.strip()
+
+    with httpx.Client() as client:
+        r = client.put(
+            f"{API_BASE_URL}/users/{username}",
+            headers={"Authorization": f"Bearer {token}"},
+            json=payload
+        )
+        if r.status_code == 200:
+            return RedirectResponse(url="/admin_list_users", status_code=status.HTTP_303_SEE_OTHER)
+        else:
+            return HTMLResponse(f"Kullanıcı güncellenemedi: {r.text}", status_code=400)
+
+@ui_router.get("/admin_delete_user", response_class=HTMLResponse)
+def admin_delete_user(request: Request, username: str):
+    """
+    GET parametresi ile kullanıcıyı silen basit route.
+    """
+    token = get_token_from_session(request)
+    if not token:
+        return RedirectResponse(url="/login")
+
+    with httpx.Client() as client:
+        r = client.delete(
+            f"{API_BASE_URL}/users/{username}",
+            headers={"Authorization": f"Bearer {token}"}
+        )
+        if r.status_code == 200:
+            return RedirectResponse(url="/admin_list_users", status_code=status.HTTP_303_SEE_OTHER)
+        else:
+            return HTMLResponse(f"Kullanıcı silinemedi: {r.text}", status_code=400)

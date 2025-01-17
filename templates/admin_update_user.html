@@ -1,0 +1,29 @@
+{% extends "base.html" %}
+{% block content %}
+<h2>Update User: {{ user_info.username }}</h2>
+
+<form method="post" action="/admin_update_user">
+    <input type="hidden" name="username" value="{{ user_info.username }}">
+
+    <label>Ad:</label>
+    <input type="text" name="name" value="{{ user_info.name }}"><br>
+
+    <label>Soyad:</label>
+    <input type="text" name="surname" value="{{ user_info.surname }}"><br>
+
+    <label>Sınıf:</label>
+    <input type="text" name="class_name" value="{{ user_info.class_name }}"><br>
+
+    <label>Rol (student/teacher/admin?):</label>
+    <input type="text" name="role" value="{{ user_info.role }}"><br>
+
+    <label>Registered Section:</label>
+    <input type="text" name="registered_section" value="{{ user_info.registered_section or '' }}"><br>
+
+    <label>Yeni Parola (Boş bırakırsan değişmez):</label>
+    <input type="password" name="new_password"><br>
+
+    <button type="submit">Update User</button>
+</form>
+
+{% endblock %}
