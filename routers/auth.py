@@ -2,7 +2,7 @@
 
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
-from pydantic import BaseModel, Field, root_validator
+from pydantic import BaseModel, Field, root_validator, validator
 from tools.database import get_db
 from tools.user import register_user, login_user
 from tools.token_generator import create_access_token
@@ -12,12 +12,24 @@ router = APIRouter()
 # ========== Pydantic Models ==========
 class RegisterRequest(BaseModel):
     username: str = Field(..., min_length=3, max_length=50)
-    password: str = Field(..., min_length=3)
-    name: str = Field(..., min_length=2)
-    surname: str = Field(..., min_length=2)
+    password: str
+    name: str
+    surname: str
     class_name: str
     role: str
     registered_section: str | None = None
+
+    @validator("name")
+    def validate_name(cls, value):
+        if len(value) < 2:
+            raise ValueError("İsim en az 2 karakter olmalıdır!")
+        return value
+
+    @validator("surname")
+    def validate_surname(cls, value):
+        if len(value) < 2:
+            raise ValueError("Soyad en az 2 karakter olmalıdır!")
+        return value
 
     @root_validator
     def validate_password_complexity(cls, values):
@@ -27,16 +39,16 @@ class RegisterRequest(BaseModel):
 
         # En az 8 karakter
         if len(pwd) < 8:
-            raise ValueError("Password must be at least 8 characters.")
+            raise ValueError("Şifre en az 8 karakter olmalı.")
         # En az 1 büyük harf
         if not any(c.isupper() for c in pwd):
-            raise ValueError("Password must contain at least one uppercase letter.")
+            raise ValueError("Şifre en az 1 büyük harf içermeli.")
         # En az 1 küçük harf
         if not any(c.islower() for c in pwd):
-            raise ValueError("Password must contain at least one lowercase letter.")
+            raise ValueError("Şifre en az 1 küçük harf içermeli.")
         # En az 1 rakam
         if not any(c.isdigit() for c in pwd):
-            raise ValueError("Password must contain at least one digit.")
+            raise ValueError("Şifre en az 1 rakam içermeli.")
 
         return values
 
