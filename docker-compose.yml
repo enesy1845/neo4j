@@ -1,6 +1,27 @@
+version: '3.8'
+
 services:
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile.app
+    container_name: quizapp-app
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      - PYTHONUNBUFFERED=1
+    env_file:
+      - .env  # Ortam değişkenlerini buradan yükle
+    volumes:
+      - .:/app
+    ports:
+      - "8000:8000"
+
   db:
-    image: postgres:14
+    build:
+      context: .
+      dockerfile: Dockerfile.db  # Dockerfile.db kullanılıyor
     container_name: postgres_db
     environment:
       - POSTGRES_DB=${DB_NAME}
@@ -15,22 +36,6 @@ services:
       interval: 5s
       timeout: 5s
       retries: 5
-
-  app:
-    build: .
-    container_name: quizapp-app
-    depends_on:
-      db:
-        condition: service_healthy
-    environment:
-      - PYTHONUNBUFFERED=1
-    env_file:
-      - .env
-    volumes:
-      - .:/app
-    ports:
-      - "8000:8000"
-    # Command is handled in Dockerfile
 
 volumes:
   db_data:
