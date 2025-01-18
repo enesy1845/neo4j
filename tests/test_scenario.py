@@ -64,8 +64,8 @@ def setup_db():
     
     yield
     
-    # Teardown: Drop all tables after tests
-    Base.metadata.drop_all(bind=engine)
+    # # Teardown: Drop all tables after tests
+    # Base.metadata.drop_all(bind=engine)
 
 # Helper functions for user operations
 def register_user(username, password, name, surname, class_name, role, registered_section=None):
