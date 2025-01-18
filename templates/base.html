@@ -11,12 +11,19 @@
     <header>
         <h1>Quiz App</h1>
         <nav>
-            <a href="/">Ana Menü</a>
-            <a href="/logout">Çıkış Yap</a>
+            <!-- Üst sağdaki linkler de modern buton şeklinde görünsün -->
+            <a href="/" class="btn">Ana Menü</a>
+            <a href="/logout" class="btn">Çıkış Yap</a>
+            <!-- Geri tuşu da modern buton -->
+            <a href="javascript:history.back()" class="btn">Geri</a>
         </nav>
     </header>
-    <section>
-        {% block content %}{% endblock %}
+
+    <!-- İçerik alanını, dikey/yatay ortalamak için özel container -->
+    <section class="centered-container">
+        <div class="content-box">
+            {% block content %}{% endblock %}
+        </div>
     </section>
 
     <script src="/static/js/timer.js"></script>

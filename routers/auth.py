@@ -2,7 +2,7 @@
 
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, root_validator
 from tools.database import get_db
 from tools.user import register_user, login_user
 from tools.token_generator import create_access_token
@@ -10,32 +10,43 @@ from tools.token_generator import create_access_token
 router = APIRouter()
 
 # ========== Pydantic Models ==========
-
 class RegisterRequest(BaseModel):
     username: str = Field(..., min_length=3, max_length=50)
     password: str = Field(..., min_length=3)
-    name: str
-    surname: str
+    name: str = Field(..., min_length=2)
+    surname: str = Field(..., min_length=2)
     class_name: str
     role: str
     registered_section: str | None = None
 
+    @root_validator
+    def validate_password_complexity(cls, values):
+        pwd = values.get("password")
+        if not pwd:
+            raise ValueError("Password is required.")
+
+        # En az 8 karakter
+        if len(pwd) < 8:
+            raise ValueError("Password must be at least 8 characters.")
+        # En az 1 büyük harf
+        if not any(c.isupper() for c in pwd):
+            raise ValueError("Password must contain at least one uppercase letter.")
+        # En az 1 küçük harf
+        if not any(c.islower() for c in pwd):
+            raise ValueError("Password must contain at least one lowercase letter.")
+        # En az 1 rakam
+        if not any(c.isdigit() for c in pwd):
+            raise ValueError("Password must contain at least one digit.")
+
+        return values
+
 class RegisterResponse(BaseModel):
     message: str
 
-# (Yeni) LoginRequest, LoginResponse
-class LoginRequest(BaseModel):
-    username: str
-    password: str
-# (Yeni) LoginRequest, LoginResponse
 class LoginRequest(BaseModel):
     username: str
     password: str
 
-class LoginResponse(BaseModel):
-    access_token: str
-    token_type: str = "bearer"
-    role: str
 class LoginResponse(BaseModel):
     access_token: str
     token_type: str = "bearer"
@@ -57,21 +68,19 @@ def register_endpoint(request: RegisterRequest, db: Session = Depends(get_db)):
     )
     if not success:
         raise HTTPException(
-            status_code=400, 
+            status_code=400,
             detail="Username already exists or default school not found."
         )
     return {"message": "Registration successful."}
 
-# (Yeni) /login endpoint
 @router.post("/login", response_model=LoginResponse)
 def login_endpoint(body: LoginRequest, db: Session = Depends(get_db)):
     user = login_user(db, body.username, body.password)
     if not user:
         raise HTTPException(status_code=401, detail="Invalid username or password.")
-
     token = create_access_token(str(user.user_id))
     return {
         "access_token": token,
         "token_type": "bearer",
-        "role": user.role  # <=== Kullanıcının rolünü de ekliyoruz
+        "role": user.role
     }
