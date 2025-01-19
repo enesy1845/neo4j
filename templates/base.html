@@ -11,15 +11,16 @@
     <header>
         <h1>Quiz App</h1>
         <nav>
-            <!-- Üst sağdaki linkler de modern buton şeklinde görünsün -->
+            <!-- Ana Menü butonu rol bazlı yönlendirme yapacak (ui.py'de logic var). -->
             <a href="/" class="btn">Ana Menü</a>
             <a href="/logout" class="btn">Çıkış Yap</a>
-            <!-- Geri tuşu da modern buton -->
+            <!-- Geri tuşu için parametre kontrol -->
+            {% if not hide_back_button %}
             <a href="javascript:history.back()" class="btn">Geri</a>
+            {% endif %}
         </nav>
     </header>
 
-    <!-- İçerik alanını, dikey/yatay ortalamak için özel container -->
     <section class="centered-container">
         <div class="content-box">
             {% block content %}{% endblock %}
