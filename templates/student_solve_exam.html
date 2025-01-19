@@ -2,17 +2,20 @@
 {% block content %}
 <h2>Sınav Ekranı</h2>
 <div id="timer">Kalan Süre: <span id="timeLeft"></span> saniye</div>
+
 <form id="examForm" method="post" action="/student_submit_exam">
     <input type="hidden" name="exam_id" value="{{ exam_id }}">
 
-    {% for section_data in sections %}
-    <h3>Section {{ section_data.section }}</h3>
-    {% for q in section_data.questions %}
+    <!-- sections bir dictionary olduğu için items() ile key,value döneceğiz -->
+    {% for section_number, question_list in sections.items() %}
+    <h3>Section {{ section_number }}</h3>
+
+    {% for q in question_list %}
     <div class="question-box">
         <p class="question-text"><strong>{{ q.question }}</strong> (Puan: {{ q.points }})</p>
 
         {% if q.type == 'true_false' %}
-        <!-- True/False: 2 radio buton -->
+        <!-- True/False: 2 radio butonu -->
         <label class="option">
             <input type="radio" name="answer_{{ q.question_id }}" value="True"> True
         </label>
@@ -25,7 +28,8 @@
         {% if q.choices %}
         {% for choice in q.choices %}
         <label class="option">
-            <input type="radio" name="answer_{{ q.question_id }}" value="{{ choice }}"> {{ choice }}
+            <input type="radio" name="answer_{{ q.question_id }}" value="{{ choice.choice_text }}"> {{
+            choice.choice_text }}
         </label>
         {% endfor %}
         {% else %}
@@ -49,7 +53,8 @@
         {% if q.choices %}
         {% for choice in q.choices %}
         <label class="option">
-            <input type="checkbox" name="answer_{{ q.question_id }}[]" value="{{ choice }}"> {{ choice }}
+            <input type="checkbox" name="answer_{{ q.question_id }}[]" value="{{ choice.choice_text }}"> {{
+            choice.choice_text }}
         </label>
         {% endfor %}
         {% else %}
@@ -70,16 +75,15 @@
 
         {% elif q.type == 'ordering' %}
         {% if q.choices %}
-        <!-- Basit bir sürükle-bırak yapmak isterseniz JS lazım. 
-                     Burada her choice'ı listede gösteriyor ve "üstte mi altta mı" gibi butonlar ekleyebilirsiniz.
-                     Basitlik için virgülle ayırarak girilecek bir text alanı koyalım. -->
+        <!-- Ordering sorusu için seçenekleri listeliyoruz; 
+             Basitlik adına virgülle sıralamayı alabiliriz. -->
         <p>Lütfen şu öğeleri doğru sırayla yazın (virgül ile ayırarak):</p>
         <ul>
             {% for c in q.choices %}
-            <li>{{ c }}</li>
+            <li>{{ c.choice_text }}</li>
             {% endfor %}
         </ul>
-        <input type="text" name="answer_{{ q.question_id }}" placeholder="örn: 4 + 4, 2 x 4, 16 / 2, 10 - 2">
+        <input type="text" name="answer_{{ q.question_id }}" placeholder="örn: 3,1,4,2">
         {% else %}
         <p>Bu ordering sorusunun şıkları tanımlanmamış.</p>
         <input type="text" name="answer_{{ q.question_id }}" placeholder="Sıralamayı girin...">
@@ -88,7 +92,7 @@
         {% else %}
         <!-- Varsayılan (bilinmeyen tip) metin alanı -->
         <label>Cevabınız:</label>
-        <input type="text" name="answer_{{ q.question_id }}" />
+        <input type="text" name="answer_{{ q.question_id }}">
         {% endif %}
     </div>
     {% endfor %}

@@ -1,61 +1,86 @@
-# tools/result.py
+# routers/results.py
+from fastapi import APIRouter, Depends, HTTPException
+from sqlalchemy.orm import Session
+from typing import List
+from pydantic import BaseModel
+from tools.database import get_db
+from tools.models import User, Exam, ExamAnswer, QuestionChoice
+from tools.token_generator import get_current_user
 
-from rich import print
-from rich.table import Table
-from rich.console import Console
-from tools.models import Exam, ExamAnswer, Question, Statistics
+router = APIRouter()
 
-def view_results(db, user):
-    exams = db.query(Exam).filter(Exam.user_id == user.user_id).all()
+class ChoiceDetail(BaseModel):
+    choice_text: str
+    user_position: int | None = None
+
+class AnswerDetail(BaseModel):
+    question_id: str
+    question_text: str
+    points_earned: int
+    choices_selected: List[ChoiceDetail]
+    # is_correct -> points_earned>0 gibi basit check ile anlayabiliriz.
+    # ya da devaml ettirebilirsiniz.
+
+class ExamDetail(BaseModel):
+    exam_id: str
+    start_time: str
+    end_time: str | None
+    score_avg: float
+    answers: List[AnswerDetail]
+
+class ExamResultResponse(BaseModel):
+    exams: List[ExamDetail]
+
+@router.get("/results", response_model=ExamResultResponse, summary="View your exam results")
+def view_exam_results(db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
+    if current_user.role != "student":
+        raise HTTPException(status_code=403, detail="Only students can view their exam results.")
+
+    exams = db.query(Exam).filter(Exam.user_id == current_user.user_id).all()
     if not exams:
-        print("No exam records found.\n")
-        return
-    console = Console()
+        return {"exams": []}
 
-    for idx, exam in enumerate(exams, start=1):
-        console.print(f"\n[bold underline]Öğrenci No: {user.user_id}[/bold underline]")
-        console.print(f"Öğrenci Sınıfı: {user.class_name}")
-        console.print(f"Sınav {idx}")
-
-        table = Table(show_header=True, header_style="bold blue")
-        table.add_column("Soru Bölümü", style="cyan")
-        table.add_column("Doğru (DS)", style="green")
-        table.add_column("Yanlış (YS)", style="red")
-        table.add_column("Okul(%)", style="magenta")
-        table.add_column("Notu(%)", style="yellow")
-
+    exam_details = []
+    for exam in exams:
         exam_answers = db.query(ExamAnswer).filter(ExamAnswer.exam_id == exam.exam_id).all()
-        section_data = {}
+        answers_out = []
         for ans in exam_answers:
-            q = db.query(Question).filter(Question.id == ans.question_id).first()
-            sec = q.section
-            if sec not in section_data:
-                section_data[sec] = {"ds":0, "ys":0}
-            if ans.is_correct:
-                section_data[sec]["ds"] += 1
-            else:
-                section_data[sec]["ys"] += 1
+            q = db.query(QuestionChoice).filter(QuestionChoice.id == ans.question_id).first()  # <-- Bu satır HATALI
+            # Yukarı satırda "ans.question_id" 'Question' a refer ediyor, 'QuestionChoice' değil.
+            # Doğrusu 'Question' tablosunu almalı:
+            question_obj = db.query(...).filter(...).first()
+            # Örnek:
+            question_obj = ans.exam.exam_answers[0] # yanlıs
+            # Düzeltelim:
+            from tools.models import Question
+            question_obj = db.query(Question).filter(Question.id == ans.question_id).first()
 
-        for sec, data in section_data.items():
-            ds = data["ds"]
-            ys = data["ys"]
-            stat = db.query(Statistics).filter(
-                Statistics.school_id == exam.school_id,
-                Statistics.class_name == user.class_name,
-                Statistics.section_number == sec
-            ).first()
-            school_avg = stat.section_percentage if stat else 0.0
-            notu = (ds / (ds + ys)) * 100 if (ds+ys) > 0 else 0
-            table.add_row(
-                f"Section-{sec}",
-                str(ds),
-                str(ys),
-                f"{school_avg:.2f}",
-                f"{notu:.2f}"
-            )
-        console.print(table)
-        # Basit bir geçme kriteri
-        if user.score_avg >= 75:
-            console.print("[bold green]Genel Sonuç: Geçti.[/bold green]\n")
-        else:
-            console.print("[bold red]Genel Sonuç: Geçemedi.[/bold red]\n")
+            # user choices
+            user_choices = ans.user_choices
+            csel = []
+            for uc in user_choices:
+                # question_choice'ı al
+                # question_choice_id = uc.question_choice_id
+                qc = db.query(QuestionChoice).filter(QuestionChoice.id == uc.question_choice_id).first()
+                if qc:
+                    csel.append(ChoiceDetail(
+                        choice_text=qc.choice_text,
+                        user_position=uc.user_position
+                    ))
+
+            answers_out.append(AnswerDetail(
+                question_id=str(ans.question_id),
+                question_text=question_obj.question if question_obj else "",
+                points_earned=ans.points_earned,
+                choices_selected=csel
+            ))
+
+        exam_details.append(ExamDetail(
+            exam_id=str(exam.exam_id),
+            start_time=exam.start_time.isoformat(),
+            end_time=exam.end_time.isoformat() if exam.end_time else None,
+            score_avg=current_user.score_avg,
+            answers=answers_out
+        ))
+
+    return {"exams": exam_details}

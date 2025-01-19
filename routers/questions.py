@@ -1,31 +1,40 @@
 # routers/questions.py
-
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 from typing import List, Optional
 from pydantic import BaseModel, Field
 from uuid import uuid4
-
 from tools.database import get_db
-from tools.models import User, Question, Answer
+from tools.models import User, Question, QuestionChoice
 from tools.token_generator import get_current_user
 
 router = APIRouter()
 
-# ========== Pydantic Models ==========
+# ========= Pydantic Models =========
+class ChoiceModel(BaseModel):
+    choice_text: str
+    is_correct: Optional[bool] = False
+    correct_position: Optional[int] = None
 
 class AddQuestionRequest(BaseModel):
     question_text: str
     q_type: str
     points: int
-    correct_answer: str
+    # section zorunlu
+    section: int
+    # question şıkları (single, multiple, tf, ordering). 
+    # Bir liste (her eleman bir ChoiceModel) bekleniyor
+    choices: List[ChoiceModel] = []
 
-# (Yeni) AddQuestionResponse modeli
 class AddQuestionResponse(BaseModel):
     message: str
     external_id: str
 
-# (Yeni) QuestionResponse modeli
+class QuestionChoiceResponse(BaseModel):
+    choice_text: str
+    is_correct: bool
+    correct_position: Optional[int]
+
 class QuestionResponse(BaseModel):
     id: str
     external_id: str
@@ -33,31 +42,13 @@ class QuestionResponse(BaseModel):
     question: str
     points: int
     q_type: str
-    correct_answer: str
-
-    class Config:
-        orm_mode = True
-# (Yeni) AddQuestionResponse modeli
-class AddQuestionResponse(BaseModel):
-    message: str
-    external_id: str
-
-# (Yeni) QuestionResponse modeli
-class QuestionResponse(BaseModel):
-    id: str
-    external_id: str
-    section: int
-    question: str
-    points: int
-    q_type: str
-    correct_answer: str
+    choices: List[QuestionChoiceResponse]
 
     class Config:
         orm_mode = True
 
-# ========== Endpoints ==========
-
-@router.post("/", response_model=AddQuestionResponse, summary="Add a new question")
+# ========= Endpoints =========
+@router.post("/", response_model=AddQuestionResponse, summary="Add a new question (advanced DB schema)")
 def add_question(
     body: AddQuestionRequest,
     db: Session = Depends(get_db),
@@ -65,17 +56,13 @@ def add_question(
 ):
     if current_user.role != "teacher":
         raise HTTPException(status_code=403, detail="Only teachers can add questions.")
-    if not current_user.registered_section:
-        raise HTTPException(status_code=400, detail="Teacher has no registered section.")
-    if body.q_type not in ['single_choice', 'multiple_choice', 'true_false', 'ordering']:
-        raise HTTPException(status_code=400, detail="Invalid question type.")
 
     external_id = str(uuid4())
-    section = int(current_user.registered_section)
 
+    # Soru kaydet
     new_q = Question(
         external_id=external_id,
-        section=section,
+        section=body.section,
         question=body.question_text,
         points=body.points,
         type=body.q_type
@@ -84,42 +71,40 @@ def add_question(
     db.commit()
     db.refresh(new_q)
 
-    ans = Answer(
-        question_id=new_q.id,
-        correct_answer=body.correct_answer.strip()
-    )
-    db.add(ans)
-    db.commit()
+    # Soru şıkları kaydet
+    for ch in body.choices:
+        qc = QuestionChoice(
+            question_id=new_q.id,
+            choice_text=ch.choice_text.strip(),
+            is_correct=ch.is_correct or False,
+            correct_position=ch.correct_position
+        )
+        db.add(qc)
+        db.commit()
 
     return {
-        "message": "Question added successfully",
-        "external_id": external_id
-    }
-    return {
-        "message": "Question added successfully",
+        "message": "Question added successfully with new DB schema",
         "external_id": external_id
     }
 
-# (Yeni) List all questions - GET
-@router.get("/", response_model=List[QuestionResponse], summary="List all questions")
+@router.get("/", response_model=List[QuestionResponse], summary="List all questions (advanced DB schema)")
 def list_all_questions(
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user)
 ):
-    """
-    Tüm soruları listeleme endpoint'i:
-    Sadece teacher veya admin rolü görebilsin, isterseniz 'student' da görebilir.
-    """
     if current_user.role not in ["teacher", "admin"]:
         raise HTTPException(status_code=403, detail="Only teachers or admins can list questions.")
 
-    # DB'deki tüm soruları çekiyoruz
     questions = db.query(Question).all()
-
-    # Pydantic'e uygun JSON dönmesi için verileri map'liyoruz
     results = []
     for q in questions:
-        correct_ans = q.answer.correct_answer if q.answer else ""
+        choice_list = []
+        for c in q.question_choices:
+            choice_list.append(QuestionChoiceResponse(
+                choice_text=c.choice_text,
+                is_correct=c.is_correct,
+                correct_position=c.correct_position
+            ))
         results.append(QuestionResponse(
             id=str(q.id),
             external_id=q.external_id,
@@ -127,6 +112,6 @@ def list_all_questions(
             question=q.question,
             points=q.points,
             q_type=q.type,
-            correct_answer=correct_ans
+            choices=choice_list
         ))
     return results
