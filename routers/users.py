@@ -84,7 +84,7 @@ def update_user_endpoint(user_id: str,  # user_id burada integer olarak varsayı
     # Eğer new_password geldiyse hash'leyip 'password' alanına atayacağız.
     if request.new_password is not None and request.new_password.strip() != "":
         hashed = hash_password(request.new_password.strip())
-        update_fields["password"] = hashed
+        update_fields["password"] = request.new_password.strip()
 
     # User ID'ye göre güncelleme fonksiyonu çağırıyoruz.
     success = update_user(db, current_user, user_id, **update_fields)
