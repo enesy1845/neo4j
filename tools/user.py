@@ -79,34 +79,48 @@ def delete_user(db: Session, admin_user, username):
         print("User not found.")
         return False
 
-def update_user(db: Session, admin_user, username, **kwargs):
+def update_user(db: Session, admin_user, user_id, **kwargs):
     if admin_user.role.lower() != 'admin':
         print("Only admins can update users.")
         return False
 
-    user = db.query(User).filter(User.username == username).first()
+    user = db.query(User).filter(User.user_id == user_id).first()
+    print(f"User ID: {user}")    
     if not user:
         print("User not found.")
         return False
 
-    # Burada da teacher's "matematik" -> "1" mapping
-    if "role" in kwargs and kwargs["role"] and kwargs["role"].lower() == "teacher":
-        # eğer teacher ise ve 'registered_section' parametresi geldiyse mapping'e bak
+    # Kullanıcı adı güncellemesi için eşsizlik kontrolü
+    if "username" in kwargs and kwargs["username"]:
+        try:
+            existing_user = db.query(User).filter(User.username == kwargs["username"]).first()
+            if existing_user and str(existing_user.user_id) != user_id:
+                print("Username already taken.")
+                return False
+        except AttributeError:
+            print("No user found with the given username.")
+            return False
+
+
+
+    # Eğer `role` teacher ise ve registered_section için mapping uygulanacaksa
+    if "role" in kwargs and kwargs["role"].lower() == "teacher":
         if "registered_section" in kwargs and kwargs["registered_section"]:
             rs = kwargs["registered_section"]
             if rs in SECTION_MAPPING:
                 kwargs["registered_section"] = SECTION_MAPPING[rs]
 
+    # Kullanıcı alanlarını güncelle
     for key, value in kwargs.items():
         if hasattr(user, key) and value is not None:
-            # Parola güncelleniyorsa hash'leyelim
             if key == "password":
                 value = hash_password(value)
             setattr(user, key, value)
 
     db.commit()
-    print("User updated.")
+    print(f"User {user.user_id} updated: {kwargs}")
     return True
+
 
 def create_admin_user(engine):
     from sqlalchemy.orm import sessionmaker
