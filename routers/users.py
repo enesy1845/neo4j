@@ -2,7 +2,7 @@
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 from typing import List
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 from uuid import UUID  # UUID türünü ekleyin
 from typing import Optional, List
 from tools.database import get_db
@@ -28,11 +28,13 @@ class UserResponse(BaseModel):
         orm_mode = True  # SQLAlchemy model -> Pydantic
 
 class UpdateUserRequest(BaseModel):
-    name: Optional[str]
-    surname: Optional[str]
-    class_name: Optional[str]
-    role: Optional[str]
-    registered_section: Optional[str]
+    username: Optional[str] = Field(None)
+    name: Optional[str] = Field(None)
+    surname: Optional[str] = Field(None)
+    class_name: Optional[str] = Field(None)
+    role: Optional[str] = Field(None)
+    registered_section: Optional[str] = Field(None)
+    new_password: Optional[str] = Field(None)
     new_password: Optional[str]  # <-- Eklendi: admin isteyince parolayı da değiştirebilir.
 
 # ========== Endpoints ==========
@@ -57,8 +59,8 @@ def delete_user_endpoint(username: str,
         raise HTTPException(status_code=404, detail="User not found or not deleted.")
     return {"message": f"User {username} deleted successfully."}
 
-@router.put("/{username}", summary="Update a user")
-def update_user_endpoint(username: str,
+@router.put("/{user_id}", summary="Update a user")
+def update_user_endpoint(user_id: str,  # user_id burada integer olarak varsayıldı
                          request: UpdateUserRequest,
                          db: Session = Depends(get_db),
                          current_user: User = Depends(get_current_user)):
@@ -66,6 +68,8 @@ def update_user_endpoint(username: str,
         raise HTTPException(status_code=403, detail="Only admins can update users.")
 
     update_fields = {}
+    if request.username is not None:
+        update_fields["username"] = request.username
     if request.name is not None:
         update_fields["name"] = request.name
     if request.surname is not None:
@@ -82,7 +86,9 @@ def update_user_endpoint(username: str,
         hashed = hash_password(request.new_password.strip())
         update_fields["password"] = hashed
 
-    success = update_user(db, current_user, username, **update_fields)
+    # User ID'ye göre güncelleme fonksiyonu çağırıyoruz.
+    success = update_user(db, current_user, user_id, **update_fields)
     if not success:
         raise HTTPException(status_code=404, detail="User not found or not updated.")
-    return {"message": f"User {username} updated successfully."}
+    return {"message": f"User with ID {user_id} updated successfully."}
+

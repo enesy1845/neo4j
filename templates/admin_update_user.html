@@ -4,8 +4,12 @@
 
 <form method="post" action="/admin_update_user">
     <!-- Gizli input'ta username -->
-    <input type="hidden" name="username" value="{{ user_info.username }}">
+    <input type="text" name="user_id" value="{{ user_info.user_id}}">
 
+    <div class="form-row">
+        <label>Kullanici Adi:</label>
+        <input type="text" name="username" value="{{ user_info.username }}">
+    </div>
     <div class="form-row">
         <label>Ad:</label>
         <input type="text" name="name" value="{{ user_info.name }}">

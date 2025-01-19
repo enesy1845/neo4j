@@ -304,6 +304,7 @@ def admin_update_user_form(request: Request, username: str):
 @ui_router.post("/admin_update_user", response_class=HTMLResponse)
 def admin_update_user_submit(
     request: Request,
+    user_id: str = Form(...),
     username: str = Form(...),
     name: str = Form(...),
     surname: str = Form(...),
@@ -317,6 +318,7 @@ def admin_update_user_submit(
         return RedirectResponse(url="/login")
 
     payload = {
+        "username": username,
         "name": name,
         "surname": surname,
         "class_name": class_name,
@@ -328,7 +330,7 @@ def admin_update_user_submit(
 
     with httpx.Client() as client:
         r = client.put(
-            f"{API_BASE_URL}/users/{username}",
+            f"{API_BASE_URL}/users/{user_id}",
             headers={"Authorization": f"Bearer {token}"},
             json=payload
         )
