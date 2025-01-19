@@ -1,8 +1,7 @@
 {% extends "base.html" %}
 {% block content %}
 <h2>Yeni Soru Ekle</h2>
-
-<!-- Başarılı ekleme mesajı -->
+<!-- Başarılı ekleme veya hata mesajı -->
 {% if msg %}
 <div style="color: green; margin-bottom: 1rem;">
     {{ msg }}
@@ -11,11 +10,13 @@
 
 <form method="post" action="/teacher_add_question" id="addQuestionForm">
 
+    <!-- SORU METNI -->
     <div class="form-row">
         <label>Soru Metni:</label>
         <input type="text" name="question_text" required>
     </div>
 
+    <!-- SORU TİPİ -->
     <div class="form-row">
         <label>Soru Tipi:</label>
         <select name="q_type" id="q_type" onchange="onTypeChange()">
@@ -26,12 +27,19 @@
         </select>
     </div>
 
+    <!-- PUAN -->
     <div class="form-row">
         <label>Puan:</label>
         <input type="number" name="points" value="1" required>
     </div>
 
-    <!-- SINGLE CHOICE alanları (1 doğru + 3 yanlış) -->
+    <!-- SECTION (örneğin 1,2,3,4) -->
+    <div class="form-row">
+        <label>Section (1, 2, 3, 4 vb.):</label>
+        <input type="number" name="section" required>
+    </div>
+
+    <!-- SINGLE CHOICE ALANLARI -->
     <div id="singleChoiceFields" style="display: none;">
         <p>Single Choice için 4 şık giriniz ve hangisi doğru ise işaretleyiniz.</p>
         <div>
@@ -60,7 +68,7 @@
         </div>
     </div>
 
-    <!-- MULTIPLE CHOICE alanları -->
+    <!-- MULTIPLE CHOICE ALANLARI -->
     <div id="multipleChoiceFields" style="display: none;">
         <p>Multiple Choice için 4 şık giriniz. Birden fazla doğru olabilir.</p>
         <div>
@@ -89,23 +97,23 @@
         </div>
     </div>
 
-    <!-- TRUE/FALSE alanları -->
+    <!-- TRUE/FALSE ALANLARI -->
     <div id="trueFalseFields" style="display: none;">
         <p>True/False için doğru cevabı seçiniz:</p>
         <select name="tf_correct">
             <option value="True">True (Doğru)</option>
             <option value="False">False (Doğru)</option>
         </select>
-        <!-- Not: diğer şık otomatik yanlış kabul edilecek. -->
+        <!-- Diğer şık otomatik yanlış kabul edilecek. -->
     </div>
 
-    <!-- ORDERING alanları -->
+    <!-- ORDERING ALANLARI -->
     <div id="orderingFields" style="display: none;">
         <p>Sıralama sorusu için doğru sıralamayı virgülle giriniz (örn: 1,2,3,4)</p>
         <input type="text" name="ordering_correct" placeholder="Doğru sıralama">
         <br>
-        <small>Not: İsterseniz opsiyonel ek açıklama 'choices' verebilirsiniz, virgülle ayırarak (örn: adım1, adım2,
-            adım3)</small>
+        <small>Not: İsterseniz opsiyonel ek açıklama 'choices' verebilirsiniz, virgülle ayırarak
+            (örn: step1, step2, step3, step4)</small>
         <input type="text" name="ordering_all" placeholder="Tüm adımlar (opsiyonel)">
     </div>
 
@@ -115,7 +123,7 @@
 <script>
     function onTypeChange() {
         const val = document.getElementById("q_type").value;
-        // Hepsini gizle
+        // Önce tüm alanları gizle
         document.getElementById("singleChoiceFields").style.display = "none";
         document.getElementById("multipleChoiceFields").style.display = "none";
         document.getElementById("trueFalseFields").style.display = "none";
@@ -132,7 +140,7 @@
         }
     }
 
-    // Sayfa ilk yüklendiğinde default single_choice
+    // Sayfa ilk yüklendiğinde varsayılan single_choice diyelim
     onTypeChange();
 </script>
 {% endblock %}

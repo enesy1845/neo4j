@@ -9,7 +9,6 @@ from tools.token_generator import get_current_user
 
 router = APIRouter()
 
-# ========== Pydantic Models ==========
 class StatisticResponse(BaseModel):
     school_id: str
     class_name: str
@@ -19,24 +18,25 @@ class StatisticResponse(BaseModel):
     average_score: float
     section_percentage: float
 
-# ========== Endpoints ==========
 @router.get("/", response_model=List[StatisticResponse], summary="View statistics")
 def view_statistics(db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
     if current_user.role not in ["teacher", "admin"]:
         raise HTTPException(status_code=403, detail="Only teachers or admins can view statistics.")
-    
+
     if current_user.role == "admin":
         stats = db.query(Statistics).all()
+
     elif current_user.role == "teacher":
-        # Öğretmenin kayıtlı olduğu bölüm, sınıf ve okul bazında filtreleme
         if not current_user.registered_section:
             raise HTTPException(status_code=400, detail="Teacher has no registered section.")
+
         stats = db.query(Statistics).filter(
             Statistics.school_id == current_user.school_id,
             Statistics.class_name == current_user.class_name,
+            # teacher’ın registered_section’ı “1” gibi bir string ise int() alabilirsiniz
             Statistics.section_number == int(current_user.registered_section)
         ).all()
-    
+
     return [
         StatisticResponse(
             school_id=str(s.school_id),

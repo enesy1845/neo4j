@@ -180,22 +180,33 @@ async def student_submit_exam(
     token = get_token_from_session(request)
     if not token:
         return RedirectResponse(url="/login")
+
     form_data = await request.form()
     answers_payload = {}
+
     for key in form_data.keys():
         if key.startswith("answer_"):
             question_id = key.replace("answer_", "")
-            value = form_data.getlist(key)
-            if len(value) == 1:
-                answers_payload[question_id] = value[0]
-            else:
-                # Multiple choice
-                answers_payload[question_id] = ",".join(value)
+            value_list = form_data.getlist(key)  # Seçilen tüm değerler (list)
+            
+            # Hem tekli hem çoklu halde, Pydantic'e uydurmak için `selected_texts` anahtarında bir liste vereceğiz:
+            answers_payload[question_id] = {
+                "selected_texts": value_list
+            }
+
+    # Artık answers_payload dict'i, Pydantic modeline uygun şekilde:
+    # {
+    #    "question_id": {
+    #       "selected_texts": [ "A", "B" ]   // ya da tek seçim varsa [ "A" ]
+    #    },
+    #    ...
+    # }
 
     submit_data = {
         "exam_id": exam_id,
         "answers": answers_payload
     }
+
     async with httpx.AsyncClient() as client:
         r = await client.post(
             f"{API_BASE_URL}/exams/submit",
@@ -203,10 +214,10 @@ async def student_submit_exam(
             json=submit_data
         )
         if r.status_code == 200:
-            # Sınav bitince geri tuşunu kapatmak için hide_back_button=True
             return RedirectResponse(url="/student_view_results?exam_submitted=1", status_code=status.HTTP_303_SEE_OTHER)
         else:
             return HTMLResponse(f"Sınav gönderilemedi: {r.text}", status_code=400)
+
 
 #####################################################################
 # STUDENT: SONUÇLARI GÖRÜNTÜLE
@@ -368,100 +379,137 @@ def teacher_add_question_submit(
     question_text: str = Form(...),
     q_type: str = Form(...),
     points: int = Form(...),
+    section: int = Form(...),   # Yeni eklendi: formdan numeric bir section geliyor
 
-    # Single choice
+    # SINGLE CHOICE
     single_correct: str = Form("", alias="single_correct"),
     single_a: str = Form("", alias="single_A"),
     single_b: str = Form("", alias="single_B"),
     single_c: str = Form("", alias="single_C"),
     single_d: str = Form("", alias="single_D"),
 
-    # Multiple choice
-    multi_correct: list[str] = Form([], alias="multi_correct"),  # checkbox
+    # MULTIPLE CHOICE
+    multi_correct: list[str] = Form([], alias="multi_correct"),  # checkbox'lardan birden çok gelebilir
     multi_a: str = Form("", alias="multi_A"),
     multi_b: str = Form("", alias="multi_B"),
     multi_c: str = Form("", alias="multi_C"),
     multi_d: str = Form("", alias="multi_D"),
 
-    # True/False
+    # TRUE/FALSE
     tf_correct: str = Form("", alias="tf_correct"),
 
-    # Ordering
+    # ORDERING
     ordering_correct: str = Form("", alias="ordering_correct"),
-    ordering_all: str = Form("", alias="ordering_all"),
+    ordering_all: str = Form("", alias="ordering_all")
 ):
     """
-    Formdan gelen veriyi parse ediyoruz.
-    Soru tipine göre choices'ı ve correct_answer'ı oluşturup API'ye POST edeceğiz.
+    Öğretmen formundan gelen verileri parse ederek, /questions/ endpoint'ine
+    Pydantic modeline uygun şekilde JSON gönderir.
     """
     token = get_token_from_session(request)
     if not token:
         return RedirectResponse(url="/login")
 
-    # Hazırlık
-    all_choices = []
-    correct_answer_str = ""
+    # "choices" alanını doldurmak için bir liste oluşturacağız.
+    choices_list = []
 
-    # SINGLE CHOICE
-    if q_type == "single_choice":
-        # 4 şıkkı listede tut
-        # A,B,C,D => text
-        # single_correct => mesela "B"
-        a_text = single_a.strip()
-        b_text = single_b.strip()
-        c_text = single_c.strip()
-        d_text = single_d.strip()
-        all_choices = [a_text, b_text, c_text, d_text]
-        correct_answer_str = single_correct  # "A" "B" "C" veya "D"
+    if q_type == "true_false":
+        # 2 şık: True / False
+        # Formda "tf_correct" -> "True" veya "False"
+        correct_val = tf_correct.strip().lower()  # "true" / "false"
+        choices_list = [
+            {
+                "choice_text": "True",
+                "is_correct": (correct_val == "true"),
+                "correct_position": None
+            },
+            {
+                "choice_text": "False",
+                "is_correct": (correct_val == "false"),
+                "correct_position": None
+            }
+        ]
 
-    # MULTIPLE CHOICE
+    elif q_type == "single_choice":
+        # single_correct -> "A","B","C","D"
+        sc = single_correct.upper()
+        choices_list = [
+            {
+                "choice_text": single_a.strip(),
+                "is_correct": (sc == "A"),
+                "correct_position": None
+            },
+            {
+                "choice_text": single_b.strip(),
+                "is_correct": (sc == "B"),
+                "correct_position": None
+            },
+            {
+                "choice_text": single_c.strip(),
+                "is_correct": (sc == "C"),
+                "correct_position": None
+            },
+            {
+                "choice_text": single_d.strip(),
+                "is_correct": (sc == "D"),
+                "correct_position": None
+            },
+        ]
+
     elif q_type == "multiple_choice":
-        # 4 şıkkı listede tut
-        a_text = multi_a.strip()
-        b_text = multi_b.strip()
-        c_text = multi_c.strip()
-        d_text = multi_d.strip()
-        all_choices = [a_text, b_text, c_text, d_text]
-        if multi_correct:
-            # list[str] mesela ["A","C"]
-            correct_answer_str = ",".join(multi_correct)  # "A,C"
+        # multi_correct -> örn ["A","C"]
+        correct_set = {x.upper() for x in multi_correct}
+        choices_list = [
+            {
+                "choice_text": multi_a.strip(),
+                "is_correct": ("A" in correct_set),
+                "correct_position": None
+            },
+            {
+                "choice_text": multi_b.strip(),
+                "is_correct": ("B" in correct_set),
+                "correct_position": None
+            },
+            {
+                "choice_text": multi_c.strip(),
+                "is_correct": ("C" in correct_set),
+                "correct_position": None
+            },
+            {
+                "choice_text": multi_d.strip(),
+                "is_correct": ("D" in correct_set),
+                "correct_position": None
+            },
+        ]
 
-    # TRUE/FALSE
-    elif q_type == "true_false":
-        # Sabit 2 şık
-        all_choices = ["True", "False"]
-        correct_answer_str = tf_correct.strip()  # "True" veya "False"
-
-    # ORDERING
     elif q_type == "ordering":
-        # ordering_correct = "1,2,3,4"
-        correct_answer_str = ordering_correct.strip()
-        # Tüm adımlar (opsiyonel)
-        if ordering_all.strip():
-            # virgülle ayır
-            all_choices = [x.strip() for x in ordering_all.split(",")]
-        else:
-            # user vermediyse empty
-            all_choices = []
+        # "ordering_correct" => "1,2,3,4" gibi
+        # "ordering_all"     => "1,2,3,4" ya da "A,B,C,D" ya da "adım1, adım2"
+        # Bu alanlar opsiyonel parse edilebilir:
 
+        ordering_list = [x.strip() for x in ordering_all.split(",")] if ordering_all.strip() else []
+        correct_seq = [x.strip() for x in ordering_correct.split(",")] if ordering_correct.strip() else []
+        # Doğru sıralama indexini bir dictionaryde tutalım:
+        correct_map = {}
+        for idx, val in enumerate(correct_seq):
+            correct_map[val] = idx
+
+        for item in ordering_list:
+            cp = correct_map.get(item, None)  # item correct_seq'de varsa indexini alır
+            choices_list.append({
+                "choice_text": item,
+                "is_correct": False,
+                "correct_position": cp
+            })
+
+    # Artık "AddQuestionRequest" modeline tam uyacak payload
     payload = {
         "question_text": question_text,
         "q_type": q_type,
         "points": points,
-        "correct_answer": correct_answer_str
+        "section": section,
+        "choices": choices_list
     }
-
-    # Ek olarak, API tarafında "choices" kaydedebilmemiz için
-    # custom bir endpoint yoksa (mevcut /questions/ endpoint'i "choices" alanını sadece json'a dönüştürebilir)
-    # mevcut endpoint'te choices'ı doldurmak için de => "choices" alanını veremiyoruz orada
-    # ama default implementasyonda "choices" => orada "None" kalıyordu. 
-    # Yine de "choices" saklamak istiyorsak, en azından 'correct_answer' set ediliyor. 
-    # API'yi de ufak ekleme ile "choices" desteği verecek biçimde güncelleyelim
-    # => /questions/ endpoint'ine "choices" parametresi eklenmediği için,
-    #    pratikte "PUT" vs. gerekecek. 
-    # => Projenizde /questions/ ekleme logic'ini ufak modifiye etmelisiniz.
-    #  Aşağıda mevcuda ek bir "choices" alanı koydum (AddQuestionRequest'e).
-    payload["choices"] = ",".join(all_choices)
 
     with httpx.Client() as client:
         r = client.post(
@@ -470,7 +518,6 @@ def teacher_add_question_submit(
             json=payload
         )
         if r.status_code == 200:
-            # Soru başarıyla eklendi -> teacher_menu'ya msg paramıyla dön
             return RedirectResponse(
                 url="/teacher_menu?msg=Soru+eklendi",
                 status_code=status.HTTP_303_SEE_OTHER
@@ -483,6 +530,7 @@ def teacher_add_question_submit(
                     "msg": f"Soru eklenemedi: {r.text}"
                 }
             )
+
 
 @ui_router.get("/teacher_view_stats", response_class=HTMLResponse)
 def teacher_view_stats(request: Request):

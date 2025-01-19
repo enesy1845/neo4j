@@ -46,7 +46,8 @@ def get_db():
         db.close()
 
 def init_db():
-    from tools.models import User, Question, Answer, Exam, ExamAnswer, Statistics, School
+    from tools.models import User, Question, Exam, ExamAnswer, Statistics, School, QuestionChoice
+
     from migrate_questions import main as migrate_questions_main
     from tools.user import create_admin_user
 
