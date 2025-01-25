@@ -584,12 +584,14 @@ def teacher_view_stats(request: Request):
     with httpx.Client() as client:
         r = client.get(f"{API_BASE_URL}/stats/", headers={"Authorization": f"Bearer {token}"})
         if r.status_code == 200:
+            # JSON: { per_class: {...}, school_summary: [...] }
             stats_data = r.json()
             return templates.TemplateResponse("teacher_view_stats.html", {
                 "request": request,
                 "stats": stats_data
             })
         else:
+            # session bozuk => clear & login
             request.session.clear()
             return RedirectResponse(url="/login")
 

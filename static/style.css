@@ -212,3 +212,11 @@ h2 {
     border-bottom: 2px solid #f62188;
     /* Alt çizgi vurgusu */
 }
+.welcome-message {
+    background-color: #fef4f9;
+    padding: 10px;
+    border-left: 3px solid #f62188;
+    margin-bottom: 1rem;
+    color: #105369;
+    font-weight: 600;
+}

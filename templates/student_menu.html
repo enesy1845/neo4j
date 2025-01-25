@@ -2,14 +2,11 @@
 {% block content %}
 <h2>Student Menu</h2>
 
-<!-- Merhaba, StudentName -->
-<p>Merhaba, {{ user_info.name }} ({{ user_info.role|capitalize }})</p>
-<p>Okul ID: {{ user_info.school_id }}</p>
-<p>Sınıf: {{ user_info.class_name }}</p>
-
-{% set left_attempts = 2 - user_info.attempts %}
-<p>Kalan Sınav Hakkı: {{ left_attempts if left_attempts > 0 else 0 }}</p>
-<p>Ortalama Skor: {{ user_info.score_avg }}</p>
+<p class="welcome-message">
+    Merhaba, {{ user_info.name }} ({{ user_info.role|capitalize }}) <br>
+    Okul ID: {{ mapped_school_id }} - Sınıf: {{ user_info.class_name }} <br>
+    Kalan Sınav Hakkı: {{ left_attempts }} - Ortalama Skor: {{ user_info.score_avg }}
+</p>
 
 <ul>
     <li><a href="/student_solve_exam" class="btn">Sınavı Başlat</a></li>

@@ -3,10 +3,10 @@
 <h2>Teacher Menu</h2>
 
 <!-- Merhaba, TeacherName -->
-<p>Merhaba, {{ user_info.name }} ({{ user_info.role|capitalize }})</p>
-<p>Okul ID: {{ user_info.school_id }}</p>
-<p>Sınıf: {{ user_info.class_name }}</p>
-<p>Section: {{ user_info.registered_section }}</p>
+<p class="welcome-message">Merhaba, {{ user_info.name }} ({{ user_info.role|capitalize }}) <br>
+Okul ID: {{ user_info.school_id }} <br>
+Sınıf: {{ user_info.class_name }} <br>
+Section: {{ user_info.registered_section }}</p>
 
 <!-- Soru eklendi mesajı -->
 {% if msg %}
