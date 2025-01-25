@@ -1,15 +1,12 @@
 {% extends "base.html" %}
 {% block content %}
 <h2>Yeni Soru Ekle</h2>
-<!-- Başarılı ekleme veya hata mesajı -->
 {% if msg %}
 <div style="color: green; margin-bottom: 1rem;">
     {{ msg }}
 </div>
 {% endif %}
-
 <form method="post" action="/teacher_add_question" id="addQuestionForm">
-
     <!-- SORU METNI -->
     <div class="form-row">
         <label>Soru Metni:</label>
@@ -33,11 +30,7 @@
         <input type="number" name="points" value="1" required>
     </div>
 
-    <!-- SECTION (örneğin 1,2,3,4) -->
-    <div class="form-row">
-        <label>Section (1, 2, 3, 4 vb.):</label>
-        <input type="number" name="section" required>
-    </div>
+    <!-- Burada SECTION FIELD YOK! Teacher kendi section'ını otomatik kullanıyor. -->
 
     <!-- SINGLE CHOICE ALANLARI -->
     <div id="singleChoiceFields" style="display: none;">
@@ -104,16 +97,14 @@
             <option value="True">True (Doğru)</option>
             <option value="False">False (Doğru)</option>
         </select>
-        <!-- Diğer şık otomatik yanlış kabul edilecek. -->
     </div>
 
     <!-- ORDERING ALANLARI -->
     <div id="orderingFields" style="display: none;">
-        <p>Sıralama sorusu için doğru sıralamayı virgülle giriniz (örn: 1,2,3,4)</p>
+        <p>Sıralama sorusu için doğru sıralamayı virgülle giriniz (örn: Solid, Liquid, Gas, Plasma)</p>
         <input type="text" name="ordering_correct" placeholder="Doğru sıralama">
         <br>
-        <small>Not: İsterseniz opsiyonel ek açıklama 'choices' verebilirsiniz, virgülle ayırarak
-            (örn: step1, step2, step3, step4)</small>
+        <small>Not: Tüm adımlar (opsiyonel):</small>
         <input type="text" name="ordering_all" placeholder="Tüm adımlar (opsiyonel)">
     </div>
 
@@ -123,7 +114,6 @@
 <script>
     function onTypeChange() {
         const val = document.getElementById("q_type").value;
-        // Önce tüm alanları gizle
         document.getElementById("singleChoiceFields").style.display = "none";
         document.getElementById("multipleChoiceFields").style.display = "none";
         document.getElementById("trueFalseFields").style.display = "none";
@@ -139,8 +129,6 @@
             document.getElementById("orderingFields").style.display = "block";
         }
     }
-
-    // Sayfa ilk yüklendiğinde varsayılan single_choice diyelim
     onTypeChange();
 </script>
 {% endblock %}

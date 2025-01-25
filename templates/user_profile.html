@@ -1,0 +1,30 @@
+{% extends "base.html" %}
+{% block content %}
+<h2>Profil Güncelle</h2>
+
+{% if msg %}
+<div style="border: 1px solid green; color:green; padding:5px; margin:5px;">
+    {{ msg }}
+</div>
+{% endif %}
+
+<form method="post" action="/user_profile">
+    <div class="form-row">
+        <label>Ad:</label>
+        <input type="text" name="name" value="{{ user_data.name }}">
+    </div>
+    <div class="form-row">
+        <label>Soyad:</label>
+        <input type="text" name="surname" value="{{ user_data.surname }}">
+    </div>
+    <div class="form-row">
+        <label>Sınıf:</label>
+        <input type="text" name="class_name" value="{{ user_data.class_name }}">
+    </div>
+    <div class="form-row">
+        <label>Yeni Parola (boş bırakmayın):</label>
+        <input type="password" name="new_password">
+    </div>
+    <button type="submit">Kaydet</button>
+</form>
+{% endblock %}

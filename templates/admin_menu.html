@@ -1,8 +1,18 @@
 {% extends "base.html" %}
 {% block content %}
 <h2>Admin Menu</h2>
+
+{% if msg %}
+<div style="color: green; margin-bottom:1rem;">
+    {{ msg }}
+</div>
+{% endif %}
+
+<p>Merhaba, {{ user_info.name }} ({{ user_info.role|capitalize }})</p>
+
+
 <ul>
     <li><a href="/admin_list_users" class="btn">List All Users</a></li>
-    <!-- update / delete user linklerini de koyabilirsiniz. -->
+    <li><a href="/user_profile" class="btn">Profilim (Ad/Soyad/Şifre) Güncelle</a></li>
 </ul>
 {% endblock %}

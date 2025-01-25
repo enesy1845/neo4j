@@ -84,42 +84,43 @@ def create_exam_answer(db: Session, exam: Exam, question: Question, points_earne
     db.commit()
     db.refresh(exam_ans)
 
-    # user_choices ekle
-    # question.type'e göre ek mantık
-    if question.type in ["single_choice", "multiple_choice", "true_false"]:
-        # her selected_text'e göre question_choice bul
+    # Tüm seçenekleri bir kere çek
+    all_choices = db.query(QuestionChoice).filter(QuestionChoice.question_id == question.id).all()
+    
+    if question.type == "ordering":
+        if len(selected_texts) == 1 and "," in selected_texts[0]:
+            splitted = [x.strip() for x in selected_texts[0].split(",")]
+        else:
+            splitted = selected_texts
+
+        for idx, val in enumerate(splitted):
+            normalized_val = val.strip().lower()
+            # Tüm seçeneklerde normalize ederek ara
+            for choice in all_choices:
+                if choice.choice_text.strip().lower() == normalized_val:
+                    uc = UserChoice(
+                        exam_answer_id=exam_ans.id,
+                        question_choice_id=choice.id,
+                        user_position=idx
+                    )
+                    db.add(uc)
+                    db.commit()
+                    break
+
+    elif question.type in ["single_choice", "multiple_choice", "true_false"]:
         for txt in selected_texts:
-            choice_row = db.query(QuestionChoice).filter(
-                QuestionChoice.question_id == question.id,
-                QuestionChoice.choice_text == txt
-            ).first()
-            if choice_row:
-                uc = UserChoice(
-                    exam_answer_id=exam_ans.id,
-                    question_choice_id=choice_row.id
-                )
-                db.add(uc)
-        db.commit()
-
-    elif question.type == "ordering":
-        # ordering => user sıralamayı selected_texts bekliyoruz (örn: ["1","2","3","4"]).
-        # Her elemanı satır satır kaydedelim:
-        for idx, val in enumerate(selected_texts):
-            # val => "1", "2", ...
-            # question_choice bul
-            choice_row = db.query(QuestionChoice).filter(
-                QuestionChoice.question_id == question.id,
-                QuestionChoice.choice_text == val
-            ).first()
-            if choice_row:
-                uc = UserChoice(
-                    exam_answer_id=exam_ans.id,
-                    question_choice_id=choice_row.id,
-                    user_position=idx  # kullanıcı sırasını da sakla
-                )
-                db.add(uc)
-        db.commit()
-
+            normalized_txt = txt.strip().lower()
+            # Tüm seçeneklerde normalize ederek ara
+            for choice in all_choices:
+                if choice.choice_text.strip().lower() == normalized_txt:
+                    uc = UserChoice(
+                        exam_answer_id=exam_ans.id,
+                        question_choice_id=choice.id
+                    )
+                    db.add(uc)
+                    db.commit()
+                    break
+    
     return exam_ans
 
 
@@ -149,39 +150,45 @@ def evaluate_question(db: Session, question: Question, selected_texts: List[str]
         return (0, False)
 
     elif question.type == "multiple_choice":
-        # Birden fazla choice doğru
-        correct_choices = db.query(QuestionChoice).filter_by(question_id=question.id, is_correct=True).all()
-        correct_texts = set([c.choice_text for c in correct_choices])
+        correct_choices = db.query(QuestionChoice).filter_by(
+            question_id=question.id, 
+            is_correct=True
+        ).all()
+        correct_texts = set(c.choice_text.strip().lower() for c in correct_choices)
+        user_set = set(txt.strip().lower() for txt in selected_texts)
 
-        user_set = set(selected_texts)
-        if user_set == correct_texts:
-            return (question.points, True)
-        return (0, False)
+        # Yanlış şık seçilirse direkt 0
+        if not user_set.issubset(correct_texts):
+            return (0, False)
+
+        # Doğru seçilen sayısı
+        correct_selected = len(user_set & correct_texts)
+        total_correct = len(correct_texts)
+
+        if total_correct == 0:
+            return (0, False)
+
+        # Kısmi puan hesapla
+        partial_score = int(question.points * (correct_selected / total_correct))
+        is_full = (partial_score == question.points)
+        return (partial_score, is_full)
 
     elif question.type == "ordering":
-        # Tüm choice’ları correct_position sırasıyla user_position eşleşiyor mu?
-        all_choices = db.query(QuestionChoice).filter_by(question_id=question.id).all()
-        # Mesela [ ("3",pos=2), ("1",pos=0), ... ] vs.
-        mismatch = False
-        for c in all_choices:
-            if c.correct_position is not None:
-                # Kullanıcı bu choice’ı hangi indexte seçti?
-                # user_texts => "val" sıralaması
-                # basit approach: user_texts[x] == c.choice_text
-                # eğer x == c.correct_position => mismatch yok
-                pass
+        # Aşağıdaki ekleme: virgülle parçalıyoruz
+        if len(selected_texts) == 1 and "," in selected_texts[0]:
+            splitted_texts = [x.strip().lower() for x in selected_texts[0].split(",")]
+        else:
+            splitted_texts = [x.strip().lower() for x in selected_texts]
 
-        # Daha basit: "selected_texts" = ["1","2","3","4"]
-        # DB’de correct_position=0 => "1", correct_position=1 => "2", ...
-        # Eşleşirse tam puan
+        all_choices = db.query(QuestionChoice).filter_by(question_id=question.id).all()
+        mismatch = False
+
         for c in all_choices:
             if c.correct_position is None:
                 continue
-            # c.choice_text ne, user list’te index var mı
-            # user_index = selected_texts.index(c.choice_text)
-            # if user_index != c.correct_position => mismatch = True
+            normalized_choice = c.choice_text.strip().lower()
             try:
-                user_index = selected_texts.index(c.choice_text)
+                user_index = splitted_texts.index(normalized_choice)
                 if user_index != c.correct_position:
                     mismatch = True
                     break

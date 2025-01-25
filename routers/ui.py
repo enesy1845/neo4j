@@ -1,6 +1,6 @@
 # routers/ui.py
 import httpx
-from fastapi import APIRouter, Request, Form, Depends, HTTPException
+from fastapi import APIRouter, Request, Form, Depends
 from fastapi.responses import HTMLResponse, RedirectResponse
 from fastapi.templating import Jinja2Templates
 from starlette import status
@@ -9,8 +9,9 @@ from sqlalchemy.orm import Session
 
 ui_router = APIRouter()
 templates = Jinja2Templates(directory="templates")
-API_BASE_URL = "http://app:8000"  # Docker'da "app" servisini dinliyorsanız
-# Lokalde iseniz "http://127.0.0.1:8000" yapabilirsiniz.
+
+API_BASE_URL = "http://app:8000"  # Docker
+# Lokalde iseniz "http://127.0.0.1:8000"
 
 def get_token_from_session(request: Request) -> str | None:
     return request.session.get("token")
@@ -18,20 +19,17 @@ def get_token_from_session(request: Request) -> str | None:
 def get_role_from_session(request: Request) -> str | None:
     return request.session.get("role")
 
+# Okul ID -> 1,2,3 map
+school_id_map = {}
+next_school_index = 1
+
 @ui_router.get("/", response_class=HTMLResponse)
 def main_menu(request: Request):
-    """
-    Ana menü sayfası:
-    - Eğer kullanıcı login değilse main_menu.html döndür.
-    - Login ise rolüne göre yönlendir.
-    """
     token = get_token_from_session(request)
     role = get_role_from_session(request)
     if not token or not role:
-        # Login değil -> register/login menüsü
         return templates.TemplateResponse("main_menu.html", {"request": request})
     else:
-        # Login -> rola göre yönlendir
         if role == "admin":
             return RedirectResponse(url="/admin_menu")
         elif role == "teacher":
@@ -39,12 +37,8 @@ def main_menu(request: Request):
         elif role == "student":
             return RedirectResponse(url="/student_menu")
         else:
-            # Hiçbiri değilse main_menu
             return templates.TemplateResponse("main_menu.html", {"request": request})
 
-#####################################################################
-# REGISTER
-#####################################################################
 @ui_router.get("/register", response_class=HTMLResponse)
 def register_page(request: Request):
     return templates.TemplateResponse("register.html", {"request": request})
@@ -81,9 +75,6 @@ def register_submit(
                 "error": r.json().get("detail", "Register error")
             })
 
-#####################################################################
-# LOGIN
-#####################################################################
 @ui_router.get("/login", response_class=HTMLResponse)
 def login_page(request: Request):
     return templates.TemplateResponse("login.html", {"request": request})
@@ -105,16 +96,13 @@ def login_submit(
                     "request": request,
                     "error": "Token alınamadı"
                 })
-            # Token'ı session'a yazalım
             request.session["token"] = token
-            request.session["role"] = role  # Rolu de saklayalım
-
+            request.session["role"] = role
             if role == "admin":
                 return RedirectResponse(url="/admin_menu", status_code=status.HTTP_303_SEE_OTHER)
             elif role == "teacher":
                 return RedirectResponse(url="/teacher_menu", status_code=status.HTTP_303_SEE_OTHER)
             else:
-                # default student
                 return RedirectResponse(url="/student_menu", status_code=status.HTTP_303_SEE_OTHER)
         else:
             return templates.TemplateResponse("login.html", {
@@ -122,38 +110,64 @@ def login_submit(
                 "error": r.json().get("detail", "Login error")
             })
 
-#####################################################################
-# LOGOUT
-#####################################################################
 @ui_router.get("/logout")
 def logout(request: Request):
     request.session.clear()
     return RedirectResponse(url="/")
 
-#####################################################################
-# STUDENT MENU
-#####################################################################
+
+# ==================== Student ===========================
 @ui_router.get("/student_menu", response_class=HTMLResponse)
 def student_menu(request: Request):
     token = get_token_from_session(request)
-    if not token:
+    role = get_role_from_session(request)
+    if not token or role != "student":
         return RedirectResponse(url="/login")
 
-    return templates.TemplateResponse("student_menu.html", {"request": request})
+    with httpx.Client() as client:
+        user_resp = client.get(f"{API_BASE_URL}/users/me", headers={"Authorization": f"Bearer {token}"})
+        if user_resp.status_code == 200:
+            user_data = user_resp.json()
 
-#####################################################################
-# STUDENT: SINAV BAŞLAT
-#####################################################################
+            # Okul ID -> 1,2,3
+            global next_school_index
+            if user_data["school_id"] not in school_id_map:
+                school_id_map[user_data["school_id"]] = next_school_index
+                next_school_index += 1
+            mapped_school_id = school_id_map[user_data["school_id"]]
+
+            left_attempts = max(0, 2 - user_data["attempts"])
+            return templates.TemplateResponse("student_menu.html", {
+                "request": request,
+                "user_info": user_data,
+                "mapped_school_id": mapped_school_id,
+                "left_attempts": left_attempts
+            })
+        else:
+            # session bozuk olabilir
+            request.session.clear()
+            return RedirectResponse(url="/login")
+
 @ui_router.get("/student_solve_exam", response_class=HTMLResponse)
 def student_solve_exam(request: Request):
     token = get_token_from_session(request)
-    if not token:
+    role = get_role_from_session(request)
+    if not token or role != "student":
         return RedirectResponse(url="/login")
-    # /exams/start endpoint’ine POST
+
     with httpx.Client() as client:
-        r = client.post(f"{API_BASE_URL}/exams/start", headers={
-            "Authorization": f"Bearer {token}"
-        })
+        user_resp = client.get(f"{API_BASE_URL}/users/me", headers={"Authorization": f"Bearer {token}"})
+        if user_resp.status_code != 200:
+            request.session.clear()
+            return RedirectResponse(url="/login")
+        user_data = user_resp.json()
+        if user_data["attempts"] >= 2:
+            return templates.TemplateResponse("student_no_attempts_left.html", {
+                "request": request,
+                "user_info": user_data
+            })
+
+        r = client.post(f"{API_BASE_URL}/exams/start", headers={"Authorization": f"Bearer {token}"})
         if r.status_code == 200:
             data = r.json()
             exam_id = data["exam_id"]
@@ -162,15 +176,10 @@ def student_solve_exam(request: Request):
                 "request": request,
                 "exam_id": exam_id,
                 "sections": questions,
-                # Sınav sayfasında geri butonu görünmesini istiyorsanız hide_back_button=False
-                # Ama isterseniz kapatabilirsiniz. Örnek: "hide_back_button": True
             })
         else:
             return HTMLResponse(f"Sınav başlatılamadı: {r.text}", status_code=400)
 
-#####################################################################
-# STUDENT: SINAV CEVAPLARINI GÖNDER
-#####################################################################
 @ui_router.post("/student_submit_exam", response_class=HTMLResponse)
 async def student_submit_exam(
     request: Request,
@@ -178,7 +187,8 @@ async def student_submit_exam(
     db: Session = Depends(get_db)
 ):
     token = get_token_from_session(request)
-    if not token:
+    role = get_role_from_session(request)
+    if not token or role != "student":
         return RedirectResponse(url="/login")
 
     form_data = await request.form()
@@ -186,21 +196,11 @@ async def student_submit_exam(
 
     for key in form_data.keys():
         if key.startswith("answer_"):
-            question_id = key.replace("answer_", "")
-            value_list = form_data.getlist(key)  # Seçilen tüm değerler (list)
-            
-            # Hem tekli hem çoklu halde, Pydantic'e uydurmak için `selected_texts` anahtarında bir liste vereceğiz:
+            question_id = key.replace("answer_", "").replace("[]", "")
+            value_list = form_data.getlist(key)
             answers_payload[question_id] = {
                 "selected_texts": value_list
             }
-
-    # Artık answers_payload dict'i, Pydantic modeline uygun şekilde:
-    # {
-    #    "question_id": {
-    #       "selected_texts": [ "A", "B" ]   // ya da tek seçim varsa [ "A" ]
-    #    },
-    #    ...
-    # }
 
     submit_data = {
         "exam_id": exam_id,
@@ -218,76 +218,104 @@ async def student_submit_exam(
         else:
             return HTMLResponse(f"Sınav gönderilemedi: {r.text}", status_code=400)
 
-
-#####################################################################
-# STUDENT: SONUÇLARI GÖRÜNTÜLE
-#####################################################################
 @ui_router.get("/student_view_results", response_class=HTMLResponse)
 def student_view_results(request: Request):
+    """
+    Sonuçları tablo şeklinde göstermek için /students/results_v2 endpoint'inden data çekiyoruz.
+    """
     token = get_token_from_session(request)
-    if not token:
+    role = get_role_from_session(request)
+    if not token or role != "student":
         return RedirectResponse(url="/login")
 
-    # Geri tuşu kapatılacak mı?
-    # exam_submitted query param'ı geldiyse hide_back_button=True
     hide_back = bool(request.query_params.get("exam_submitted", None))
 
     with httpx.Client() as client:
-        r = client.get(
-            f"{API_BASE_URL}/students/results",
-            headers={"Authorization": f"Bearer {token}"}
-        )
+        # Yeni tablo verisi ceken endpoint
+        r = client.get(f"{API_BASE_URL}/students/results_v2", headers={"Authorization": f"Bearer {token}"})
         if r.status_code == 200:
-            data = r.json()
+            data = r.json()  # dict: { student_id, class_name, attempts, exams: [ {exam_id, pass_fail, sections_details[]}, ... ] }
             return templates.TemplateResponse(
                 "student_view_results.html",
                 {
                     "request": request,
-                    "results": data["exams"],
+                    "results_data": data,
                     "hide_back_button": hide_back
                 }
             )
         else:
-            return HTMLResponse(f"Sonuçlar alınamadı: {r.text}", status_code=400)
+            # 401/403 vs
+            request.session.clear()
+            return RedirectResponse(url="/login")
 
-#####################################################################
-# ADMIN
-#####################################################################
+
+# ==================== Admin ===========================
 @ui_router.get("/admin_menu", response_class=HTMLResponse)
 def admin_menu(request: Request):
     token = get_token_from_session(request)
-    if not token:
+    role = get_role_from_session(request)
+    if not token or role != "admin":
         return RedirectResponse(url="/login")
-    return templates.TemplateResponse("admin_menu.html", {"request": request})
+
+    with httpx.Client() as client:
+        user_resp = client.get(f"{API_BASE_URL}/users/me", headers={"Authorization": f"Bearer {token}"})
+        if user_resp.status_code == 200:
+            user_data = user_resp.json()
+            # Okul ID -> 1,2,3
+            global next_school_index
+            if user_data["school_id"] not in school_id_map:
+                school_id_map[user_data["school_id"]] = next_school_index
+                next_school_index += 1
+            mapped_school_id = school_id_map[user_data["school_id"]]
+
+            # Admin menu
+            msg = request.query_params.get("msg", "")
+            return templates.TemplateResponse("admin_menu.html", {
+                "request": request,
+                "user_info": user_data,
+                "mapped_school_id": mapped_school_id,
+                "msg": msg
+            })
+        else:
+            # session bozuk
+            request.session.clear()
+            return RedirectResponse(url="/login")
 
 @ui_router.get("/admin_list_users", response_class=HTMLResponse)
 def admin_list_users(request: Request):
     token = get_token_from_session(request)
-    if not token:
+    role = get_role_from_session(request)
+    if not token or role != "admin":
         return RedirectResponse(url="/login")
+
     with httpx.Client() as client:
-        r = client.get(
-            f"{API_BASE_URL}/users/",
-            headers={"Authorization": f"Bearer {token}"}
-        )
+        r = client.get(f"{API_BASE_URL}/users/", headers={"Authorization": f"Bearer {token}"})
         if r.status_code == 200:
             users_data = r.json()
+            # eger msg parametresi varsa
+            msg = request.query_params.get("msg", "")
             return templates.TemplateResponse("admin_list_user.html", {
                 "request": request,
-                "users": users_data
+                "users": users_data,
+                "msg": msg
             })
         else:
-            return HTMLResponse(f"Kullanıcılar listelenemedi: {r.text}", status_code=400)
+            # session bozuk
+            request.session.clear()
+            return RedirectResponse(url="/login")
 
 @ui_router.get("/admin_update_user", response_class=HTMLResponse)
 def admin_update_user_form(request: Request, username: str):
     token = get_token_from_session(request)
-    if not token:
+    role = get_role_from_session(request)
+    if not token or role != "admin":
         return RedirectResponse(url="/login")
+
     with httpx.Client() as client:
         r = client.get(f"{API_BASE_URL}/users/", headers={"Authorization": f"Bearer {token}"})
         if r.status_code != 200:
-            return HTMLResponse(f"Kullanıcı bilgileri alınamadı: {r.text}", status_code=400)
+            request.session.clear()
+            return RedirectResponse(url="/login")
         all_users = r.json()
         target_user = None
         for u in all_users:
@@ -296,9 +324,13 @@ def admin_update_user_form(request: Request, username: str):
                 break
         if not target_user:
             return HTMLResponse("Güncellenecek kullanıcı bulunamadı", status_code=404)
+
+        # Her ihtimale karsi msg param
+        msg = request.query_params.get("msg", "")
         return templates.TemplateResponse("admin_update_user.html", {
             "request": request,
-            "user_info": target_user
+            "user_info": target_user,
+            "msg": msg
         })
 
 @ui_router.post("/admin_update_user", response_class=HTMLResponse)
@@ -313,7 +345,8 @@ def admin_update_user_submit(
     new_password: str = Form(""),
 ):
     token = get_token_from_session(request)
-    if not token:
+    role_session = get_role_from_session(request)
+    if not token or role_session != "admin":
         return RedirectResponse(url="/login")
 
     payload = {
@@ -333,44 +366,70 @@ def admin_update_user_submit(
             json=payload
         )
         if r.status_code == 200:
-            return RedirectResponse(url="/admin_list_users", status_code=status.HTTP_303_SEE_OTHER)
+            return RedirectResponse(
+                url=f"/admin_list_users?msg=Kullanıcı+{username}+başarıyla+güncellendi",
+                status_code=status.HTTP_303_SEE_OTHER
+            )
         else:
-            return HTMLResponse(f"Kullanıcı güncellenemedi: {r.text}", status_code=400)
+            return RedirectResponse(
+                url=f"/admin_update_user?username={username}&msg=Güncelleme+hatası:{r.text}",
+                status_code=status.HTTP_303_SEE_OTHER
+            )
 
 @ui_router.get("/admin_delete_user", response_class=HTMLResponse)
 def admin_delete_user(request: Request, username: str):
     token = get_token_from_session(request)
-    if not token:
+    role = get_role_from_session(request)
+    if not token or role != "admin":
         return RedirectResponse(url="/login")
 
     with httpx.Client() as client:
-        r = client.delete(
-            f"{API_BASE_URL}/users/{username}",
-            headers={"Authorization": f"Bearer {token}"}
-        )
+        r = client.delete(f"{API_BASE_URL}/users/{username}", headers={"Authorization": f"Bearer {token}"})
         if r.status_code == 200:
-            return RedirectResponse(url="/admin_list_users", status_code=status.HTTP_303_SEE_OTHER)
+            return RedirectResponse(url="/admin_list_users?msg=Kullanıcı+silindi", status_code=status.HTTP_303_SEE_OTHER)
         else:
-            return HTMLResponse(f"Kullanıcı silinemedi: {r.text}", status_code=400)
+            return RedirectResponse(
+                url=f"/admin_list_users?msg=Kullanıcı+silinemedi:{r.text}",
+                status_code=status.HTTP_303_SEE_OTHER
+            )
 
-#####################################################################
-# TEACHER
-#####################################################################
+
+# ==================== Teacher ===========================
 @ui_router.get("/teacher_menu", response_class=HTMLResponse)
 def teacher_menu(request: Request):
     token = get_token_from_session(request)
-    if not token:
+    role = get_role_from_session(request)
+    if not token or role != "teacher":
         return RedirectResponse(url="/login")
 
-    # Soru eklendi mesajı varsa al
-    msg = request.query_params.get("msg", "")
-    return templates.TemplateResponse("teacher_menu.html", {"request": request, "msg": msg})
+    with httpx.Client() as client:
+        user_resp = client.get(f"{API_BASE_URL}/users/me", headers={"Authorization": f"Bearer {token}"})
+        if user_resp.status_code == 200:
+            user_data = user_resp.json()
+            global next_school_index
+            if user_data["school_id"] not in school_id_map:
+                school_id_map[user_data["school_id"]] = next_school_index
+                next_school_index += 1
+            mapped_school_id = school_id_map[user_data["school_id"]]
+
+            msg = request.query_params.get("msg", "")
+            return templates.TemplateResponse("teacher_menu.html", {
+                "request": request,
+                "user_info": user_data,
+                "mapped_school_id": mapped_school_id,
+                "msg": msg
+            })
+        else:
+            request.session.clear()
+            return RedirectResponse(url="/login")
 
 @ui_router.get("/teacher_add_question", response_class=HTMLResponse)
 def teacher_add_question_form(request: Request):
     token = get_token_from_session(request)
-    if not token:
+    role = get_role_from_session(request)
+    if not token or role != "teacher":
         return RedirectResponse(url="/login")
+
     return templates.TemplateResponse("teacher_add_question.html", {"request": request})
 
 @ui_router.post("/teacher_add_question", response_class=HTMLResponse)
@@ -379,44 +438,39 @@ def teacher_add_question_submit(
     question_text: str = Form(...),
     q_type: str = Form(...),
     points: int = Form(...),
-    section: int = Form(...),   # Yeni eklendi: formdan numeric bir section geliyor
-
-    # SINGLE CHOICE
     single_correct: str = Form("", alias="single_correct"),
     single_a: str = Form("", alias="single_A"),
     single_b: str = Form("", alias="single_B"),
     single_c: str = Form("", alias="single_C"),
     single_d: str = Form("", alias="single_D"),
-
-    # MULTIPLE CHOICE
-    multi_correct: list[str] = Form([], alias="multi_correct"),  # checkbox'lardan birden çok gelebilir
+    multi_correct: list[str] = Form([], alias="multi_correct"),
     multi_a: str = Form("", alias="multi_A"),
     multi_b: str = Form("", alias="multi_B"),
     multi_c: str = Form("", alias="multi_C"),
     multi_d: str = Form("", alias="multi_D"),
-
-    # TRUE/FALSE
     tf_correct: str = Form("", alias="tf_correct"),
-
-    # ORDERING
     ordering_correct: str = Form("", alias="ordering_correct"),
     ordering_all: str = Form("", alias="ordering_all")
 ):
-    """
-    Öğretmen formundan gelen verileri parse ederek, /questions/ endpoint'ine
-    Pydantic modeline uygun şekilde JSON gönderir.
-    """
     token = get_token_from_session(request)
-    if not token:
+    role_session = get_role_from_session(request)
+    if not token or role_session != "teacher":
         return RedirectResponse(url="/login")
 
-    # "choices" alanını doldurmak için bir liste oluşturacağız.
-    choices_list = []
+    with httpx.Client() as client:
+        me_resp = client.get(f"{API_BASE_URL}/users/me", headers={"Authorization": f"Bearer {token}"})
+        if me_resp.status_code != 200:
+            request.session.clear()
+            return RedirectResponse(url="/login")
+        me_data = me_resp.json()
+        teacher_section = me_data["registered_section"]
+        if not teacher_section:
+            return HTMLResponse("Sizde registered_section yok, soru ekleyemezsiniz.", status_code=400)
 
+    # Choices
+    choices_list = []
     if q_type == "true_false":
-        # 2 şık: True / False
-        # Formda "tf_correct" -> "True" veya "False"
-        correct_val = tf_correct.strip().lower()  # "true" / "false"
+        correct_val = tf_correct.strip().lower()
         choices_list = [
             {
                 "choice_text": "True",
@@ -429,9 +483,7 @@ def teacher_add_question_submit(
                 "correct_position": None
             }
         ]
-
     elif q_type == "single_choice":
-        # single_correct -> "A","B","C","D"
         sc = single_correct.upper()
         choices_list = [
             {
@@ -455,9 +507,7 @@ def teacher_add_question_submit(
                 "correct_position": None
             },
         ]
-
     elif q_type == "multiple_choice":
-        # multi_correct -> örn ["A","C"]
         correct_set = {x.upper() for x in multi_correct}
         choices_list = [
             {
@@ -481,33 +531,26 @@ def teacher_add_question_submit(
                 "correct_position": None
             },
         ]
-
     elif q_type == "ordering":
-        # "ordering_correct" => "1,2,3,4" gibi
-        # "ordering_all"     => "1,2,3,4" ya da "A,B,C,D" ya da "adım1, adım2"
-        # Bu alanlar opsiyonel parse edilebilir:
-
-        ordering_list = [x.strip() for x in ordering_all.split(",")] if ordering_all.strip() else []
         correct_seq = [x.strip() for x in ordering_correct.split(",")] if ordering_correct.strip() else []
-        # Doğru sıralama indexini bir dictionaryde tutalım:
+        ordering_list = [x.strip() for x in ordering_all.split(",")] if ordering_all.strip() else []
         correct_map = {}
         for idx, val in enumerate(correct_seq):
-            correct_map[val] = idx
-
+            correct_map[val.lower()] = idx
         for item in ordering_list:
-            cp = correct_map.get(item, None)  # item correct_seq'de varsa indexini alır
+            key = item.lower()
+            cp = correct_map.get(key, None)
             choices_list.append({
                 "choice_text": item,
                 "is_correct": False,
                 "correct_position": cp
             })
 
-    # Artık "AddQuestionRequest" modeline tam uyacak payload
     payload = {
         "question_text": question_text,
         "q_type": q_type,
         "points": points,
-        "section": section,
+        "section": int(teacher_section),
         "choices": choices_list
     }
 
@@ -531,17 +574,15 @@ def teacher_add_question_submit(
                 }
             )
 
-
 @ui_router.get("/teacher_view_stats", response_class=HTMLResponse)
 def teacher_view_stats(request: Request):
     token = get_token_from_session(request)
-    if not token:
+    role = get_role_from_session(request)
+    if not token or role != "teacher":
         return RedirectResponse(url="/login")
+
     with httpx.Client() as client:
-        r = client.get(
-            f"{API_BASE_URL}/stats/",
-            headers={"Authorization": f"Bearer {token}"}
-        )
+        r = client.get(f"{API_BASE_URL}/stats/", headers={"Authorization": f"Bearer {token}"})
         if r.status_code == 200:
             stats_data = r.json()
             return templates.TemplateResponse("teacher_view_stats.html", {
@@ -549,4 +590,61 @@ def teacher_view_stats(request: Request):
                 "stats": stats_data
             })
         else:
-            return HTMLResponse(f"İstatistik alınamadı: {r.text}", status_code=400)
+            request.session.clear()
+            return RedirectResponse(url="/login")
+
+
+# ================== Ortak: Profil Güncelleme =====================
+@ui_router.get("/user_profile", response_class=HTMLResponse)
+def user_profile_get(request: Request):
+    token = get_token_from_session(request)
+    if not token:
+        return RedirectResponse(url="/login")
+
+    msg = request.query_params.get("msg", "")
+    with httpx.Client() as client:
+        resp = client.get(f"{API_BASE_URL}/users/me", headers={"Authorization": f"Bearer {token}"})
+        if resp.status_code == 200:
+            user_data = resp.json()
+            return templates.TemplateResponse("user_profile.html", {
+                "request": request,
+                "user_data": user_data,
+                "msg": msg
+            })
+        else:
+            request.session.clear()
+            return RedirectResponse(url="/login")
+
+@ui_router.post("/user_profile", response_class=HTMLResponse)
+def user_profile_post(request: Request,
+                      name: str = Form(""),
+                      surname: str = Form(""),
+                      class_name: str = Form(""),
+                      new_password: str = Form("")):
+    token = get_token_from_session(request)
+    if not token:
+        return RedirectResponse(url="/login")
+
+    payload = {}
+    if name:
+        payload["name"] = name
+    if surname:
+        payload["surname"] = surname
+    if class_name:
+        payload["class_name"] = class_name
+    if new_password.strip():
+        payload["new_password"] = new_password.strip()
+
+    with httpx.Client() as client:
+        r = client.put(f"{API_BASE_URL}/users/me", headers={"Authorization": f"Bearer {token}"}, json=payload)
+        if r.status_code == 200:
+            return RedirectResponse(
+                url="/user_profile?msg=Profil+güncellendi",
+                status_code=status.HTTP_303_SEE_OTHER
+            )
+        else:
+            # orada "detail" vb. olabilir
+            return RedirectResponse(
+                url=f"/user_profile?msg=Profil+güncelleme+hatası:{r.text}",
+                status_code=status.HTTP_303_SEE_OTHER
+            )
