@@ -1,222 +1,347 @@
 /* static/style.css */
 
-/* Sıfırlama / sayfa tam yükseklik */
+/* General Reset and Font */
 html,
 body {
     height: 100%;
     margin: 0;
     padding: 0;
-    font-family: Arial, sans-serif;
-    background-color: #fefefe;
-    color: #333;
+    font-family: 'Sora', sans-serif;
+    background: linear-gradient(to top left, #2b0428, #810c76) no-repeat fixed;
+    background-size: cover;
+    color: #f2f2f2;
 }
 
 /* Header */
 header {
-    background-color: #105369;
-    /* Ana renklerden biri */
-    padding: 16px;
+    background-color: #3a0a36;
+    padding: 16px 32px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
 }
 
-header h1 {
-    color: #fff;
+.header-left h1 {
     margin: 0;
-    display: inline-block;
+    font-size: 1.8rem;
 }
 
-header nav {
-    float: right;
+.header-right {
+    display: flex;
+    align-items: center;
+    gap: 15px;
 }
 
-/*
-Modern buton stili (linkler için).
-HTML'de <a href="..." class="btn">Buton</a> şeklinde kullanabilirsiniz.
-*/
+.user-info {
+    font-weight: 600;
+    margin-right: 15px;
+}
+
+/* Buttons */
 .btn {
-    background: #f62188;
+    background: #f66ed2;
     color: #fff !important;
-    padding: 8px 12px;
-    border-radius: 4px;
+    padding: 10px 20px;
+    border-radius: 25px;
     text-decoration: none;
-    transition: background 0.3s, box-shadow 0.3s;
-    /* margin-left: 10px; */
-    margin-bottom: 10px;
-    /* nav'da biraz boşluk */
+    transition: background 0.3s, transform 0.2s, box-shadow 0.3s;
+    font-weight: 500;
     display: inline-block;
 }
 
 .btn:hover {
-    background-color: #105369;
-    text-decoration: none;
-    box-shadow: 0 0 5px rgba(16, 83, 105, 0.3);
+    background-color: #d65bad;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(214, 91, 173, 0.3);
 }
 
 .btn:active {
-    background-color: #0a3d4d;
+    background-color: #9d437d;
+    transform: translateY(0);
+    box-shadow: none;
 }
 
-/* Ana içerik bölümü, dikey-yatay ortalama için */
+/* Container & Content Box */
 .centered-container {
-    /* Header yüksekliğini düştüğümüzde kalan alan: */
-    min-height: calc(100vh - 65px);
+    min-height: calc(100vh - 100px);
     display: flex;
     justify-content: center;
-    align-items: center;
-    padding: 20px;
+    align-items: flex-start;
+    padding: 40px 20px;
 }
 
-/* İçeriği kutu şeklinde gösteren yapı */
 .content-box {
     width: 600px;
-    min-height: 300px;
-    background-color: #fff;
-    border: 1px solid #eee;
-    border-radius: 8px;
-    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
-    padding: 20px;
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
+    background-color: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    border-radius: 12px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+    padding: 30px 40px;
+    margin-bottom: 40px;
 }
 
-/* Form satırları (label + input/select) */
+/* Form Rows */
 .form-row {
     display: flex;
-    align-items: center;
-    margin-bottom: 12px;
+    flex-direction: column;
+    margin-bottom: 20px;
 }
 
 .form-row label {
-    width: 160px;
-    font-weight: bold;
-    margin-right: 10px;
-    color: #105369;
+    margin-bottom: 8px;
+    font-weight: 600;
+    font-size: 1rem;
 }
 
 .form-row input[type="text"],
 .form-row input[type="password"],
 .form-row input[type="number"],
 .form-row select {
-    flex: 1;
-    padding: 10px;
-    border: 1px solid #ccc;
-    border-radius: 4px;
-    font-size: 0.95rem;
-    transition: border-color 0.3s, box-shadow 0.3s;
-    outline: none;
-}
-
-.form-row input[type="text"]:hover,
-.form-row input[type="password"]:hover,
-.form-row input[type="number"]:hover,
-.form-row select:hover {
-    border-color: #105369;
+    padding: 12px 16px;
+    border: none;
+    border-radius: 8px;
+    font-size: 1rem;
+    background-color: rgba(255, 255, 255, 0.2);
+    color: #fff;
+    transition: background-color 0.3s, transform 0.2s;
 }
 
 .form-row input[type="text"]:focus,
 .form-row input[type="password"]:focus,
 .form-row input[type="number"]:focus,
 .form-row select:focus {
-    border-color: #f62188;
-    box-shadow: 0 0 5px rgba(246, 33, 136, 0.3);
-}
-
-/* Buton tarzları */
-button {
-    background-color: #f62188;
-    color: #fff;
-    border: none;
-    padding: 10px 16px;
-    cursor: pointer;
-    font-size: 1rem;
-    border-radius: 4px;
-    margin-top: 10px;
-    transition: background-color 0.3s, box-shadow 0.3s;
     outline: none;
+    background-color: rgba(255, 255, 255, 0.3);
+    transform: scale(1.02);
 }
 
-button:hover {
-    background-color: #105369;
-    box-shadow: 0 0 5px rgba(16, 83, 105, 0.3);
+/* Password Help Text */
+.password-help {
+    color: #bbb;
+    font-size: 0.85rem;
+    margin-top: 5px;
 }
 
-button:active {
-    background-color: #0a3d4d;
+/* Dropdowns (Select) */
+select {
+    appearance: none;
+    background-image: url('data:image/svg+xml;charset=US-ASCII,<svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24"><path fill="%23ffffff" d="M7 10l5 5 5-5H7z"/></svg>');
+    background-repeat: no-repeat;
+    background-position: right 16px center;
+    background-size: 12px;
+    cursor: pointer;
 }
 
-/* Tablo stili (admin list user) */
+/* Multiple Select Styling */
+select[multiple] {
+    height: auto;
+    padding-right: 30px;
+    /* Space for multiple selection */
+}
+
+/* Checkboxes */
+.option input[type="checkbox"] {
+    accent-color: #f66ed2;
+    width: 18px;
+    height: 18px;
+    cursor: pointer;
+    margin-right: 10px;
+    transition: transform 0.2s;
+}
+
+.option input[type="checkbox"]:hover {
+    transform: scale(1.1);
+}
+
+/* Radio Buttons */
+.option input[type="radio"] {
+    accent-color: #f66ed2;
+    width: 18px;
+    height: 18px;
+    cursor: pointer;
+    margin-right: 10px;
+    transition: transform 0.2s;
+}
+
+.option input[type="radio"]:hover {
+    transform: scale(1.1);
+}
+
+/* Table Styling */
 .table {
     width: 100%;
     border-collapse: collapse;
-    margin-top: 10px;
+    margin-top: 20px;
 }
 
 .table th,
 .table td {
-    border: 1px solid #ccc;
-    padding: 8px;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    padding: 12px 16px;
+    background-color: rgba(255, 255, 255, 0.1);
+    color: #fff;
+    text-align: center;
 }
 
 .table th {
-    background-color: #105369;
+    background-color: rgba(255, 255, 255, 0.15);
+    text-transform: uppercase;
+    font-size: 0.9rem;
+}
+
+/* Footer */
+footer {
+    background-color: #3a0a36;
     color: #fff;
+    text-align: center;
+    padding: 12px 0;
+    font-size: 0.9rem;
+    position: relative;
 }
 
-/* Soru kutusu */
-.question-box {
-    border: 1px solid #ccc;
-    padding: 12px;
-    margin-bottom: 15px;
-    border-radius: 4px;
+footer p {
+    margin: 0;
+    opacity: 0.8;
 }
 
-/* Soru metni */
-.question-text {
-    font-weight: bold;
-    margin-bottom: 8px;
-    color: #105369;
+/* Modern Button Group */
+.button-group {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 15px;
+    list-style: none;
+    padding: 0;
+    margin: 20px 0;
 }
 
-/* Şıklar (radio/checkbox) */
+.button-group li {
+    margin: 0;
+}
+
+/* Modern Checkbox and Radio Labels */
 .option {
-    display: block;
-    margin-bottom: 6px;
+    display: flex;
+    align-items: center;
+    margin-bottom: 10px;
+    font-size: 0.95rem;
 }
 
-.option input[type="radio"],
-.option input[type="checkbox"] {
-    margin-right: 6px;
-}
-
-/* Timer göstergesi */
+/* Timer Styling */
 #timer {
     font-weight: bold;
-    margin-bottom: 15px;
+    margin-bottom: 20px;
+    font-size: 1.1rem;
 }
 
-ul{
-    padding-left:0px !important;
-}
-li{
-    list-style: none;
+/* Question Box */
+.question-box {
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    padding: 20px;
+    margin-bottom: 20px;
+    border-radius: 8px;
+    background-color: rgba(255, 255, 255, 0.05);
 }
 
-h2 {
-    color: #105369;
-    font-size: 1.6rem;
+/* Question Text */
+.question-text {
     font-weight: 700;
-    letter-spacing: 1px;
-    text-transform: uppercase;
-    margin-bottom: 1rem;
-    padding-bottom: 0.3rem;
-    border-bottom: 2px solid #f62188;
-    /* Alt çizgi vurgusu */
+    margin-bottom: 15px;
+    color: #fbc3fa;
+    font-size: 1.05rem;
 }
-.welcome-message {
-    background-color: #fef4f9;
+#studentClassSelect {
+    background-color: #fff;
+    color: #333;
+    appearance: none;
+    padding: 0.7rem 2rem 0.7rem 1rem;
+    border-radius: 8px;
+    border: none;
+    font-size: 1rem;
+    background-repeat: no-repeat;
+    background-position: right 1rem center;
+    background-size: 1rem;
+    cursor: pointer;
+    transition: background-color 0.3s;
+}
+
+#studentClassSelect:focus {
+    background-color: #f2f2f2;
+}
+
+/* Teacher's custom multi-class dropdown container */
+.multi-class-dropdown {
+    position: relative;
+    background-color: #fff;
+    color: #333;
+    border-radius: 8px;
+    padding: 0.7rem 1rem;
+    cursor: pointer;
+    display: inline-block;
+    width: 100%;
+    box-sizing: border-box;
+    user-select: none;
+    border: none;
+}
+
+.multi-class-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.multi-class-header i.arrow-down {
+    border: solid #333;
+    border-width: 0 2px 2px 0;
+    display: inline-block;
+    padding: 3px;
+    transform: rotate(45deg);
+    margin-left: 10px;
+    transition: transform 0.3s;
+}
+
+.multi-class-dropdown:hover .arrow-down {
+    transform: rotate(225deg);
+}
+
+/* The actual checkbox list inside the dropdown */
+.multi-class-list {
+    position: absolute;
+    top: 100%;
+    left: 0;
+    background-color: #fff;
+    color: #333;
+    width: 100%;
+    border-radius: 8px;
+    border: 1px solid #ccc;
+    margin-top: 8px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    z-index: 999;
+    /* on top of other elements */
     padding: 10px;
-    border-left: 3px solid #f62188;
-    margin-bottom: 1rem;
-    color: #105369;
-    font-weight: 600;
+    box-sizing: border-box;
+}
+
+.multi-class-list label {
+    display: block;
+    margin-bottom: 8px;
+    font-size: 0.9rem;
+    cursor: pointer;
+}
+
+.multi-class-list input[type="checkbox"] {
+    margin-right: 8px;
+    width: 16px;
+    height: 16px;
+    accent-color: #f66ed2;
+    /* or your theme color */
+}
+
+/* Slight hover effect for the container */
+.multi-class-dropdown:hover {
+    background-color: #f9f9f9;
+}
+
+/* If you want a placeholder style when nothing is selected */
+#multiClassPlaceholder {
+    color: #666;
 }

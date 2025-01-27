@@ -1,54 +1,31 @@
+<!-- templates/teacher_view_stats.html -->
 {% extends "base.html" %}
 {% block content %}
-
 <h2>İstatistikler (Teacher)</h2>
 
-<!--
-stats:
-{
-  "per_class": {
-    "7-a": [
-      { "section_number": 1, "ds":..., "ys":... },
-      { "section_number": 2, "ds":..., "ys":... }
-    ],
-    "7-b": [...],
-    ...
-  },
-  "school_summary": [
-    {
-      "section_number": 1,
-      "ds_total": 35,
-      "ys_total": 18,
-      "sn_basarisi": 50,
-      "classes": {
-        "7-a": 65,
-        "7-b": 45,
-        "7-c": 55
-      }
-    },
-    ...
-  ]
-}
--->
+{% set stats = stats or {} %}
+{% if not stats.per_class and not stats.school_summary %}
+<p>Hiç istatistik bulunamadı.</p>
+{% else %}
 
-<!-- KISIM 1: Her Sınıf için Tablo -->
+/* Her Sınıf için tablo */
 {% for cls_name, row_list in stats.per_class.items() %}
 <div style="margin-bottom: 30px;">
     <p><strong>Sınıf: {{ cls_name }}</strong></p>
     <table class="table">
         <thead>
             <tr>
-                <th>Sorular</th>
-                <th>DS</th>
-                <th>YS</th>
+                <th>Section</th>
+                <th>Correct Answers</th>
+                <th>Wrong Answers</th>
             </tr>
         </thead>
         <tbody>
             {% for secrow in row_list %}
             <tr>
-                <td>{{ secrow.section_number }}s.</td>
-                <td>{{ secrow.ds }}</td>
-                <td>{{ secrow.ys }}</td>
+                <td>{{ secrow.section_number }}</td>
+                <td>{{ secrow.correct_answers }}</td>
+                <td>{{ secrow.wrong_answers }}</td>
             </tr>
             {% endfor %}
         </tbody>
@@ -56,18 +33,16 @@ stats:
 </div>
 {% endfor %}
 
-<!-- KISIM 2: Okul Özeti Tablosu -->
+/* Okul Özeti */
 <div>
-    <p><strong>Okul Özeti</strong> (Okul ID: 1)</p>
-    <!-- Sorular   ds  ys   sn başarısı   7a   7b  7c   ort ??? -->
+    <p><strong>Okul Özeti</strong></p>
     <table class="table">
         <thead>
             <tr>
-                <th>Sorular</th>
-                <th>DS</th>
-                <th>YS</th>
-                <th>SN Başarısı</th>
-                <!-- dynamic columns for each class_name -->
+                <th>Section</th>
+                <th>Correct Total</th>
+                <th>Wrong Total</th>
+                <th>Başarı (%)</th>
                 {% if stats.per_class %}
                 {% for cls_name in stats.per_class.keys() %}
                 <th>{{ cls_name }}</th>
@@ -78,10 +53,10 @@ stats:
         <tbody>
             {% for row in stats.school_summary %}
             <tr>
-                <td>{{ row.section_number }}s.</td>
-                <td>{{ row.ds_total }}</td>
-                <td>{{ row.ys_total }}</td>
-                <td>{{ row.sn_basarisi }} %</td>
+                <td>{{ row.section_number }}</td>
+                <td>{{ row.correct_answers_total }}</td>
+                <td>{{ row.wrong_answers_total }}</td>
+                <td>{{ row.sn_basarisi }}%</td>
                 {% if stats.per_class %}
                 {% for cls_name in stats.per_class.keys() %}
                 <td>
@@ -98,5 +73,5 @@ stats:
         </tbody>
     </table>
 </div>
-
+{% endif %}
 {% endblock %}

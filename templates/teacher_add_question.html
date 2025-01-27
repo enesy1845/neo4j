@@ -1,21 +1,21 @@
 {% extends "base.html" %}
 {% block content %}
-<h2>Yeni Soru Ekle</h2>
+<h2>Add New Question</h2>
 {% if msg %}
 <div style="color: green; margin-bottom: 1rem;">
     {{ msg }}
 </div>
 {% endif %}
 <form method="post" action="/teacher_add_question" id="addQuestionForm">
-    <!-- SORU METNI -->
+    <!-- QUESTION TEXT -->
     <div class="form-row">
-        <label>Soru Metni:</label>
+        <label>Question Text</label>
         <input type="text" name="question_text" required>
     </div>
 
-    <!-- SORU TİPİ -->
+    <!-- QUESTION TYPE -->
     <div class="form-row">
-        <label>Soru Tipi:</label>
+        <label>Question Type</label>
         <select name="q_type" id="q_type" onchange="onTypeChange()">
             <option value="single_choice">Single Choice</option>
             <option value="multiple_choice">Multiple Choice</option>
@@ -24,91 +24,89 @@
         </select>
     </div>
 
-    <!-- PUAN -->
+    <!-- POINTS -->
     <div class="form-row">
-        <label>Puan:</label>
+        <label>Points</label>
         <input type="number" name="points" value="1" required>
     </div>
 
-    <!-- Burada SECTION FIELD YOK! Teacher kendi section'ını otomatik kullanıyor. -->
-
-    <!-- SINGLE CHOICE ALANLARI -->
+    <!-- Single Choice Fields -->
     <div id="singleChoiceFields" style="display: none;">
-        <p>Single Choice için 4 şık giriniz ve hangisi doğru ise işaretleyiniz.</p>
+        <p>Please enter 4 choices and specify which one is correct.</p>
         <div>
             <label>
                 <input type="radio" name="single_correct" value="A">
-                <input type="text" name="single_A" placeholder="Seçenek A">
+                <input type="text" name="single_A" placeholder="Option A">
             </label>
         </div>
         <div>
             <label>
                 <input type="radio" name="single_correct" value="B">
-                <input type="text" name="single_B" placeholder="Seçenek B">
+                <input type="text" name="single_B" placeholder="Option B">
             </label>
         </div>
         <div>
             <label>
                 <input type="radio" name="single_correct" value="C">
-                <input type="text" name="single_C" placeholder="Seçenek C">
+                <input type="text" name="single_C" placeholder="Option C">
             </label>
         </div>
         <div>
             <label>
                 <input type="radio" name="single_correct" value="D">
-                <input type="text" name="single_D" placeholder="Seçenek D">
+                <input type="text" name="single_D" placeholder="Option D">
             </label>
         </div>
     </div>
 
-    <!-- MULTIPLE CHOICE ALANLARI -->
+    <!-- Multiple Choice Fields -->
     <div id="multipleChoiceFields" style="display: none;">
-        <p>Multiple Choice için 4 şık giriniz. Birden fazla doğru olabilir.</p>
+        <p>Please enter 4 choices. Multiple can be correct.</p>
         <div>
             <label>
                 <input type="checkbox" name="multi_correct" value="A">
-                <input type="text" name="multi_A" placeholder="Seçenek A">
+                <input type="text" name="multi_A" placeholder="Option A">
             </label>
         </div>
         <div>
             <label>
                 <input type="checkbox" name="multi_correct" value="B">
-                <input type="text" name="multi_B" placeholder="Seçenek B">
+                <input type="text" name="multi_B" placeholder="Option B">
             </label>
         </div>
         <div>
             <label>
                 <input type="checkbox" name="multi_correct" value="C">
-                <input type="text" name="multi_C" placeholder="Seçenek C">
+                <input type="text" name="multi_C" placeholder="Option C">
             </label>
         </div>
         <div>
             <label>
                 <input type="checkbox" name="multi_correct" value="D">
-                <input type="text" name="multi_D" placeholder="Seçenek D">
+                <input type="text" name="multi_D" placeholder="Option D">
             </label>
         </div>
     </div>
 
-    <!-- TRUE/FALSE ALANLARI -->
+    <!-- True/False Fields -->
     <div id="trueFalseFields" style="display: none;">
-        <p>True/False için doğru cevabı seçiniz:</p>
+        <p>Select the correct answer for True/False:</p>
         <select name="tf_correct">
-            <option value="True">True (Doğru)</option>
-            <option value="False">False (Doğru)</option>
+            <option value="True">True</option>
+            <option value="False">False</option>
         </select>
     </div>
 
-    <!-- ORDERING ALANLARI -->
+    <!-- Ordering Fields -->
     <div id="orderingFields" style="display: none;">
-        <p>Sıralama sorusu için doğru sıralamayı virgülle giriniz (örn: Solid, Liquid, Gas, Plasma)</p>
-        <input type="text" name="ordering_correct" placeholder="Doğru sıralama">
+        <p>Please enter the correct ordering, comma-separated (e.g. Step1, Step2, Step3)</p>
+        <input type="text" name="ordering_correct" placeholder="Correct order">
         <br>
-        <small>Not: Tüm adımlar (opsiyonel):</small>
-        <input type="text" name="ordering_all" placeholder="Tüm adımlar (opsiyonel)">
+        <small>All possible items (optional, comma-separated):</small>
+        <input type="text" name="ordering_all" placeholder="All items">
     </div>
 
-    <button type="submit">Gönder</button>
+    <button type="submit">Submit Question</button>
 </form>
 
 <script>

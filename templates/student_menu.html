@@ -1,16 +1,15 @@
+<!-- templates/student_menu.html -->
 {% extends "base.html" %}
 {% block content %}
-<h2>Student Menu</h2>
-
+<h2>Student Panel</h2>
 <p class="welcome-message">
-    Merhaba, {{ user_info.name }} ({{ user_info.role|capitalize }}) <br>
-    Okul ID: {{ mapped_school_id }} - Sınıf: {{ user_info.class_name }} <br>
-    Kalan Sınav Hakkı: {{ left_attempts }} - Ortalama Skor: {{ user_info.score_avg }}
+    Hello, {{ user_info.name }} {{ user_info.surname }} ({{ user_info.role|capitalize }})<br>
+    School No: {{ user_info.okul_no }} | Class: {{ user_info.class_name }}<br>
+    Remaining Exam Attempts: {{ left_attempts }} | Average Score: {{ user_info.score_avg }}
 </p>
-
-<ul>
-    <li><a href="/student_solve_exam" class="btn">Sınavı Başlat</a></li>
-    <li><a href="/student_view_results" class="btn">Sonuçlarımı Gör</a></li>
-    <li><a href="/user_profile" class="btn">Profilim (Ad/Soyad/Şifre) Güncelle</a></li>
+<ul class="button-group">
+    <li><a href="/student_solve_exam" class="btn">Start Exam</a></li>
+    <li><a href="/student_view_results" class="btn">View Results</a></li>
+    <li><a href="/user_profile" class="btn">Update Profile</a></li>
 </ul>
 {% endblock %}

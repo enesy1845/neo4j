@@ -1,21 +1,19 @@
+<!-- templates/teacher_menu.html -->
 {% extends "base.html" %}
 {% block content %}
-<h2>Teacher Menu</h2>
-
-<!-- Merhaba, TeacherName -->
-<p class="welcome-message">Merhaba, {{ user_info.name }} ({{ user_info.role|capitalize }}) <br>
-Okul ID: {{ user_info.school_id }} <br>
-Sınıf: {{ user_info.class_name }} <br>
-Section: {{ user_info.registered_section }}</p>
-
-<!-- Soru eklendi mesajı -->
+<h2>Teacher Panel</h2>
+<p class="welcome-message">
+    Hello, {{ user_info.name }} {{ user_info.surname }} ({{ user_info.role|capitalize }})<br>
+    Classes: {{ user_info.class_name }}<br>
+    Section: {{ user_info.registered_section }}
+</p>
 {% if msg %}
 <div style="color: green;">{{ msg }}</div>
 {% endif %}
 
-<ul>
-    <li><a href="/teacher_add_question" class="btn">Soru Ekle</a></li>
-    <li><a href="/teacher_view_stats" class="btn">İstatistik Gör</a></li>
-    <li><a href="/user_profile" class="btn">Profilim (Ad/Soyad/Şifre) Güncelle</a></li>
-</ul>
+<div class="button-group">
+    <a href="/teacher_add_question" class="btn">Add Question</a>
+    <a href="/teacher_view_stats" class="btn">View Statistics</a>
+    <a href="/user_profile" class="btn">Update Profile</a>
+</div>
 {% endblock %}

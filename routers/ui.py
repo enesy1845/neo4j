@@ -43,38 +43,58 @@ def main_menu(request: Request):
 def register_page(request: Request):
     return templates.TemplateResponse("register.html", {"request": request})
 
+
 @ui_router.post("/register", response_class=HTMLResponse)
-def register_submit(
+async def register_submit(
     request: Request,
+    role: str = Form(...),
     username: str = Form(...),
     password: str = Form(...),
     name: str = Form(...),
     surname: str = Form(...),
-    class_name: str = Form(...),
-    role: str = Form(...),
-    registered_section: str | None = Form(None),
+    class_name: list = Form(...),  # Expecting multiple values for teachers
+    registered_section: str = Form("", alias="registered_section"),
 ):
+    # Join class names with commas if multiple classes are selected
+    if role.lower() == "teacher":
+        final_class_name = ",".join(class_name)
+    else:
+        # For students, only one class should be selected
+        final_class_name = class_name[0] if class_name else "7-A"  # Default class
+
     payload = {
+        "role": role.lower(),
         "username": username,
         "password": password,
         "name": name,
         "surname": surname,
-        "class_name": class_name,
-        "role": role,
+        "class_name": final_class_name,
     }
-    if registered_section:
-        payload["registered_section"] = registered_section
+    if role.lower() == "teacher" and registered_section.strip():
+        payload["registered_section"] = registered_section.strip()
 
-    with httpx.Client() as client:
-        r = client.post(f"{API_BASE_URL}/auth/register", json=payload)
-        if r.status_code == 200:
-            return RedirectResponse(url="/login", status_code=status.HTTP_303_SEE_OTHER)
-        else:
-            return templates.TemplateResponse("register.html", {
-                "request": request,
-                "error": r.json().get("detail", "Register error")
-            })
-
+    try:
+        async with httpx.AsyncClient() as client:
+            r = await client.post(f"{API_BASE_URL}/auth/register", json=payload, timeout=10.0)
+            if r.status_code == 200:
+                # Redirect to login
+                return RedirectResponse(url="/login", status_code=status.HTTP_303_SEE_OTHER)
+            else:
+                return templates.TemplateResponse("register.html", {
+                    "request": request,
+                    "error": r.json().get("detail", "Register error")
+                })
+    except httpx.ReadTimeout:
+        return templates.TemplateResponse("register.html", {
+            "request": request,
+            "error": "The request timed out. Please try again later."
+        })
+    except Exception as e:
+        return templates.TemplateResponse("register.html", {
+            "request": request,
+            "error": f"An error occurred: {str(e)}"
+        })
+    
 @ui_router.get("/login", response_class=HTMLResponse)
 def login_page(request: Request):
     return templates.TemplateResponse("login.html", {"request": request})
@@ -94,10 +114,13 @@ def login_submit(
             if not token:
                 return templates.TemplateResponse("login.html", {
                     "request": request,
-                    "error": "Token alınamadı"
+                    "error": "No token received"
                 })
             request.session["token"] = token
             request.session["role"] = role
+            # === Yeni satır: username'i session'a kaydediyoruz ===
+            request.session["username"] = username
+
             if role == "admin":
                 return RedirectResponse(url="/admin_menu", status_code=status.HTTP_303_SEE_OTHER)
             elif role == "teacher":
@@ -109,7 +132,7 @@ def login_submit(
                 "request": request,
                 "error": r.json().get("detail", "Login error")
             })
-
+        
 @ui_router.get("/logout")
 def logout(request: Request):
     request.session.clear()

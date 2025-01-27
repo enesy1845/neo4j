@@ -1,24 +1,33 @@
+<!-- templates/base.html -->
 <!DOCTYPE html>
 <html>
 
 <head>
     <meta charset="UTF-8">
-    <title>Quiz App</title>
+    <title>NexusAI Quiz App</title>
+    <!-- Google Fonts: Sora -->
+    <link href="https://fonts.googleapis.com/css2?family=Sora:wght@400;600;700&display=swap" rel="stylesheet" />
     <link rel="stylesheet" href="/static/style.css" />
 </head>
 
 <body>
+
     <header>
-        <h1>Quiz App</h1>
-        <nav>
-            <!-- Ana Menü butonu rol bazlı yönlendirme yapacak (ui.py'de logic var). -->
-            <a href="/" class="btn">Ana Menü</a>
-            <a href="/logout" class="btn">Çıkış Yap</a>
-            <!-- Geri tuşu için parametre kontrol -->
-            {% if not hide_back_button %}
-            <a href="javascript:history.back()" class="btn">Geri</a>
+        <div class="header-left">
+            <h1>NexusAI Quiz App</h1>
+        </div>
+        <div class="header-right">
+            <!-- Kullanıcı adı, UI'de oturum açıkken her sayfada görünsün -->
+            {% if request.session.get("role") %}
+            <span class="user-info">
+                Logged in as: {{ request.session.get("username") }}
+            </span>
+            <a href="/logout" class="btn header-btn">Logout</a>
+            {% else %}
+            <a href="/login" class="btn header-btn">Login</a>
+            <a href="/register" class="btn header-btn">Register</a>
             {% endif %}
-        </nav>
+        </div>
     </header>
 
     <section class="centered-container">
@@ -27,6 +36,11 @@
         </div>
     </section>
 
+    <footer>
+        <p>© 2025 NexusAI Quiz App — All rights reserved.</p>
+    </footer>
+
+    <!-- Timer script if needed -->
     <script src="/static/js/timer.js"></script>
     {% block scripts %}{% endblock %}
 </body>
