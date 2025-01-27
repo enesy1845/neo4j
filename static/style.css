@@ -67,7 +67,7 @@ HTML'de <a href="..." class="btn">Buton</a> şeklinde kullanabilirsiniz.
 
 /* İçeriği kutu şeklinde gösteren yapı */
 .content-box {
-    width: 450px;
+    width: 600px;
     min-height: 300px;
     background-color: #fff;
     border: 1px solid #eee;
@@ -211,4 +211,12 @@ h2 {
     padding-bottom: 0.3rem;
     border-bottom: 2px solid #f62188;
     /* Alt çizgi vurgusu */
+}
+.welcome-message {
+    background-color: #fef4f9;
+    padding: 10px;
+    border-left: 3px solid #f62188;
+    margin-bottom: 1rem;
+    color: #105369;
+    font-weight: 600;
 }

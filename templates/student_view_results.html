@@ -1,24 +1,61 @@
 {% extends "base.html" %}
 {% block content %}
-<h2>Sonuçlarım</h2>
-{% for exam in results %}
-<div style="border:1px solid #ccc; padding:10px; margin-bottom:10px;">
-    <p><strong>Exam ID:</strong> {{ exam.exam_id }}</p>
-    <p><strong>Start Time:</strong> {{ exam.start_time }}</p>
-    <p><strong>End Time:</strong> {{ exam.end_time }}</p>
-    <p><strong>Average Score (Kullanıcı?):</strong> {{ exam.score_avg }}</p>
+<h2>Sonuçlarım (Tablo Formatında)</h2>
 
-    <h4>Cevaplar:</h4>
-    <ul>
-        {% for ans in exam.answers %}
-        <li>
-            <strong>Soru ({{ ans.external_id }}):</strong> {{ ans.question }} <br>
-            Kullanıcı Cevabı: {{ ans.user_answer }} /
-            Doğru mu? {{ ans.is_correct }} /
-            Puan: {{ ans.points_earned }}
-        </li>
-        {% endfor %}
-    </ul>
+{% if results_data.exams | length == 0 %}
+<p>Henüz herhangi bir sınav kaydınız yok.</p>
+{% else %}
+
+<!-- Öğrenci No, Sınıfı, vs. -->
+<p>Öğrenci ID (No): {{ results_data.student_id }}</p>
+<p>Sınıfı: {{ results_data.class_name }}</p>
+<p>Toplam Attempts: {{ results_data.attempts }}</p>
+
+{% for exam in results_data.exams %}
+<div style="border:1px solid #999; padding:10px; margin-bottom:15px;">
+    <h3>Sınav {{ loop.index }} (Exam ID: {{ exam.exam_id }})</h3>
+    <p>Başlangıç: {{ exam.start_time }} / Bitiş: {{ exam.end_time if exam.end_time else "Devam ediyor" }}</p>
+
+    <table class="table">
+        <thead>
+            <tr>
+                <th>Soru Bölümü</th>
+                <th>DS (Doğru)</th>
+                <th>YS (Yanlış)</th>
+                <th>SO (Sınıf Ort.)</th>
+                <th>OO (Okul Ort.)</th>
+                <th>Notu</th>
+                <th>Ort (Genel)</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for sec in exam.sections_details %}
+            <tr>
+                <td>Section-{{ sec.section_number }}</td>
+                <td>{{ sec.ds }}</td>
+                <td>{{ sec.ys }}</td>
+                <td>{{ sec.so }}</td>
+                <td>{{ sec.oo }}</td>
+                <td>{{ sec.notu }}</td>
+                <td>{{ sec.ort }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+
+    {% if exam.pass_fail == "geçemedi" %}
+    <p style="color:red;">
+        Sonuç: {{ exam.pass_fail }},
+        her bölümden en az 75 alınması gerekir.
+    </p>
+    {% else %}
+    <p style="color:green;">
+        Sonuç: {{ exam.pass_fail }}, tebrikler!
+    </p>
+    {% endif %}
 </div>
 {% endfor %}
+
+{% endif %}
+
 {% endblock %}

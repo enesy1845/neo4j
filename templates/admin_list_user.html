@@ -1,6 +1,13 @@
 {% extends "base.html" %}
 {% block content %}
 <h2>Kullanıcı Listesi</h2>
+
+{% if msg %}
+<div style="color: green; margin-bottom:1rem;">
+    {{ msg }}
+</div>
+{% endif %}
+
 <table class="table">
     <thead>
         <tr>
@@ -19,7 +26,6 @@
             <td>{{ u.role }}</td>
             <td>{{ u.class_name }}</td>
             <td>
-                <!-- Modern buton link -->
                 <a href="/admin_update_user?username={{ u.username }}" class="btn">Update</a>
                 <a href="/admin_delete_user?username={{ u.username }}" class="btn">Delete</a>
             </td>

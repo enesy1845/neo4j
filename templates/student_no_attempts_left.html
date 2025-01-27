@@ -1,0 +1,8 @@
+{% extends "base.html" %}
+{% block content %}
+<h2>Sınav Hakkınız Kalmadı</h2>
+<p>Merhaba, {{ user_info.name }}.</p>
+<p>Maalesef sınav hakkınızı doldurmuşsunuz ({{ user_info.attempts }} / 2).</p>
+<p>Başka sınav hakkınız bulunmamaktadır.</p>
+<a href="/student_menu" class="btn">Menüye Dön</a>
+{% endblock %}
