@@ -1,6 +1,6 @@
 {% extends "base.html" %}
 {% block content %}
-<h2>Profil Güncelle</h2>
+<h2>Update Profile</h2>
 
 {% if msg %}
 <div style="border: 1px solid green; color:green; padding:5px; margin:5px;">
@@ -10,21 +10,21 @@
 
 <form method="post" action="/user_profile">
     <div class="form-row">
-        <label>Ad:</label>
+        <label>First Name:</label>
         <input type="text" name="name" value="{{ user_data.name }}">
     </div>
     <div class="form-row">
-        <label>Soyad:</label>
+        <label>Last Name:</label>
         <input type="text" name="surname" value="{{ user_data.surname }}">
     </div>
     <div class="form-row">
-        <label>Sınıf:</label>
+        <label>Class:</label>
         <input type="text" name="class_name" value="{{ user_data.class_name }}">
     </div>
     <div class="form-row">
-        <label>Yeni Parola (boş bırakmayın):</label>
+        <label>New Password (do not leave empty):</label>
         <input type="password" name="new_password">
     </div>
-    <button type="submit">Kaydet</button>
+    <button type="submit">Save</button>
 </form>
 {% endblock %}

@@ -11,7 +11,7 @@ ui_router = APIRouter()
 templates = Jinja2Templates(directory="templates")
 
 API_BASE_URL = "http://app:8000"  # Docker
-# Lokalde iseniz "http://127.0.0.1:8000"
+# If running locally, use "http://127.0.0.1:8000"
 
 def get_token_from_session(request: Request) -> str | None:
     return request.session.get("token")
@@ -19,7 +19,7 @@ def get_token_from_session(request: Request) -> str | None:
 def get_role_from_session(request: Request) -> str | None:
     return request.session.get("role")
 
-# Okul ID -> 1,2,3 map
+# School ID -> 1,2,3 map
 school_id_map = {}
 next_school_index = 1
 
@@ -94,7 +94,7 @@ def login_submit(
             if not token:
                 return templates.TemplateResponse("login.html", {
                     "request": request,
-                    "error": "Token alınamadı"
+                    "error": "Token could not be obtained"
                 })
             request.session["token"] = token
             request.session["role"] = role
@@ -129,7 +129,7 @@ def student_menu(request: Request):
         if user_resp.status_code == 200:
             user_data = user_resp.json()
 
-            # Okul ID -> 1,2,3
+            # School ID -> 1,2,3
             global next_school_index
             if user_data["school_id"] not in school_id_map:
                 school_id_map[user_data["school_id"]] = next_school_index
@@ -144,7 +144,7 @@ def student_menu(request: Request):
                 "left_attempts": left_attempts
             })
         else:
-            # session bozuk olabilir
+            # Session might be corrupted
             request.session.clear()
             return RedirectResponse(url="/login")
 
@@ -178,7 +178,7 @@ def student_solve_exam(request: Request):
                 "sections": questions,
             })
         else:
-            return HTMLResponse(f"Sınav başlatılamadı: {r.text}", status_code=400)
+            return HTMLResponse(f"Exam could not be started: {r.text}", status_code=400)
 
 @ui_router.post("/student_submit_exam", response_class=HTMLResponse)
 async def student_submit_exam(
@@ -216,12 +216,12 @@ async def student_submit_exam(
         if r.status_code == 200:
             return RedirectResponse(url="/student_view_results?exam_submitted=1", status_code=status.HTTP_303_SEE_OTHER)
         else:
-            return HTMLResponse(f"Sınav gönderilemedi: {r.text}", status_code=400)
+            return HTMLResponse(f"Exam could not be submitted: {r.text}", status_code=400)
 
 @ui_router.get("/student_view_results", response_class=HTMLResponse)
 def student_view_results(request: Request):
     """
-    Sonuçları tablo şeklinde göstermek için /students/results_v2 endpoint'inden data çekiyoruz.
+    To display results in a table format, we fetch data from the /students/results_v2 endpoint.
     """
     token = get_token_from_session(request)
     role = get_role_from_session(request)
@@ -231,7 +231,7 @@ def student_view_results(request: Request):
     hide_back = bool(request.query_params.get("exam_submitted", None))
 
     with httpx.Client() as client:
-        # Yeni tablo verisi ceken endpoint
+        # Endpoint to fetch new table data
         r = client.get(f"{API_BASE_URL}/students/results_v2", headers={"Authorization": f"Bearer {token}"})
         if r.status_code == 200:
             data = r.json()  # dict: { student_id, class_name, attempts, exams: [ {exam_id, pass_fail, sections_details[]}, ... ] }
@@ -244,7 +244,7 @@ def student_view_results(request: Request):
                 }
             )
         else:
-            # 401/403 vs
+            # 401/403 etc.
             request.session.clear()
             return RedirectResponse(url="/login")
 
@@ -261,7 +261,7 @@ def admin_menu(request: Request):
         user_resp = client.get(f"{API_BASE_URL}/users/me", headers={"Authorization": f"Bearer {token}"})
         if user_resp.status_code == 200:
             user_data = user_resp.json()
-            # Okul ID -> 1,2,3
+            # School ID -> 1,2,3
             global next_school_index
             if user_data["school_id"] not in school_id_map:
                 school_id_map[user_data["school_id"]] = next_school_index
@@ -277,7 +277,7 @@ def admin_menu(request: Request):
                 "msg": msg
             })
         else:
-            # session bozuk
+            # Session might be corrupted
             request.session.clear()
             return RedirectResponse(url="/login")
 
@@ -292,7 +292,7 @@ def admin_list_users(request: Request):
         r = client.get(f"{API_BASE_URL}/users/", headers={"Authorization": f"Bearer {token}"})
         if r.status_code == 200:
             users_data = r.json()
-            # eger msg parametresi varsa
+            # If msg parameter exists
             msg = request.query_params.get("msg", "")
             return templates.TemplateResponse("admin_list_user.html", {
                 "request": request,
@@ -300,7 +300,7 @@ def admin_list_users(request: Request):
                 "msg": msg
             })
         else:
-            # session bozuk
+            # Session might be corrupted
             request.session.clear()
             return RedirectResponse(url="/login")
 
@@ -323,9 +323,9 @@ def admin_update_user_form(request: Request, username: str):
                 target_user = u
                 break
         if not target_user:
-            return HTMLResponse("Güncellenecek kullanıcı bulunamadı", status_code=404)
+            return HTMLResponse("User to update not found", status_code=404)
 
-        # Her ihtimale karsi msg param
+        # Just in case, msg param
         msg = request.query_params.get("msg", "")
         return templates.TemplateResponse("admin_update_user.html", {
             "request": request,
@@ -369,12 +369,12 @@ def admin_update_user_submit(
         )
         if r.status_code == 200:
             return RedirectResponse(
-                url=f"/admin_list_users?msg=Kullanıcı+{username}+başarıyla+güncellendi",
+                url=f"/admin_list_users?msg=User+{username}+successfully+updated",
                 status_code=status.HTTP_303_SEE_OTHER
             )
         else:
             return RedirectResponse(
-                url=f"/admin_update_user?username={username}&msg=Güncelleme+hatası:{r.text}",
+                url=f"/admin_update_user?username={username}&msg=Update+error:{r.text}",
                 status_code=status.HTTP_303_SEE_OTHER
             )
 
@@ -388,10 +388,10 @@ def admin_delete_user(request: Request, username: str):
     with httpx.Client() as client:
         r = client.delete(f"{API_BASE_URL}/users/{username}", headers={"Authorization": f"Bearer {token}"})
         if r.status_code == 200:
-            return RedirectResponse(url="/admin_list_users?msg=Kullanıcı+silindi", status_code=status.HTTP_303_SEE_OTHER)
+            return RedirectResponse(url="/admin_list_users?msg=User+deleted", status_code=status.HTTP_303_SEE_OTHER)
         else:
             return RedirectResponse(
-                url=f"/admin_list_users?msg=Kullanıcı+silinemedi:{r.text}",
+                url=f"/admin_list_users?msg=User+could+not+be+deleted:{r.text}",
                 status_code=status.HTTP_303_SEE_OTHER
             )
 
@@ -467,7 +467,7 @@ def teacher_add_question_submit(
         me_data = me_resp.json()
         teacher_section = me_data["registered_section"]
         if not teacher_section:
-            return HTMLResponse("Sizde registered_section yok, soru ekleyemezsiniz.", status_code=400)
+            return HTMLResponse("You do not have a registered section, you cannot add questions.", status_code=400)
 
     # Choices
     choices_list = []
@@ -564,7 +564,7 @@ def teacher_add_question_submit(
         )
         if r.status_code == 200:
             return RedirectResponse(
-                url="/teacher_menu?msg=Soru+eklendi",
+                url="/teacher_menu?msg=Question+added",
                 status_code=status.HTTP_303_SEE_OTHER
             )
         else:
@@ -572,7 +572,7 @@ def teacher_add_question_submit(
                 "teacher_add_question.html",
                 {
                     "request": request,
-                    "msg": f"Soru eklenemedi: {r.text}"
+                    "msg": f"Question could not be added: {r.text}"
                 }
             )
 
@@ -593,12 +593,12 @@ def teacher_view_stats(request: Request):
                 "stats": stats_data
             })
         else:
-            # session bozuk => clear & login
+            # Session might be corrupted => clear & login
             request.session.clear()
             return RedirectResponse(url="/login")
 
 
-# ================== Ortak: Profil Güncelleme =====================
+# ================== Common: Update Profile =====================
 @ui_router.get("/user_profile", response_class=HTMLResponse)
 def user_profile_get(request: Request):
     token = get_token_from_session(request)
@@ -643,12 +643,12 @@ def user_profile_post(request: Request,
         r = client.put(f"{API_BASE_URL}/users/me", headers={"Authorization": f"Bearer {token}"}, json=payload)
         if r.status_code == 200:
             return RedirectResponse(
-                url="/user_profile?msg=Profil+güncellendi",
+                url="/user_profile?msg=Profile+updated",
                 status_code=status.HTTP_303_SEE_OTHER
             )
         else:
-            # orada "detail" vb. olabilir
+            # There might be "detail" etc.
             return RedirectResponse(
-                url=f"/user_profile?msg=Profil+güncelleme+hatası:{r.text}",
+                url=f"/user_profile?msg=Profile+update+error:{r.text}",
                 status_code=status.HTTP_303_SEE_OTHER
             )

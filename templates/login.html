@@ -1,8 +1,7 @@
 {% extends "base.html" %}
 {% block content %}
 <h2>Login</h2>
-<!-- Hoş geldiniz mesajı -->
-
+<!-- Welcome message -->
 
 {% if error %}
 <div style="color: red; margin-bottom: 1rem;">
@@ -12,14 +11,14 @@
 
 <form method="post" action="/login">
     <div class="form-row">
-        <label>Kullanıcı Adı:</label>
+        <label>Username:</label>
         <input type="text" name="username" required>
     </div>
     <div class="form-row">
-        <label>Şifre:</label>
+        <label>Password:</label>
         <input type="password" name="password" required>
     </div>
 
-    <button type="submit">Giriş Yap</button>
+    <button type="submit">Login</button>
 </form>
 {% endblock %}

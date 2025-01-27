@@ -11,12 +11,12 @@
     <header>
         <h1>Quiz App</h1>
         <nav>
-            <!-- Ana Menü butonu rol bazlı yönlendirme yapacak (ui.py'de logic var). -->
-            <a href="/" class="btn">Ana Menü</a>
-            <a href="/logout" class="btn">Çıkış Yap</a>
-            <!-- Geri tuşu için parametre kontrol -->
+            <!-- Main Menu button will perform role-based redirection (logic is in ui.py). -->
+            <a href="/" class="btn">Main Menu</a>
+            <a href="/logout" class="btn">Log Out</a>
+            <!-- Check parameter for Back button -->
             {% if not hide_back_button %}
-            <a href="javascript:history.back()" class="btn">Geri</a>
+            <a href="javascript:history.back()" class="btn">Back</a>
             {% endif %}
         </nav>
     </header>

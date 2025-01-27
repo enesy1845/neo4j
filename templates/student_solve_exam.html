@@ -1,17 +1,17 @@
 {% extends "base.html" %}
 {% block content %}
-<h2>Sınav Ekranı</h2>
-<div id="timer">Kalan Süre: <span id="timeLeft"></span> saniye</div>
+<h2>Exam Screen</h2>
+<div id="timer">Time Remaining: <span id="timeLeft"></span> seconds</div>
 <form id="examForm" method="post" action="/student_submit_exam">
     <input type="hidden" name="exam_id" value="{{ exam_id }}">
-    <!-- sections bir dictionary olduğu için items() ile key,value döneceğiz -->
+    <!-- Since sections is a dictionary, we iterate over key, value using items() -->
     {% for section_number, question_list in sections.items() %}
     <h3>Section {{ section_number }}</h3>
     {% for q in question_list %}
     <div class="question-box">
-        <p class="question-text"><strong>{{ q.question }}</strong> (Puan: {{ q.points }})</p>
+        <p class="question-text"><strong>{{ q.question }}</strong> (Points: {{ q.points }})</p>
         {% if q.type == 'true_false' %}
-        <!-- True/False: 2 radio butonu -->
+        <!-- True/False: 2 radio buttons -->
         <label class="option">
             <input type="radio" name="answer_{{ q.question_id }}" value="True"> True
         </label>
@@ -19,7 +19,7 @@
             <input type="radio" name="answer_{{ q.question_id }}" value="False"> False
         </label>
         {% elif q.type == 'single_choice' %}
-        <!-- Single Choice: radio butonlar -->
+        <!-- Single Choice: radio buttons -->
         {% if q.choices %}
         {% for choice in q.choices %}
         <label class="option">
@@ -28,7 +28,7 @@
         </label>
         {% endfor %}
         {% else %}
-        <!-- Hiç choices yoksa varsayılan 4 şık gösterelim -->
+        <!-- If no choices, show default 4 options -->
         <label class="option">
             <input type="radio" name="answer_{{ q.question_id }}" value="A"> A
         </label>
@@ -43,7 +43,7 @@
         </label>
         {% endif %}
         {% elif q.type == 'multiple_choice' %}
-        <!-- Multiple Choice: checkbox -->
+        <!-- Multiple Choice: checkboxes -->
         {% if q.choices %}
         {% for choice in q.choices %}
         <label class="option">
@@ -52,7 +52,7 @@
         </label>
         {% endfor %}
         {% else %}
-        <!-- varsayılan 4 şık -->
+        <!-- Default 4 options -->
         <label class="option">
             <input type="checkbox" name="answer_{{ q.question_id }}" value="A"> A
         </label>
@@ -68,34 +68,34 @@
         {% endif %}
         {% elif q.type == 'ordering' %}
         {% if q.choices %}
-        <!-- Ordering sorusu için seçenekleri listeliyoruz;
-            Basitlik adına virgülle sıralamayı alabiliriz. -->
-        <p>Lütfen şu öğeleri doğru sırayla yazın (virgül ile ayırarak):</p>
+        <!-- For ordering questions, list the options.
+            For simplicity, we can accept the order as comma-separated. -->
+        <p>Please write the items in the correct order (separated by commas):</p>
         <ul>
             {% for c in q.choices %}
             <li>{{ c.choice_text }}</li>
             {% endfor %}
         </ul>
-        <input type="text" name="answer_{{ q.question_id }}" placeholder="örn: 3,1,4,2">
+        <input type="text" name="answer_{{ q.question_id }}" placeholder="e.g., 3,1,4,2">
         {% else %}
-        <p>Bu ordering sorusunun şıkları tanımlanmamış.</p>
-        <input type="text" name="answer_{{ q.question_id }}" placeholder="Sıralamayı girin...">
+        <p>This ordering question has no options defined.</p>
+        <input type="text" name="answer_{{ q.question_id }}" placeholder="Enter the order...">
         {% endif %}
         {% else %}
-        <!-- Varsayılan (bilinmeyen tip) metin alanı -->
-        <label>Cevabınız:</label>
+        <!-- Default (unknown type) text input -->
+        <label>Your Answer:</label>
         <input type="text" name="answer_{{ q.question_id }}">
         {% endif %}
     </div>
     {% endfor %}
     {% endfor %}
-    <button type="submit">Sınavı Gönder</button>
+    <button type="submit">Submit Exam</button>
 </form>
 {% endblock %}
 {% block scripts %}
 {{ super() }}
 <script>
-    // Örnek geri sayım - 300 saniye
+    // Example countdown - 300 seconds
     let totalTime = 300;
     startCountdown(totalTime, () => {
         document.getElementById("examForm").submit();

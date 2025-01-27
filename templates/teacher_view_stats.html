@@ -1,7 +1,7 @@
 {% extends "base.html" %}
 {% block content %}
 
-<h2>İstatistikler (Teacher)</h2>
+<h2>Statistics (Teacher)</h2>
 
 <!--
 stats:
@@ -19,7 +19,7 @@ stats:
       "section_number": 1,
       "ds_total": 35,
       "ys_total": 18,
-      "sn_basarisi": 50,
+      "sn_success": 50,
       "classes": {
         "7-a": 65,
         "7-b": 45,
@@ -31,16 +31,16 @@ stats:
 }
 -->
 
-<!-- KISIM 1: Her Sınıf için Tablo -->
+<!-- PART 1: Table for Each Class -->
 {% for cls_name, row_list in stats.per_class.items() %}
 <div style="margin-bottom: 30px;">
-    <p><strong>Sınıf: {{ cls_name }}</strong></p>
+    <p><strong>Class: {{ cls_name }}</strong></p>
     <table class="table">
         <thead>
             <tr>
-                <th>Sorular</th>
-                <th>DS</th>
-                <th>YS</th>
+                <th>Questions</th>
+                <th>Correct (DS)</th>
+                <th>Incorrect (YS)</th>
             </tr>
         </thead>
         <tbody>
@@ -56,17 +56,17 @@ stats:
 </div>
 {% endfor %}
 
-<!-- KISIM 2: Okul Özeti Tablosu -->
+<!-- PART 2: School Summary Table -->
 <div>
-    <p><strong>Okul Özeti</strong> (Okul ID: 1)</p>
-    <!-- Sorular   ds  ys   sn başarısı   7a   7b  7c   ort ??? -->
+    <p><strong>School Summary</strong> (School ID: 1)</p>
+    <!-- Questions   ds  ys   section success   7a   7b  7c   avg ??? -->
     <table class="table">
         <thead>
             <tr>
-                <th>Sorular</th>
-                <th>DS</th>
-                <th>YS</th>
-                <th>SN Başarısı</th>
+                <th>Questions</th>
+                <th>Correct (DS)</th>
+                <th>Incorrect (YS)</th>
+                <th>Section Success</th>
                 <!-- dynamic columns for each class_name -->
                 {% if stats.per_class %}
                 {% for cls_name in stats.per_class.keys() %}
@@ -81,7 +81,7 @@ stats:
                 <td>{{ row.section_number }}s.</td>
                 <td>{{ row.ds_total }}</td>
                 <td>{{ row.ys_total }}</td>
-                <td>{{ row.sn_basarisi }} %</td>
+                <td>{{ row.sn_success }} %</td>
                 {% if stats.per_class %}
                 {% for cls_name in stats.per_class.keys() %}
                 <td>

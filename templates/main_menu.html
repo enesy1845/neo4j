@@ -1,13 +1,13 @@
 {% extends "base.html" %}
 {% block content %}
-<h2>Multipart quiz app uygulamasına hoşgeldiniz!</h2>
+<h2>Welcome to the Multipart Quiz App!</h2>
 
 <!--
-Bu sayfa, kullanıcı login değilse gözükür. 
-Eğer user login ise ui.py'de main_menu fonksiyonu rola göre redirect yapacak.
+This page is visible if the user is not logged in. 
+If the user is logged in, the main_menu function in ui.py will redirect based on the role.
 -->
 <ul>
-    <li><a href="/register" class="btn">Kayıt Ol</a></li>
-    <li><a href="/login" class="btn">Giriş Yap</a></li>
+    <li><a href="/register" class="btn">Register</a></li>
+    <li><a href="/login" class="btn">Login</a></li>
 </ul>
 {% endblock %}

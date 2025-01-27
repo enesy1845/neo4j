@@ -1,31 +1,31 @@
 {% extends "base.html" %}
 {% block content %}
-<h2>Sonuçlarım (Tablo Formatında)</h2>
+<h2>My Results (Table Format)</h2>
 
 {% if results_data.exams | length == 0 %}
-<p>Henüz herhangi bir sınav kaydınız yok.</p>
+<p>You do not have any exam records yet.</p>
 {% else %}
 
-<!-- Öğrenci No, Sınıfı, vs. -->
-<p>Öğrenci ID (No): {{ results_data.student_id }}</p>
-<p>Sınıfı: {{ results_data.class_name }}</p>
-<p>Toplam Attempts: {{ results_data.attempts }}</p>
+<!-- Student ID, Class, etc. -->
+<p>Student ID (No): {{ results_data.student_id }}</p>
+<p>Class: {{ results_data.class_name }}</p>
+<p>Total Attempts: {{ results_data.attempts }}</p>
 
 {% for exam in results_data.exams %}
 <div style="border:1px solid #999; padding:10px; margin-bottom:15px;">
-    <h3>Sınav {{ loop.index }} (Exam ID: {{ exam.exam_id }})</h3>
-    <p>Başlangıç: {{ exam.start_time }} / Bitiş: {{ exam.end_time if exam.end_time else "Devam ediyor" }}</p>
+    <h3>Exam {{ loop.index }} (Exam ID: {{ exam.exam_id }})</h3>
+    <p>Start: {{ exam.start_time }} / End: {{ exam.end_time if exam.end_time else "Ongoing" }}</p>
 
     <table class="table">
         <thead>
             <tr>
-                <th>Soru Bölümü</th>
-                <th>DS (Doğru)</th>
-                <th>YS (Yanlış)</th>
-                <th>SO (Sınıf Ort.)</th>
-                <th>OO (Okul Ort.)</th>
-                <th>Notu</th>
-                <th>Ort (Genel)</th>
+                <th>Question Section</th>
+                <th>Correct (DS)</th>
+                <th>Incorrect (YS)</th>
+                <th>Class Avg. (SO)</th>
+                <th>School Avg. (OO)</th>
+                <th>Score</th>
+                <th>Overall Avg.</th>
             </tr>
         </thead>
         <tbody>
@@ -43,14 +43,14 @@
         </tbody>
     </table>
 
-    {% if exam.pass_fail == "geçemedi" %}
+    {% if exam.pass_fail == "failed" %}
     <p style="color:red;">
-        Sonuç: {{ exam.pass_fail }},
-        her bölümden en az 75 alınması gerekir.
+        Result: {{ exam.pass_fail }},
+        a minimum of 75 must be scored in each section.
     </p>
     {% else %}
     <p style="color:green;">
-        Sonuç: {{ exam.pass_fail }}, tebrikler!
+        Result: {{ exam.pass_fail }}, congratulations!
     </p>
     {% endif %}
 </div>
