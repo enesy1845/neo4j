@@ -74,10 +74,10 @@
             <li>{{ c.choice_text }}</li>
             {% endfor %}
         </ul>
-        <input type="text" name="answer_{{ q.question_id }}" placeholder="e.g. 3,1,4,2">
+        <input type="text" name="answer_{{ q.question_id }}" class="ordering-input" placeholder="e.g. 3,1,4,2">
         {% else %}
         <p>No choices available for ordering question.</p>
-        <input type="text" name="answer_{{ q.question_id }}" placeholder="Enter your ordering...">
+        <input type="text" name="answer_{{ q.question_id }}" class="ordering-input" placeholder="Enter your ordering...">
         {% endif %}
         {% else %}
         <!-- Unknown type -->

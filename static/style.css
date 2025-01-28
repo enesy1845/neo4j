@@ -1,6 +1,6 @@
 /* static/style.css */
 
-/* General Reset and Font */
+/* 1) Basic Reset & Font */
 html,
 body {
     height: 100%;
@@ -12,7 +12,7 @@ body {
     color: #f2f2f2;
 }
 
-/* Header */
+/* 2) Header */
 header {
     background-color: #3a0a36;
     padding: 16px 32px;
@@ -37,31 +37,73 @@ header {
     margin-right: 15px;
 }
 
-/* Buttons */
+/* 3) Buttons - removed border, gentle scale on hover */
 .btn {
     background: #f66ed2;
     color: #fff !important;
     padding: 10px 20px;
+    border: none;
     border-radius: 25px;
     text-decoration: none;
-    transition: background 0.3s, transform 0.2s, box-shadow 0.3s;
+    transition: background 0.3s, transform 0.2s;
     font-weight: 500;
     display: inline-block;
+    cursor: pointer;
+    box-sizing: border-box;
 }
 
-.btn:hover {
+/* Apply to both <a> and <button> elements with .btn class */
+a.btn,
+button.btn {
+    background: #f66ed2;
+    color: #fff !important;
+    padding: 10px 20px;
+    border: none;
+    border-radius: 25px;
+    text-decoration: none;
+    transition: background 0.3s, transform 0.2s;
+    font-weight: 500;
+    display: inline-block;
+    cursor: pointer;
+    box-sizing: border-box;
+    margin-top: 5px;
+}
+
+/* Hover State */
+a.btn:hover,
+button.btn:hover {
     background-color: #d65bad;
-    transform: translateY(-2px);
-    box-shadow: 0 4px 8px rgba(214, 91, 173, 0.3);
+    transform: scale(1.05);
 }
 
-.btn:active {
+/* Active State */
+a.btn:active,
+button.btn:active {
     background-color: #9d437d;
-    transform: translateY(0);
-    box-shadow: none;
+    transform: scale(1.0);
 }
 
-/* Container & Content Box */
+/* Reset Button Styles to Remove Default Browser Styles */
+button.btn {
+    /* Remove default button styles */
+    background: #f66ed2;
+    border: none;
+    padding: 10px 20px;
+    color: #fff;
+    border-radius: 25px;
+    font-size: 1rem;
+    font-family: inherit;
+    cursor: pointer;
+}
+
+/* Optional: Focus Styles for Accessibility */
+button.btn:focus,
+a.btn:focus {
+    outline: 2px solid #fff;
+    outline-offset: 2px;
+}
+
+/* 4) Container & Box */
 .centered-container {
     min-height: calc(100vh - 100px);
     display: flex;
@@ -71,7 +113,7 @@ header {
 }
 
 .content-box {
-    width: 600px;
+    width: 800px;
     background-color: rgba(255, 255, 255, 0.05);
     border: 1px solid rgba(255, 255, 255, 0.2);
     border-radius: 12px;
@@ -80,7 +122,7 @@ header {
     margin-bottom: 40px;
 }
 
-/* Form Rows */
+/* 5) Form Rows */
 .form-row {
     display: flex;
     flex-direction: column;
@@ -102,8 +144,7 @@ header {
     border-radius: 8px;
     font-size: 1rem;
     background-color: rgba(255, 255, 255, 0.2);
-    color: #333;
-    /* Changed to dark text for visibility */
+    color: #fff;
     transition: background-color 0.3s, transform 0.2s;
 }
 
@@ -116,49 +157,39 @@ header {
     transform: scale(1.02);
 }
 
-/* Password Help Text */
+/* 6) Password Help Text */
 .password-help {
     color: #bbb;
     font-size: 0.85rem;
     margin-top: 5px;
 }
 
-/* Dropdowns (Select) */
+/* 7) All dropdowns share a consistent style */
 select {
     appearance: none;
-    background-image: url('data:image/svg+xml;charset=US-ASCII,<svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24"><path fill="%23333" d="M7 10l5 5 5-5H7z"/></svg>');
-    /* Changed arrow color to dark */
+    background-image: url('data:image/svg+xml;charset=US-ASCII,<svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24"><path fill="%23ffffff" d="M7 10l5 5 5-5H7z"/></svg>');
     background-repeat: no-repeat;
     background-position: right 16px center;
     background-size: 12px;
     cursor: pointer;
-    background-color: #fff;
-    /* Ensure background is white */
-    color: #333;
-    /* Ensure text is dark */
 }
 
+/* If using a normal single <select> with light background: */
+#studentClassSelect,
+#roleSelect,
+#sectionSelect {
+    background-color: #fff;
+    color: #333;
+}
+
+/* Multiple select (if you used it) */
 select[multiple] {
     height: auto;
     padding-right: 30px;
-    /* Space for multiple selection */
 }
 
-/* Checkboxes */
-.option input[type="checkbox"] {
-    accent-color: #f66ed2;
-    width: 18px;
-    height: 18px;
-    cursor: pointer;
-    margin-right: 10px;
-    transition: transform 0.2s;
-}
-
-.option input[type="checkbox"]:hover {
-    transform: scale(1.1);
-}
-
-/* Radio Buttons */
+/* 8) Checkboxes & Radios */
+.option input[type="checkbox"],
 .option input[type="radio"] {
     accent-color: #f66ed2;
     width: 18px;
@@ -166,13 +197,10 @@ select[multiple] {
     cursor: pointer;
     margin-right: 10px;
     transition: transform 0.2s;
+    border: none;
 }
 
-.option input[type="radio"]:hover {
-    transform: scale(1.1);
-}
-
-/* Table Styling */
+/* 9) Table */
 .table {
     width: 100%;
     border-collapse: collapse;
@@ -194,7 +222,7 @@ select[multiple] {
     font-size: 0.9rem;
 }
 
-/* Footer */
+/* 10) Footer */
 footer {
     background-color: #3a0a36;
     color: #fff;
@@ -209,7 +237,7 @@ footer p {
     opacity: 0.8;
 }
 
-/* Modern Button Group */
+/* Modern button group layout */
 .button-group {
     display: flex;
     flex-wrap: wrap;
@@ -223,7 +251,7 @@ footer p {
     margin: 0;
 }
 
-/* Modern Checkbox and Radio Labels */
+/* .option is used for listing checkboxes/radios inline */
 .option {
     display: flex;
     align-items: center;
@@ -231,7 +259,7 @@ footer p {
     font-size: 0.95rem;
 }
 
-/* Timer Styling */
+/* Timer styling if used */
 #timer {
     font-weight: bold;
     margin-bottom: 20px;
@@ -255,7 +283,7 @@ footer p {
     font-size: 1.05rem;
 }
 
-/* Teacher's custom multi-class dropdown container */
+/* 11) The custom teacher multi-select container */
 .multi-class-dropdown {
     position: relative;
     background-color: #fff;
@@ -267,7 +295,8 @@ footer p {
     width: 100%;
     box-sizing: border-box;
     user-select: none;
-    border: none;
+    border: 1px solid #ccc;
+    margin-top: 5px;
 }
 
 .multi-class-header {
@@ -290,7 +319,6 @@ footer p {
     transform: rotate(225deg);
 }
 
-/* The actual checkbox list inside the dropdown */
 .multi-class-list {
     position: absolute;
     top: 100%;
@@ -303,7 +331,6 @@ footer p {
     margin-top: 8px;
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
     z-index: 999;
-    /* on top of other elements */
     padding: 10px;
     box-sizing: border-box;
 }
@@ -320,7 +347,6 @@ footer p {
     width: 16px;
     height: 16px;
     accent-color: #f66ed2;
-    /* or your theme color */
 }
 
 /* Slight hover effect for the container */
@@ -328,13 +354,79 @@ footer p {
     background-color: #f9f9f9;
 }
 
-/* Placeholder style when nothing is selected */
+/* Placeholder color if no classes are selected yet */
 #multiClassPlaceholder {
     color: #666;
 }
 
-/* Ensure the multi-class list doesn't inherit form-row styles */
-.multi-class-list {
-    max-height: 200px;
-    overflow-y: auto;
+/* Update the .styled-select class to cover all dropdown types */
+.styled-select {
+    background-color: #fff !important;
+    color: #333 !important;
+    border: 1px solid #ccc !important;
+    border-radius: 8px !important;
+    box-sizing: border-box;
+    min-height: 48px;
+    display: inline-block;
+    position: relative;
+    width: 100%;
+    cursor: pointer;
+    padding: 12px 16px;
+    font-size: 1rem;
+    appearance: none;
+    background-image: url('data:image/svg+xml;charset=US-ASCII,<svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24"><path fill="%23333" d="M7 10l5 5 5-5H7z"/></svg>');
+    background-repeat: no-repeat;
+    background-position: right 16px center;
+    background-size: 12px;
+}
+
+/* Remove default focus outline */
+.styled-select:focus {
+    outline: none;
+    box-shadow: 0 0 0 2px rgba(246, 110, 210, 0.3);
+}
+
+/* Multi-class dropdown specific adjustments */
+.styled-select.multi-class-dropdown {
+    padding: 0;
+    background-image: none;
+}
+
+/* Header alignment for multi-select */
+.multi-class-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    min-height: 48px;
+    padding: 0 16px;
+}
+
+/* Placeholder text styling */
+#multiClassPlaceholder {
+    color: #666;
+    font-size: 1rem;
+}
+
+/* Arrow consistency */
+.multi-class-header .arrow-down {
+    border-color: #333;
+}
+.ordering-input {
+    width: 100%;
+    padding: 12px 16px;
+    margin-top: 5px;
+    border: 1px solid #ccc;
+    border-radius: 8px;
+    font-size: 1rem;
+    color: #333;
+    box-sizing: border-box;
+}
+
+.ordering-input:focus {
+    outline: none;
+    border-color: #f66ed2;
+    /* Tercihen markanıza uygun renk */
+    background-color: rgba(255, 255, 255, 0.8);
+    transform: scale(1.02);
+    transition: 0.2s;
 }

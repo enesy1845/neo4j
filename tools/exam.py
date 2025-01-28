@@ -1,71 +1,108 @@
 # tools/exam.py
-
 import random
 from datetime import datetime
 from sqlalchemy.orm import Session
-from typing import Dict, List
+from typing import Dict, List,Any
 from tools.models import Question, QuestionChoice, Exam, ExamAnswer, UserChoice, User
 from tools.statistics_utils import update_statistics
 
 def load_questions(db: Session):
+    """
+    Veritabanından tüm soruları yükler.
+    """
     return db.query(Question).all()
 
-def select_questions(db: Session, user: User):
+def select_questions(db: Session, user: User) -> Dict[int, List[Question]]:
+    """
+    Sınav için soruları seçer.
+    - Her soru tipinden en az bir tane seçilir.
+    - Her section'dan belirli sayıda soru seçilir.
+    - Toplamda istenen sayıda soru olacak şekilde düzenlenir.
+    """
     if user.attempts >= 2:
-        return None
-    questions = load_questions(db)
-    # basit random logic -> her section'dan 5 tane
+        return {}
+
+    # Tüm soruları al
+    questions = db.query(Question).all()
+
+    # 1) Her question.type için en az 1 tane (mümkünse) seç
+    question_types = ["true_false", "single_choice", "multiple_choice", "ordering"]
+    must_have = []
+    for qt in question_types:
+        q_of_type = [q for q in questions if q.type == qt]
+        if q_of_type:
+            must_have.append(random.choice(q_of_type))
+        else:
+            # O tipte soru yoksa, bu kuralı enforce edemezsiniz.
+            pass
+
+    # 2) Her section'dan 5 tane seçme
     sections = {1: [], 2: [], 3: [], 4: []}
     for sec in range(1, 5):
         sec_qs = [q for q in questions if q.section == sec]
-        selected = sec_qs if len(sec_qs) < 5 else random.sample(sec_qs, 5)
-        sections[sec] = selected
-    return sections
+        if len(sec_qs) <= 5:
+            sections[sec] = sec_qs
+        else:
+            sections[sec] = random.sample(sec_qs, 5)
+
+    # 3) Tüm bu seçilenleri set olarak toplayalım
+    selected_final = set()
+    for sec in sections:
+        selected_final.update(sections[sec])
+    for mh in must_have:
+        selected_final.add(mh)
+
+    # 4) Geri dönerken yine section bazlı dict yapımız olsun:
+    final_dict = {1: [], 2: [], 3: [], 4: []}
+    for q in selected_final:
+        final_dict[q.section].append(q)
+
+    return final_dict
 
 def process_results(db: Session, user: User, exam: Exam,
-                    selected_questions: List[Question],
-                    answers_dict, end_time):
+                   selected_questions: List[Question],
+                   answers_dict: Dict[str, Any], end_time: datetime):
     """
-    Her section için:
-      - sum_points_earned, sum_points_possible
-      - section_score = round( (earned / possible)*100, 2 )
-
-    Sonra final_score = round( (total_earned / total_possible)*100, 2 )
-
-    Geçme Kriteri:
-    - Tüm section_score >= 75
-    - final_score >= 75
-    Aksi halde fail
+    Sınav sonuçlarını işleyerek kullanıcı puanlarını ve istatistikleri günceller.
+    - Her section için toplam puan ve olası puan hesaplanır.
+    - Her section için doğru ve yanlış soru sayısı hesaplanır.
+    - Geçme kriterleri uygulanır.
+    - Kullanıcı puanları güncellenir.
+    - İstatistikler güncellenir.
     """
     # "answers_dict" => { question_id: { "selected_texts": [..] } }
-    # Aşağısı eskiden de vardı:
-    #   evaluate_question => ans.points_earned
-    from math import isclose
-
-    section_scores = {}  # key=section_number -> (sum_earned, sum_possible)
-    for sec in range(1, 5):
-        section_scores[sec] = [0, 0]  # [sum_earned, sum_possible]
+    
+    # section_scores => { section_number: [sum_earned, sum_possible] }
+    section_scores = {sec: [0, 0] for sec in range(1, 5)}   # [sum_earned, sum_possible]
+    # section_correct_wrong => { section_number: [correct_count, wrong_count] }
+    section_correct_wrong = {sec: [0, 0] for sec in range(1, 5)}  # [correct_count, wrong_count]
 
     for q in selected_questions:
         ans_data = answers_dict.get(str(q.id))
         if not ans_data:
-            # User hiç cevap vermemiş -> 0 puan
+            # Kullanıcı hiç cevap vermemiş -> 0 puan
             exam_ans = create_exam_answer(db, exam, q, 0, [])
             section_scores[q.section][1] += q.points
+            section_correct_wrong[q.section][1] += 1  # Yanlış sayılır
             continue
-
-        selected_texts = ans_data.selected_texts or []
+        else:
+            selected_texts = ans_data.selected_texts or []
         exam_ans = create_exam_answer(db, exam, q, 0, selected_texts)
-        points_earned, _is_correct = evaluate_question(db, q, selected_texts)
+        points_earned, is_full_correct = evaluate_question(db, q, selected_texts)
         exam_ans.points_earned = points_earned
         db.commit()
 
-        # section skoruna ekle
+        # Section puanlarına ekle
         section_scores[q.section][0] += points_earned
         section_scores[q.section][1] += q.points
 
-    # Artık section bazında (earned / possible)*100
-    # pass/fail'e bakmak için en az 75
+        # Tam doğru mu kontrolü
+        if is_full_correct:
+            section_correct_wrong[q.section][0] += 1  # Doğru sayısı
+        else:
+            section_correct_wrong[q.section][1] += 1  # Yanlış sayısı
+
+    # Geçme kriterlerini kontrol et
     all_section_pass = True
     for sec in section_scores:
         earned, possible = section_scores[sec]
@@ -76,7 +113,7 @@ def process_results(db: Session, user: User, exam: Exam,
         if section_score < 75.0:
             all_section_pass = False
 
-    # Final Score
+    # Final score hesapla
     total_earned = sum([section_scores[s][0] for s in section_scores])
     total_possible = sum([section_scores[s][1] for s in section_scores])
     if total_possible > 0:
@@ -84,22 +121,15 @@ def process_results(db: Session, user: User, exam: Exam,
     else:
         final_score = 0.0
 
-    # pass => all_section_pass & final_score>=75
+    # Geçme durumu
     pass_exam = (all_section_pass and (final_score >= 75.0))
-    exam.passed = pass_exam  # <-- ekle
+    exam.passed = pass_exam  # Eklenen alan: passed
+    db.commit()
 
-    # Yukarıdaki pass/fail "ExamAnswer" tablosuna kaydedilmiyor. Ama
-    # istersen Exam tablosuna da "passed" bool alanı ekleyebilirsin.
-    # Şimdilik eklemedim.
-
-    # Kullanıcının attempts, score hesaplama (score1, score2, score_avg) eskisi gibi
+    # Kullanıcı puanlarını güncelle
     user.attempts += 1
     user.last_attempt_date = datetime.now()
-
-    # final_score => user'ın bu exam'deki performansı
-    # general_percentage => final_score
     general_percentage = final_score
-
     if user.attempts == 1:
         user.score1 = general_percentage
         user.score_avg = general_percentage
@@ -107,21 +137,22 @@ def process_results(db: Session, user: User, exam: Exam,
         user.score2 = general_percentage
         user.score_avg = (user.score1 + user.score2) / 2
     else:
-        # eğer 2'den fazla attempt yoksa, bu else'e girmez ama
-        # sistemde "2 den fazla attempt" kapalı, yinede koruyalım
+        # 2'den fazla attempt yoksa, bu else'e girmez
         user.score_avg = (user.score_avg + general_percentage) / 2
 
     exam.end_time = end_time
     db.commit()
 
-    # Statistics
-    # section_scores + user => update_statistics
-    # oradaki average_score -> (old + section_score)/2 vs.
-    # bu logic orada
-    update_statistics(db, user.school_id, user.class_name, section_scores)
+    # İstatistikleri güncelle
+    update_statistics(db, user.school_id, user.class_name,
+                      section_scores,
+                      section_correct_wrong)
 
 def create_exam_answer(db: Session, exam: Exam, question: Question,
-                       points_earned: int, selected_texts: List[str]):
+                      points_earned: int, selected_texts: List[str]):
+    """
+    ExamAnswer ve UserChoice kayıtlarını oluşturur.
+    """
     exam_ans = ExamAnswer(
         exam_id=exam.exam_id,
         question_id=question.id,
@@ -165,8 +196,13 @@ def create_exam_answer(db: Session, exam: Exam, question: Question,
 
     return exam_ans
 
-def evaluate_question(db: Session, question: Question, selected_texts: List[str]):
-    # Aşağısı eskisi gibi, ama en sonunda "points" max question.points => %100
+def evaluate_question(db: Session, question: Question, selected_texts: List[str]) -> (int, bool):
+    """
+    Sorunun doğru cevabı kontrol edilir ve puan hesaplanır.
+    Returns:
+        points_earned (int): Alınan puan
+        is_full_correct (bool): Tam doğru mu?
+    """
     if question.type == "true_false":
         correct_choice = db.query(QuestionChoice).filter_by(question_id=question.id, is_correct=True).first()
         if not correct_choice:
@@ -187,12 +223,10 @@ def evaluate_question(db: Session, question: Question, selected_texts: List[str]
         correct_choices = db.query(QuestionChoice).filter_by(question_id=question.id, is_correct=True).all()
         correct_texts = set(c.choice_text.strip().lower() for c in correct_choices)
         user_set = set(txt.strip().lower() for txt in selected_texts)
-
         if not user_set.issubset(correct_texts):
-            # Yanlış şık da seçmiş -> 0
+            # Yanlış şık da seçmiş -> 0 puan, yanlış
             return (0, False)
-
-        # kısmi puan: (seçtiğin doğru sayısı) / (toplam doğru sayısı)
+        # Kısmi puan: (seçilen doğru sayısı) / (toplam doğru sayısı)
         correct_selected = len(user_set & correct_texts)
         total_correct = len(correct_texts)
         if total_correct == 0:
@@ -206,7 +240,6 @@ def evaluate_question(db: Session, question: Question, selected_texts: List[str]
             splitted_texts = [x.strip().lower() for x in selected_texts[0].split(",")]
         else:
             splitted_texts = [x.strip().lower() for x in selected_texts]
-
         all_choices = db.query(QuestionChoice).filter_by(question_id=question.id).all()
         mismatch = False
         for c in all_choices:
@@ -226,5 +259,5 @@ def evaluate_question(db: Session, question: Question, selected_texts: List[str]
         else:
             return (question.points, True)
 
-    # default
+    # Default case: yanlış
     return (0, False)

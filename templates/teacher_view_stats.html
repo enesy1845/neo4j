@@ -1,17 +1,17 @@
 <!-- templates/teacher_view_stats.html -->
 {% extends "base.html" %}
 {% block content %}
-<h2>İstatistikler (Teacher)</h2>
+<h2>Statistics For Teacher</h2>
 
 {% set stats = stats or {} %}
 {% if not stats.per_class and not stats.school_summary %}
-<p>Hiç istatistik bulunamadı.</p>
+<p>There is no statistics.</p>
 {% else %}
 
-/* Her Sınıf için tablo */
+
 {% for cls_name, row_list in stats.per_class.items() %}
 <div style="margin-bottom: 30px;">
-    <p><strong>Sınıf: {{ cls_name }}</strong></p>
+    <p><strong>Class: {{ cls_name }}</strong></p>
     <table class="table">
         <thead>
             <tr>
@@ -33,9 +33,9 @@
 </div>
 {% endfor %}
 
-/* Okul Özeti */
+
 <div>
-    <p><strong>Okul Özeti</strong></p>
+    <p><strong>School Summary</strong></p>
     <table class="table">
         <thead>
             <tr>
