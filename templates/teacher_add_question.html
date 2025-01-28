@@ -1,3 +1,4 @@
+<!-- templates/teacher_add_question.html -->
 {% extends "base.html" %}
 {% block content %}
 <h2>Add New Question</h2>
@@ -12,7 +13,6 @@
         <label>Question Text</label>
         <input type="text" name="question_text" required>
     </div>
-
     <!-- QUESTION TYPE -->
     <div class="form-row">
         <label>Question Type</label>
@@ -23,13 +23,11 @@
             <option value="ordering">Ordering</option>
         </select>
     </div>
-
     <!-- POINTS -->
     <div class="form-row">
         <label>Points</label>
         <input type="number" name="points" value="1" required>
     </div>
-
     <!-- Single Choice Fields -->
     <div id="singleChoiceFields" style="display: none;">
         <p>Please enter 4 choices and specify which one is correct.</p>
@@ -58,7 +56,6 @@
             </label>
         </div>
     </div>
-
     <!-- Multiple Choice Fields -->
     <div id="multipleChoiceFields" style="display: none;">
         <p>Please enter 4 choices. Multiple can be correct.</p>
@@ -87,7 +84,6 @@
             </label>
         </div>
     </div>
-
     <!-- True/False Fields -->
     <div id="trueFalseFields" style="display: none;">
         <p>Select the correct answer for True/False:</p>
@@ -96,7 +92,6 @@
             <option value="False">False</option>
         </select>
     </div>
-
     <!-- Ordering Fields -->
     <div id="orderingFields" style="display: none;">
         <p>Please enter the correct ordering, comma-separated (e.g. Step1, Step2, Step3)</p>
@@ -105,10 +100,8 @@
         <small>All possible items (optional, comma-separated):</small>
         <input type="text" name="ordering_all" placeholder="All items">
     </div>
-
-    <button type="submit">Submit Question</button>
+    <button type="submit" class="btn">Submit Question</button>
 </form>
-
 <script>
     function onTypeChange() {
         const val = document.getElementById("q_type").value;
@@ -116,7 +109,6 @@
         document.getElementById("multipleChoiceFields").style.display = "none";
         document.getElementById("trueFalseFields").style.display = "none";
         document.getElementById("orderingFields").style.display = "none";
-
         if (val === "single_choice") {
             document.getElementById("singleChoiceFields").style.display = "block";
         } else if (val === "multiple_choice") {

@@ -1,10 +1,10 @@
+<!-- templates/register.html -->
 {% extends "base.html" %}
 {% block content %}
 <h2>Register</h2>
 {% if error %}
 <div style="color: red;">{{ error }}</div>
 {% endif %}
-
 <form method="post" action="/register">
     <!-- ROLE -->
     <div class="form-row">
@@ -14,13 +14,11 @@
             <option value="teacher">Teacher</option>
         </select>
     </div>
-
     <!-- USERNAME -->
     <div class="form-row">
         <label>Username</label>
         <input type="text" name="username" required />
     </div>
-
     <!-- PASSWORD -->
     <div class="form-row">
         <label>Password</label>
@@ -30,19 +28,16 @@
             and one digit.
         </small>
     </div>
-
     <!-- FIRST NAME -->
     <div class="form-row">
         <label>First Name</label>
         <input type="text" name="name" required />
     </div>
-
     <!-- LAST NAME -->
     <div class="form-row">
         <label>Last Name</label>
         <input type="text" name="surname" required />
     </div>
-
     <!-- STUDENT SINGLE-SELECT (Hidden if Teacher) -->
     <div class="form-row" id="studentClassRow">
         <label>Class (Single)</label>
@@ -53,17 +48,14 @@
             <option value="7-D">7-D</option>
         </select>
     </div>
-
     <!-- TEACHER MULTI-SELECT (Hidden if Student) -->
     <div class="form-row" id="teacherClassRow" style="display:none;">
         <label>Class (Multiple)</label>
-        <!-- 
-            We will show a clickable "container" that, when clicked, 
-            reveals checkboxes for each class. Then we rely on name="class_name" 
-            to pass them as multiple form values.
+        <!--
+            Custom multi-select dropdown using checkboxes
         -->
-        <div class="multi-class-dropdown" onclick="toggleMultiClassDropdown(event)">
-            <div class="multi-class-header" id="multiClassHeader">
+        <div class="multi-class-dropdown">
+            <div class="multi-class-header" onclick="toggleMultiClassDropdown(event)">
                 <span id="multiClassPlaceholder">Select classes...</span>
                 <i class="arrow-down"></i>
             </div>
@@ -83,7 +75,6 @@
             </div>
         </div>
     </div>
-
     <!-- REGISTERED SECTION (for teacher) -->
     <div class="form-row" id="sectionRow" style="display:none;">
         <label>Registered Section</label>
@@ -95,17 +86,14 @@
             <option value="chemistry">Chemistry</option>
         </select>
     </div>
-
-    <button type="submit">Register</button>
+    <button type="submit" class="btn">Register</button>
 </form>
-
 <script>
     function onRoleChange() {
         const roleVal = document.getElementById('roleSelect').value;
         const studentClassRow = document.getElementById('studentClassRow');
         const teacherClassRow = document.getElementById('teacherClassRow');
         const sectionRow = document.getElementById('sectionRow');
-
         if (roleVal === 'teacher') {
             // Teacher: Hide single-select, show multi-select + section
             studentClassRow.style.display = 'none';
@@ -121,26 +109,26 @@
 
     // Toggle the multi-class dropdown
     function toggleMultiClassDropdown(event) {
-        // If the user clicked a checkbox, don't immediately close the list
+        event.stopPropagation(); // Prevent click from propagating to document
         const multiClassList = document.getElementById('multiClassList');
-        const isCheckbox = event.target.type === 'checkbox';
-        if (!isCheckbox) {
-            // Toggle display
-            multiClassList.style.display =
-                multiClassList.style.display === 'none' ? 'block' : 'none';
+        if (multiClassList.style.display === 'none') {
+            multiClassList.style.display = 'block';
+        } else {
+            multiClassList.style.display = 'none';
         }
-        // Prevent event from bubbling up to form or label
-        event.stopPropagation();
     }
 
     // Close the dropdown if clicked outside
     document.addEventListener('click', function (e) {
         const multiClassList = document.getElementById('multiClassList');
-        const teacherClassRow = document.getElementById('teacherClassRow');
-        if (!teacherClassRow.contains(e.target)) {
-            // click happened outside the multiClass area
+        if (multiClassList.style.display === 'block') {
             multiClassList.style.display = 'none';
         }
+    });
+
+    // Prevent the dropdown from closing when clicking inside the multi-class list
+    document.getElementById('multiClassList').addEventListener('click', function (event) {
+        event.stopPropagation();
     });
 
     onRoleChange(); // Initialize the form on page load

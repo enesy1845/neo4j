@@ -1,3 +1,4 @@
+<!-- templates/admin_update_user.html -->
 {% extends "base.html" %}
 {% block content %}
 <h2>Update User: {{ user_info.username }}</h2>
@@ -32,6 +33,6 @@
         <label>New Password (leave blank if not changing)</label>
         <input type="password" name="new_password">
     </div>
-    <button type="submit">Update User</button>
+    <button type="submit" class="btn">Update User</button>
 </form>
 {% endblock %}

@@ -102,7 +102,8 @@ header {
     border-radius: 8px;
     font-size: 1rem;
     background-color: rgba(255, 255, 255, 0.2);
-    color: #fff;
+    color: #333;
+    /* Changed to dark text for visibility */
     transition: background-color 0.3s, transform 0.2s;
 }
 
@@ -125,14 +126,18 @@ header {
 /* Dropdowns (Select) */
 select {
     appearance: none;
-    background-image: url('data:image/svg+xml;charset=US-ASCII,<svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24"><path fill="%23ffffff" d="M7 10l5 5 5-5H7z"/></svg>');
+    background-image: url('data:image/svg+xml;charset=US-ASCII,<svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24"><path fill="%23333" d="M7 10l5 5 5-5H7z"/></svg>');
+    /* Changed arrow color to dark */
     background-repeat: no-repeat;
     background-position: right 16px center;
     background-size: 12px;
     cursor: pointer;
+    background-color: #fff;
+    /* Ensure background is white */
+    color: #333;
+    /* Ensure text is dark */
 }
 
-/* Multiple Select Styling */
 select[multiple] {
     height: auto;
     padding-right: 30px;
@@ -249,24 +254,6 @@ footer p {
     color: #fbc3fa;
     font-size: 1.05rem;
 }
-#studentClassSelect {
-    background-color: #fff;
-    color: #333;
-    appearance: none;
-    padding: 0.7rem 2rem 0.7rem 1rem;
-    border-radius: 8px;
-    border: none;
-    font-size: 1rem;
-    background-repeat: no-repeat;
-    background-position: right 1rem center;
-    background-size: 1rem;
-    cursor: pointer;
-    transition: background-color 0.3s;
-}
-
-#studentClassSelect:focus {
-    background-color: #f2f2f2;
-}
 
 /* Teacher's custom multi-class dropdown container */
 .multi-class-dropdown {
@@ -341,7 +328,13 @@ footer p {
     background-color: #f9f9f9;
 }
 
-/* If you want a placeholder style when nothing is selected */
+/* Placeholder style when nothing is selected */
 #multiClassPlaceholder {
     color: #666;
+}
+
+/* Ensure the multi-class list doesn't inherit form-row styles */
+.multi-class-list {
+    max-height: 200px;
+    overflow-y: auto;
 }

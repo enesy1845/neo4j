@@ -1,18 +1,15 @@
+<!-- templates/student_solve_exam.html -->
 {% extends "base.html" %}
 {% block content %}
 <h2>Exam Screen</h2>
 <div id="timer">Time Left: <span id="timeLeft"></span> seconds</div>
-
 <form id="examForm" method="post" action="/student_submit_exam">
     <input type="hidden" name="exam_id" value="{{ exam_id }}">
-
     {% for section_number, question_list in sections.items() %}
     <h3>Section {{ section_number }}</h3>
-
     {% for q in question_list %}
     <div class="question-box">
         <p class="question-text"><strong>{{ q.question }}</strong> (Points: {{ q.points }})</p>
-
         {% if q.type == 'true_false' %}
         <!-- True/False: typically 2 radio buttons -->
         <label class="option">
@@ -21,7 +18,6 @@
         <label class="option">
             <input type="radio" name="answer_{{ q.question_id }}" value="False"> False
         </label>
-
         {% elif q.type == 'single_choice' %}
         <!-- Single Choice: radio buttons -->
         {% if q.choices %}
@@ -46,7 +42,6 @@
             <input type="radio" name="answer_{{ q.question_id }}" value="D"> D
         </label>
         {% endif %}
-
         {% elif q.type == 'multiple_choice' %}
         <!-- Multiple Choice: checkboxes -->
         {% if q.choices %}
@@ -71,7 +66,6 @@
             <input type="checkbox" name="answer_{{ q.question_id }}" value="D"> D
         </label>
         {% endif %}
-
         {% elif q.type == 'ordering' %}
         {% if q.choices %}
         <p>Please enter the correct order of these items (comma-separated):</p>
@@ -85,7 +79,6 @@
         <p>No choices available for ordering question.</p>
         <input type="text" name="answer_{{ q.question_id }}" placeholder="Enter your ordering...">
         {% endif %}
-
         {% else %}
         <!-- Unknown type -->
         <label>Your Answer:</label>
@@ -94,11 +87,9 @@
     </div>
     {% endfor %}
     {% endfor %}
-
-    <button type="submit">Submit Exam</button>
+    <button type="submit" class="btn">Submit Exam</button>
 </form>
 {% endblock %}
-
 {% block scripts %}
 {{ super() }}
 <script>
