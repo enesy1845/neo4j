@@ -11,24 +11,24 @@
 </head>
 
 <body>
-
-    <header>
-        <div class="header-left">
-            <h1>NexusAI Quiz App</h1>
-        </div>
-        <div class="header-right">
-            <!-- Kullanıcı adı, UI'de oturum açıkken her sayfada görünsün -->
-            {% if request.session.get("role") %}
-            <span class="user-info">
-                Logged in as: {{ request.session.get("username") }}
-            </span>
-            <a href="/logout" class="btn header-btn">Logout</a>
-            {% else %}
-            <a href="/login" class="btn header-btn">Login</a>
-            <a href="/register" class="btn header-btn">Register</a>
-            {% endif %}
-        </div>
-    </header>
+<header>
+    <div class="header-left">
+        <h1>NexusAI Quiz App</h1>
+    </div>
+    <div class="header-right">
+        {% if request.session.get("role") %}
+        <span class="user-info">
+            Logged In As: {{ request.session.get("username") }}
+        </span>
+        <!-- Yeni buton -->
+        <a href="/go_main_menu" class="btn header-btn">Main Menu</a>
+        <a href="/logout" class="btn header-btn">Logout</a>
+        {% else %}
+        <a href="/login" class="btn header-btn">Login</a>
+        <a href="/register" class="btn header-btn">Register</a>
+        {% endif %}
+    </div>
+</header>
 
     <section class="centered-container">
         <div class="content-box">

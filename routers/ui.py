@@ -23,6 +23,21 @@ def get_role_from_session(request: Request) -> str | None:
 school_id_map = {}
 next_school_index = 1
 
+@ui_router.get("/go_main_menu")
+def go_main_menu(request: Request):
+    role = request.session.get("role")
+    if not role:
+        return RedirectResponse(url="/")
+    if role == "admin":
+        return RedirectResponse(url="/admin_menu")
+    elif role == "teacher":
+        return RedirectResponse(url="/teacher_menu")
+    elif role == "student":
+        return RedirectResponse(url="/student_menu")
+    else:
+        return RedirectResponse(url="/")
+
+
 @ui_router.get("/", response_class=HTMLResponse)
 def main_menu(request: Request):
     token = get_token_from_session(request)

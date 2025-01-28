@@ -55,7 +55,7 @@ header {
 /* Apply to both <a> and <button> elements with .btn class */
 a.btn,
 button.btn {
-    background: #f66ed2;
+    background: #810c76;
     color: #fff !important;
     padding: 10px 20px;
     border: none;
@@ -72,7 +72,7 @@ button.btn {
 /* Hover State */
 a.btn:hover,
 button.btn:hover {
-    background-color: #d65bad;
+    background-color: #770b6d;
     transform: scale(1.05);
 }
 
