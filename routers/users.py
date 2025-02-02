@@ -24,6 +24,7 @@ class UserResponse(BaseModel):
     registered_section: Optional[str] = None
     attempts: int
     score_avg: float
+    okul_no: Optional[int]
 
     class Config:
         orm_mode = True

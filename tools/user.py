@@ -1,35 +1,30 @@
 # tools/user.py
-
 from sqlalchemy.orm import Session
 from tools.utils import hash_password, check_password
 from tools.models import User, School
 import os
 
-# Eğer teachers "matematik","ingilizce","fizik","kimya" seçerse bunları int'e mapleyelim:
-SECTION_MAPPING = {
-    "matematik": "1",
-    "ingilizce": "2",
-    "fizik": "3",
-    "kimya": "4"
+# Eskiden SECTION_MAPPING vb. yoktu veya çokluydu. Artık tekil "registered_section" bekliyoruz.
+SECTION_MAP = {
+    "math": "1",
+    "english": "2",
+    "physics": "3",
+    "chemistry": "4"
 }
-# Boşsa "" veya None kalsın (student vs.)
 
 def register_user(db: Session, username, password, name, surname, class_name, role, registered_section=None):
+    # Aynı username varsa kayda izin vermiyoruz
     existing = db.query(User).filter(User.username == username).first()
     if existing:
         print("Username already exists.")
         return False
-
+    
+    # DefaultSchool çek
     default_school = db.query(School).filter(School.name == "DefaultSchool").first()
     if not default_school:
         print("DefaultSchool not found.")
         return False
-
-    # Eğer role teacher ise ve registered_section "matematik" vs. geldiyse "1" "2" ... saklayalım
-    if role.lower() == "teacher" and registered_section:
-        if registered_section in SECTION_MAPPING:
-            registered_section = SECTION_MAPPING[registered_section]
-
+    
     hashed_pw = hash_password(password)
     user = User(
         username=username,
@@ -37,10 +32,30 @@ def register_user(db: Session, username, password, name, surname, class_name, ro
         name=name,
         surname=surname,
         role=role.lower(),
-        class_name=class_name,
-        registered_section=registered_section or "",
-        school_id=default_school.school_id,
+        school_id=default_school.school_id
     )
+
+    # Öğretmen rolünde tekil "registered_section" map
+    if user.role == "teacher":
+        # Örn. "math" -> "1"
+        if registered_section and registered_section in SECTION_MAP:
+            user.registered_section = SECTION_MAP[registered_section]
+        else:
+            user.registered_section = None
+
+        # Teacher aynı anda birden çok sınıfa bakabilir (class_name => virgülle saklıyoruz)
+        # Front-end'den "7-A,7-B" gibi gelebilir
+        user.class_name = class_name
+    else:
+        # Öğrenci ise tek bir sınıf (class_name)
+        user.class_name = class_name
+        # Otomatik okul_no atama
+        max_no = db.query(User.okul_no).filter(User.role == "student").order_by(User.okul_no.desc()).first()
+        next_no = 1
+        if max_no and max_no[0]:
+            next_no = max_no[0] + 1
+        user.okul_no = next_no
+
     db.add(user)
     db.commit()
     db.refresh(user)
@@ -83,34 +98,20 @@ def update_user(db: Session, admin_user, user_id, **kwargs):
     if admin_user.role.lower() != 'admin':
         print("Only admins can update users.")
         return False
-
-    user = db.query(User).filter(User.user_id == user_id).first()
-    print(f"User ID: {user}")    
+    user = db.query(User).filter(User.username == username).first()
     if not user:
         print("User not found.")
         return False
 
-    # Kullanıcı adı güncellemesi için eşsizlik kontrolü
-    if "username" in kwargs and kwargs["username"]:
-        try:
-            existing_user = db.query(User).filter(User.username == kwargs["username"]).first()
-            if existing_user and str(existing_user.user_id) != user_id:
-                print("Username already taken.")
-                return False
-        except AttributeError:
-            print("No user found with the given username.")
-            return False
-
-
-
-    # Eğer `role` teacher ise ve registered_section için mapping uygulanacaksa
-    if "role" in kwargs and kwargs["role"].lower() == "teacher":
+    # Teacher section
+    if "role" in kwargs and kwargs["role"] and kwargs["role"].lower() == "teacher":
         if "registered_section" in kwargs and kwargs["registered_section"]:
-            rs = kwargs["registered_section"]
-            if rs in SECTION_MAPPING:
-                kwargs["registered_section"] = SECTION_MAPPING[rs]
+            rs_key = kwargs["registered_section"]
+            if rs_key in SECTION_MAP:
+                kwargs["registered_section"] = SECTION_MAP[rs_key]
+            else:
+                kwargs["registered_section"] = None
 
-    # Kullanıcı alanlarını güncelle
     for key, value in kwargs.items():
         if hasattr(user, key) and value is not None:
             if key == "password":
@@ -127,20 +128,20 @@ def create_admin_user(engine):
     from tools.models import User, School
     from dotenv import load_dotenv
     load_dotenv()
+
     ADMIN_USERNAME = os.getenv("ADMIN_USERNAME")
     ADMIN_PASSWORD = os.getenv("ADMIN_PASSWORD")
     ADMIN_NAME = os.getenv("ADMIN_NAME")
     ADMIN_SURNAME = os.getenv("ADMIN_SURNAME")
-    # Create a new session
+
     SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
     db = SessionLocal()
     try:
-        # Check if admin already exists
         admin = db.query(User).filter(User.username == ADMIN_USERNAME).first()
         if admin:
             print("Admin user already exists.")
             return
-        # Get default school
+        
         default_school = db.query(School).filter(School.name == "DefaultSchool").first()
         if not default_school:
             print("DefaultSchool not found. Creating DefaultSchool.")
@@ -148,7 +149,7 @@ def create_admin_user(engine):
             db.add(default_school)
             db.commit()
             db.refresh(default_school)
-        # Create admin user
+
         hashed_pw = hash_password(ADMIN_PASSWORD)
         admin_user = User(
             username=ADMIN_USERNAME,
@@ -157,7 +158,7 @@ def create_admin_user(engine):
             surname=ADMIN_SURNAME,
             role="admin",
             class_name="",
-            school_id=default_school.school_id,
+            school_id=default_school.school_id
         )
         db.add(admin_user)
         db.commit()

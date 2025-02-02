@@ -13,7 +13,7 @@ from routers import auth, users, exams, questions, stats, results
 from routers.ui import ui_router
 #####################################################################
 
-app = FastAPI(title="Examination System API (Pydantic Updated)")
+app = FastAPI(title="NexusAI Quiz App")
 
 # Session Middleware (JWT token’ı session’da tutacağız)
 # SECRET_KEY’inizi .env’den de okuyabilirsiniz.

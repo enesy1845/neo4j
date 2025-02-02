@@ -2,7 +2,7 @@
 {% block content %}
 <h2>No Exam Attempts Left</h2>
 <p>Hello, {{ user_info.name }}.</p>
-<p>Unfortunately, you have used all your exam attempts ({{ user_info.attempts }} / 2).</p>
-<p>You have no more exam attempts remaining.</p>
-<a href="/student_menu" class="btn">Return to Menu</a>
+<p>You have used up all your exam attempts ({{ user_info.attempts }} / 2).</p>
+<p>You cannot take any more exams.</p>
+<a href="/student_menu" class="btn">Back to Menu</a>
 {% endblock %}

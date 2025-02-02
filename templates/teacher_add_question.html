@@ -1,3 +1,4 @@
+<!-- templates/teacher_add_question.html -->
 {% extends "base.html" %}
 {% block content %}
 <h2>Add New Question</h2>
@@ -9,13 +10,12 @@
 <form method="post" action="/teacher_add_question" id="addQuestionForm">
     <!-- QUESTION TEXT -->
     <div class="form-row">
-        <label>Question Text:</label>
+        <label>Question Text</label>
         <input type="text" name="question_text" required>
     </div>
-
     <!-- QUESTION TYPE -->
     <div class="form-row">
-        <label>Question Type:</label>
+        <label>Question Type</label>
         <select name="q_type" id="q_type" onchange="onTypeChange()">
             <option value="single_choice">Single Choice</option>
             <option value="multiple_choice">Multiple Choice</option>
@@ -23,16 +23,14 @@
             <option value="ordering">Ordering</option>
         </select>
     </div>
-
     <!-- POINTS -->
     <div class="form-row">
-        <label>Points:</label>
+        <label>Points</label>
         <input type="number" name="points" value="1" required>
     </div>
-
-    <!-- SINGLE CHOICE FIELDS -->
+    <!-- Single Choice Fields -->
     <div id="singleChoiceFields" style="display: none;">
-        <p>Enter 4 options for Single Choice and mark the correct one.</p>
+        <p>Please enter 4 choices and specify which one is correct.</p>
         <div>
             <label>
                 <input type="radio" name="single_correct" value="A">
@@ -58,10 +56,9 @@
             </label>
         </div>
     </div>
-
-    <!-- MULTIPLE CHOICE FIELDS -->
+    <!-- Multiple Choice Fields -->
     <div id="multipleChoiceFields" style="display: none;">
-        <p>Enter 4 options for Multiple Choice. More than one can be correct.</p>
+        <p>Please enter 4 choices. Multiple can be correct.</p>
         <div>
             <label>
                 <input type="checkbox" name="multi_correct" value="A">
@@ -87,29 +84,24 @@
             </label>
         </div>
     </div>
-
-    <!-- TRUE/FALSE FIELDS -->
+    <!-- True/False Fields -->
     <div id="trueFalseFields" style="display: none;">
         <p>Select the correct answer for True/False:</p>
         <select name="tf_correct">
-            <option value="True">True (Correct)</option>
-            <option value="False">False (Correct)</option>
+            <option value="True">True</option>
+            <option value="False">False</option>
         </select>
     </div>
-
-    <!-- ORDERING FIELDS -->
+    <!-- Ordering Fields -->
     <div id="orderingFields" style="display: none;">
-        <p>Enter the correct order for the ordering question, separated by commas (e.g., Solid, Liquid, Gas, Plasma).
-        </p>
+        <p>Please enter the correct ordering, comma-separated (e.g. Step1, Step2, Step3)</p>
         <input type="text" name="ordering_correct" placeholder="Correct order">
         <br>
-        <small>Note: All steps (optional):</small>
-        <input type="text" name="ordering_all" placeholder="All steps (optional)">
+        <small>All possible items (optional, comma-separated):</small>
+        <input type="text" name="ordering_all" placeholder="All items">
     </div>
-
-    <button type="submit">Submit</button>
+    <button type="submit" class="btn">Submit Question</button>
 </form>
-
 <script>
     function onTypeChange() {
         const val = document.getElementById("q_type").value;
@@ -117,7 +109,6 @@
         document.getElementById("multipleChoiceFields").style.display = "none";
         document.getElementById("trueFalseFields").style.display = "none";
         document.getElementById("orderingFields").style.display = "none";
-
         if (val === "single_choice") {
             document.getElementById("singleChoiceFields").style.display = "block";
         } else if (val === "multiple_choice") {

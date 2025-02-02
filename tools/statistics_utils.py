@@ -3,32 +3,27 @@
 from sqlalchemy.orm import Session
 from tools.models import Statistics
 
-def update_statistics(db: Session, school_id, class_name, section_scores):
+def update_statistics(db: Session, school_id, class_name,
+                      section_scores: dict,
+                      section_correct_wrong: dict):
     """
-    section_scores => { 1: [earned, possible], 2: [earned, possible], ... }
-    We update the 'Statistics' table. For each section => correct_questions, wrong_questions
-    but we also do average_score => (old + new)/2 mantığı,
-    eğer old =0 => 50 ile başla
-
-    'Statistics' tablosunda:
-      - correct_questions
-      - wrong_questions
-      - average_score (daha önce 0 default)
-      - section_percentage (daha önce 0 default)
+    section_scores => { 1: [sum_earned, sum_possible], ... }  # puan hesapları
+    section_correct_wrong => { 1: [correct_count, wrong_count], ... }
     """
     for sec, arr in section_scores.items():
         earned, possible = arr
-        ds = int(earned)  # 'doğru sayısı' demek değil ama basit mantık
-        # istersen "ds" => round(earned) de diyebilirsin
-        # wrong => possible-earned
-        # ama question bazında 1 question = 1 dogru + x yanlis diyeceksin. 
-        # Yine de, basit kalması için ds=earned, ys=possible-earned
-        ys = int(possible - earned)
+        # puan bazlı average_score vs. hesaplamaya devam edebilirsiniz (isterseniz).
+        # ama "doğru" ve "yanlış" sayısı section_correct_wrong'tan gelecek.
+        
+        correct_count = section_correct_wrong[sec][0]
+        wrong_count = section_correct_wrong[sec][1]
+
         stat = db.query(Statistics).filter_by(
             school_id=school_id,
             class_name=class_name,
             section_number=sec
         ).first()
+
         if not stat:
             stat = Statistics(
                 school_id=school_id,
@@ -43,28 +38,26 @@ def update_statistics(db: Session, school_id, class_name, section_scores):
             db.commit()
             db.refresh(stat)
 
-        # update ds, ys
-        stat.correct_questions += ds
-        stat.wrong_questions += ys
+        # Artık tam doğru ise correct_questions += correct_count
+        stat.correct_questions += correct_count
+        stat.wrong_questions += wrong_count
 
-        # section_score = (earned/possible)*100
+        # İsterseniz average_score güncellemesine devam:
+        new_score = 0.0
         if possible > 0:
             new_score = (earned / possible)*100
-        else:
-            new_score = 0.0
-
-        # average_score => eğer old=0 => 50'den başla
+        
         old_avg = stat.average_score
         if old_avg == 0.0:
-            old_avg = 50.0  # senin istediğin "başlangıç 50%" kuralı
-
+            old_avg = 50.0
+        
         stat.average_score = (old_avg + new_score) / 2
 
-        # section_percentage => correct_questions / (correct+wrong) *100
         c = stat.correct_questions
         w = stat.wrong_questions
-        if (c + w) > 0:
-            stat.section_percentage = (c / (c + w)) * 100
+        total_q = c + w
+        if total_q > 0:
+            stat.section_percentage = (c / total_q)*100
         else:
             stat.section_percentage = 0.0
 

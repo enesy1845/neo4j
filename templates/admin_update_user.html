@@ -1,39 +1,38 @@
+<!-- templates/admin_update_user.html -->
 {% extends "base.html" %}
 {% block content %}
 <h2>Update User: {{ user_info.username }}</h2>
-
 {% if msg %}
 <div style="border:1px solid red; color:red; padding:5px; margin-bottom:5px;">
     {{ msg }}
 </div>
 {% endif %}
-
 <form method="post" action="/admin_update_user">
     <input type="hidden" name="username" value="{{ user_info.username }}">
     <div class="form-row">
-        <label>First Name:</label>
+        <label>First Name</label>
         <input type="text" name="name" value="{{ user_info.name }}">
     </div>
     <div class="form-row">
-        <label>Last Name:</label>
+        <label>Last Name</label>
         <input type="text" name="surname" value="{{ user_info.surname }}">
     </div>
     <div class="form-row">
-        <label>Class:</label>
+        <label>Class Name</label>
         <input type="text" name="class_name" value="{{ user_info.class_name }}">
     </div>
     <div class="form-row">
-        <label>Role (student/teacher/admin?):</label>
+        <label>Role</label>
         <input type="text" name="role" value="{{ user_info.role }}">
     </div>
     <div class="form-row">
-        <label>Registered Section:</label>
+        <label>Registered Section</label>
         <input type="text" name="registered_section" value="{{ user_info.registered_section or '' }}">
     </div>
     <div class="form-row">
-        <label>New Password (Leave blank to keep unchanged):</label>
+        <label>New Password (leave blank if not changing)</label>
         <input type="password" name="new_password">
     </div>
-    <button type="submit">Update User</button>
+    <button type="submit" class="btn">Update User</button>
 </form>
 {% endblock %}
