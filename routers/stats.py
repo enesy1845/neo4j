@@ -21,11 +21,9 @@ def view_statistics(db: Session = Depends(get_db), current_user: User = Depends(
     # Eğer teacher ise, sadece registered_section (CSV) içindeki section_number'ları ve
     # class_name (CSV) içindeki sınıfları filtreleyelim
     if current_user.role == "teacher":
-        # Process teacher's registered_section if available
         if current_user.registered_section:
             teacher_sections = [int(x.strip()) for x in current_user.registered_section.split(",") if x.strip()]
             query = query.filter(Statistics.section_number.in_(teacher_sections))
-        # Always split class_name by comma
         teacher_class_list = [c.strip() for c in current_user.class_name.split(",")]
         query = query.filter(Statistics.class_name.in_(teacher_class_list))
 

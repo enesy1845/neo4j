@@ -37,14 +37,19 @@ def register_user(db: Session, username, password, name, surname, class_name, ro
 
     # Öğretmen rolünde tekil "registered_section" map
     if user.role == "teacher":
-        # Örn. "math" -> "1"
-        if registered_section and registered_section in SECTION_MAP:
-            user.registered_section = SECTION_MAP[registered_section]
+        # Allow teacher to provide either a subject name or a numeric section.
+        if registered_section:
+            # If the provided registered_section is numeric, use it directly.
+            if str(registered_section).isdigit():
+                user.registered_section = str(registered_section)
+            # Else, if it's one of the known subject keys, map it.
+            elif registered_section in SECTION_MAP:
+                user.registered_section = SECTION_MAP[registered_section]
+            else:
+                user.registered_section = None
         else:
             user.registered_section = None
-
-        # Teacher aynı anda birden çok sınıfa bakabilir (class_name => virgülle saklıyoruz)
-        # Front-end'den "7-A,7-B" gibi gelebilir
+        # Teacher may be assigned multiple classes (comma-separated)
         user.class_name = class_name
     else:
         # Öğrenci ise tek bir sınıf (class_name)
