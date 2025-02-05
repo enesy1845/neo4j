@@ -10,31 +10,6 @@ router = APIRouter()
 
 @router.get("/", summary="View advanced statistics")
 def view_statistics(db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
-    """
-    Genişletilmiş: Her sınıf ve section için correct_answers/wrong_answers,
-    ayrıca okul özeti tablosu da döner.
-
-    Dönen format:
-    {
-      "per_class": {
-        "7-a": [
-          { "section_number": 1, "correct_answers": X, "wrong_answers": Y },
-          ...
-        ],
-        ...
-      },
-      "school_summary": [
-        {
-          "section_number": 1,
-          "correct_answers_total": 35,
-          "wrong_answers_total": 18,
-          "sn_basarisi": 50,
-          "classes": { "7-a": 65, ... }
-        },
-        ...
-      ]
-    }
-    """
 
     # Sadece "teacher" veya "admin" görebilsin
     if current_user.role not in ["teacher", "admin"]:
@@ -46,17 +21,12 @@ def view_statistics(db: Session = Depends(get_db), current_user: User = Depends(
     # Eğer teacher ise, sadece registered_section (CSV) içindeki section_number'ları ve
     # class_name (CSV) içindeki sınıfları filtreleyelim
     if current_user.role == "teacher":
-        # Teacher'ın registered_section'ı CSV olarak saklanıyor (örnek: "1,2")
+        # Process teacher's registered_section if available
         if current_user.registered_section:
             teacher_sections = [int(x.strip()) for x in current_user.registered_section.split(",") if x.strip()]
-        else:
-            teacher_sections = []
-
-        # class_name de CSV ise (örnek: "7-a,7-b"), ya da tekil ise
-        teacher_class_list = [c.strip() for c in current_user.class_name.split(",")] if "," in current_user.class_name else [current_user.class_name]
-
-        # Bu verilere göre filter
-        query = query.filter(Statistics.section_number.in_(teacher_sections))
+            query = query.filter(Statistics.section_number.in_(teacher_sections))
+        # Always split class_name by comma
+        teacher_class_list = [c.strip() for c in current_user.class_name.split(",")]
         query = query.filter(Statistics.class_name.in_(teacher_class_list))
 
     all_stats = query.all()

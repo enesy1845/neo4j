@@ -21,9 +21,10 @@ header {
     align-items: center;
 }
 
-.header-left h1 {
-    margin: 0;
-    font-size: 1.8rem;
+
+
+.header-left .logo {
+    height: 100px;
 }
 
 .header-right {
@@ -37,25 +38,13 @@ header {
     margin-right: 15px;
 }
 
-/* 3) Buttons - removed border, gentle scale on hover */
-.btn {
-    background: #f66ed2;
-    color: #fff !important;
-    padding: 10px 20px;
-    border: none;
-    border-radius: 25px;
-    text-decoration: none;
-    transition: background 0.3s, transform 0.2s;
-    font-weight: 500;
-    display: inline-block;
-    cursor: pointer;
-    box-sizing: border-box;
-}
-
-/* Apply to both <a> and <button> elements with .btn class */
+/* 3) Buttons */
+/* 3) Buttons - update to dark purple */
+.btn,
 a.btn,
 button.btn {
     background: #810c76;
+    /* dark purple */
     color: #fff !important;
     padding: 10px 20px;
     border: none;
@@ -67,40 +56,21 @@ button.btn {
     cursor: pointer;
     box-sizing: border-box;
     margin-top: 5px;
+    font-family: 'Sora', sans-serif;
 }
 
-/* Hover State */
 a.btn:hover,
 button.btn:hover {
-    background-color: #770b6d;
+    background-color: #75016a;
+    /* slightly lighter purple on hover */
     transform: scale(1.05);
 }
 
-/* Active State */
 a.btn:active,
 button.btn:active {
-    background-color: #9d437d;
+    background-color: #9f0090;
+    /* revert to dark purple */
     transform: scale(1.0);
-}
-
-/* Reset Button Styles to Remove Default Browser Styles */
-button.btn {
-    /* Remove default button styles */
-    background: #f66ed2;
-    border: none;
-    padding: 10px 20px;
-    color: #fff;
-    border-radius: 25px;
-    font-size: 1rem;
-    font-family: inherit;
-    cursor: pointer;
-}
-
-/* Optional: Focus Styles for Accessibility */
-button.btn:focus,
-a.btn:focus {
-    outline: 2px solid #fff;
-    outline-offset: 2px;
 }
 
 /* 4) Container & Box */
@@ -164,7 +134,7 @@ a.btn:focus {
     margin-top: 5px;
 }
 
-/* 7) All dropdowns share a consistent style */
+/* 7) Select Elements */
 select {
     appearance: none;
     background-image: url('data:image/svg+xml;charset=US-ASCII,<svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24"><path fill="%23ffffff" d="M7 10l5 5 5-5H7z"/></svg>');
@@ -174,18 +144,11 @@ select {
     cursor: pointer;
 }
 
-/* If using a normal single <select> with light background: */
 #studentClassSelect,
 #roleSelect,
 #sectionSelect {
     background-color: #fff;
     color: #333;
-}
-
-/* Multiple select (if you used it) */
-select[multiple] {
-    height: auto;
-    padding-right: 30px;
 }
 
 /* 8) Checkboxes & Radios */
@@ -237,7 +200,7 @@ footer p {
     opacity: 0.8;
 }
 
-/* Modern button group layout */
+/* 11) Button Group */
 .button-group {
     display: flex;
     flex-wrap: wrap;
@@ -251,7 +214,7 @@ footer p {
     margin: 0;
 }
 
-/* .option is used for listing checkboxes/radios inline */
+/* 12) Options */
 .option {
     display: flex;
     align-items: center;
@@ -259,14 +222,14 @@ footer p {
     font-size: 0.95rem;
 }
 
-/* Timer styling if used */
+/* 13) Timer */
 #timer {
     font-weight: bold;
     margin-bottom: 20px;
     font-size: 1.1rem;
 }
 
-/* Question Box */
+/* 14) Question Box */
 .question-box {
     border: 1px solid rgba(255, 255, 255, 0.3);
     padding: 20px;
@@ -275,7 +238,6 @@ footer p {
     background-color: rgba(255, 255, 255, 0.05);
 }
 
-/* Question Text */
 .question-text {
     font-weight: 700;
     margin-bottom: 15px;
@@ -283,13 +245,38 @@ footer p {
     font-size: 1.05rem;
 }
 
-/* 11) The custom teacher multi-select container */
+/* 15) New status and answer classes (updated color palette) */
+.status-correct {
+    color: #ffffff;
+    /* Fresh Green for correct statuses */
+}
+
+.status-partial {
+    color: #3498DB;
+    /* Vibrant Blue for partially correct statuses */
+}
+
+.status-wrong {
+    color: #b9b9b9;
+    /* Vibrant Red for wrong statuses */
+}
+
+.answer-correct {
+    color: #ffffff;
+    /* Fresh Green for correct answer text */
+}
+
+.answer-wrong {
+    color: #bebebe;
+    /* Vibrant Red for wrong answer text */
+}
+
+/* 16) Custom teacher multi-select styles and ordering input */
 .multi-class-dropdown {
     position: relative;
     background-color: #fff;
     color: #333;
     border-radius: 8px;
-    padding: 0.7rem 1rem;
     cursor: pointer;
     display: inline-block;
     width: 100%;
@@ -303,6 +290,8 @@ footer p {
     display: flex;
     justify-content: space-between;
     align-items: center;
+    min-height: 48px;
+    padding: 0 16px;
 }
 
 .multi-class-header i.arrow-down {
@@ -349,68 +338,6 @@ footer p {
     accent-color: #f66ed2;
 }
 
-/* Slight hover effect for the container */
-.multi-class-dropdown:hover {
-    background-color: #f9f9f9;
-}
-
-/* Placeholder color if no classes are selected yet */
-#multiClassPlaceholder {
-    color: #666;
-}
-
-/* Update the .styled-select class to cover all dropdown types */
-.styled-select {
-    background-color: #fff !important;
-    color: #333 !important;
-    border: 1px solid #ccc !important;
-    border-radius: 8px !important;
-    box-sizing: border-box;
-    min-height: 48px;
-    display: inline-block;
-    position: relative;
-    width: 100%;
-    cursor: pointer;
-    padding: 12px 16px;
-    font-size: 1rem;
-    appearance: none;
-    background-image: url('data:image/svg+xml;charset=US-ASCII,<svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24"><path fill="%23333" d="M7 10l5 5 5-5H7z"/></svg>');
-    background-repeat: no-repeat;
-    background-position: right 16px center;
-    background-size: 12px;
-}
-
-/* Remove default focus outline */
-.styled-select:focus {
-    outline: none;
-    box-shadow: 0 0 0 2px rgba(246, 110, 210, 0.3);
-}
-
-/* Multi-class dropdown specific adjustments */
-.styled-select.multi-class-dropdown {
-    padding: 0;
-    background-image: none;
-}
-
-/* Header alignment for multi-select */
-.multi-class-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    min-height: 48px;
-    padding: 0 16px;
-}
-
-/* Placeholder text styling */
-#multiClassPlaceholder {
-    color: #666;
-    font-size: 1rem;
-}
-
-/* Arrow consistency */
-.multi-class-header .arrow-down {
-    border-color: #333;
-}
 .ordering-input {
     width: 100%;
     padding: 12px 16px;
@@ -425,8 +352,10 @@ footer p {
 .ordering-input:focus {
     outline: none;
     border-color: #f66ed2;
-    /* Tercihen markanıza uygun renk */
     background-color: rgba(255, 255, 255, 0.8);
     transform: scale(1.02);
     transition: 0.2s;
 }
+
+
+

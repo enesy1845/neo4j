@@ -5,7 +5,7 @@
 <p class="welcome-message">
     Hello, {{ user_info.name }} {{ user_info.surname }} ({{ user_info.role|capitalize }})<br>
     School No: {{ user_info.okul_no }} | Class: {{ user_info.class_name }}<br>
-    Remaining Exam Attempts: {{ left_attempts }} | Average Score: {{ user_info.score_avg }}
+    Remaining Exam Attempts: {{ left_attempts }} | Average Score: {{ "{:.2f}".format(user_info.score_avg) }}
 </p>
 <ul class="button-group">
     <li><a href="/student_solve_exam" class="btn">Start Exam</a></li>

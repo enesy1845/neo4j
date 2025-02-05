@@ -11,10 +11,12 @@
 <p>Total Attempts: {{ results_data.attempts }}</p>
 
 {% for exam in results_data.exams %}
-<div style="border:1px solid #999; padding:10px; margin-bottom:15px;">
+<div style="border:1px solid #999; padding:10px; margin-bottom:15px; border-radius: 12px;">
     <h3>Exam #{{ loop.index }}</h3>
-    <p>Start Time: {{ exam.start_time }}<br>
-        End Time: {{ exam.end_time if exam.end_time else "In Progress" }}</p>
+    <p>
+        Start Time: {{ exam.start_time }}<br>
+        End Time: {{ exam.end_time if exam.end_time else "In Progress" }}
+    </p>
 
     <!-- Section-based summary -->
     <table class="table">
@@ -45,11 +47,11 @@
     </table>
 
     {% if exam.pass_fail == "geçemedi" %}
-    <p style="color:red;">
+    <p class="status-wrong">
         Result: Failed (You must score at least 75 in each section).
     </p>
     {% else %}
-    <p style="color:lime;">
+    <p class="status-correct">
         Result: Passed, congratulations!
     </p>
     {% endif %}
@@ -71,41 +73,40 @@
             <tr>
                 <td>{{ qd.question_text }}</td>
                 <td>
-                    {% if qd.student_answers and qd.student_answers|length > 0 %}
+                    {% if qd.student_answers and qd.student_answers | length > 0 %}
                     {% if qd.status == "Wrong" %}
                     {% for ans in qd.student_answers %}
-                    <span style="color:red;">{{ ans }}</span><br>
+                    <span class="answer-wrong">{{ ans }}</span><br>
                     {% endfor %}
                     {% elif qd.status == "Partially Correct" %}
                     {% for ans in qd.student_answers %}
                     {% if ans in qd.correct_answers %}
-                    <span style="color:lime;">{{ ans }}</span><br>
+                    <span class="answer-correct">{{ ans }}</span><br>
                     {% else %}
-                    <span style="color:red;">{{ ans }}</span><br>
+                    <span class="answer-wrong">{{ ans }}</span><br>
                     {% endif %}
                     {% endfor %}
                     {% else %}
-                    <!-- qd.status == "Correct" -->
                     {% for ans in qd.student_answers %}
-                    <span style="color:lime;">{{ ans }}</span><br>
+                    <span class="answer-correct">{{ ans }}</span><br>
                     {% endfor %}
                     {% endif %}
                     {% else %}
-                    <span style="color:red;">(No answer)</span>
+                    <span class="answer-wrong">(No answer)</span>
                     {% endif %}
                 </td>
                 <td>
                     {% for correct in qd.correct_answers %}
-                    <span style="color:lime;">{{ correct }}</span><br>
+                    <span class="answer-correct">{{ correct }}</span><br>
                     {% endfor %}
                 </td>
                 <td>
                     {% if qd.status == "Correct" %}
-                    <span style="color:lime;">Correct</span>
+                    <span class="status-correct">Correct</span>
                     {% elif qd.status == "Partially Correct" %}
-                    <span style="color:orange;">Partially Correct</span>
+                    <span class="status-partial">Partially Correct</span>
                     {% else %}
-                    <span style="color:red;">Wrong</span>
+                    <span class="status-wrong">Wrong</span>
                     {% endif %}
                 </td>
                 <td>{{ qd.points_earned }}/{{ qd.points_possible }}</td>

@@ -11,35 +11,32 @@
 </head>
 
 <body>
-<header>
-    <div class="header-left">
-        <h1>NexusAI Quiz App</h1>
-    </div>
-    <div class="header-right">
-        {% if request.session.get("role") %}
-        <span class="user-info">
-            Logged In As: {{ request.session.get("username") }}
-        </span>
-        <!-- Yeni buton -->
-        <a href="/go_main_menu" class="btn header-btn">Main Menu</a>
-        <a href="/logout" class="btn header-btn">Logout</a>
-        {% else %}
-        <a href="/login" class="btn header-btn">Login</a>
-        <a href="/register" class="btn header-btn">Register</a>
-        {% endif %}
-    </div>
-</header>
-
+    <header>
+        <div class="header-left">
+            <!-- Replaced the text title with a logo image -->
+            <a href="/"><img src="/static/logo.svg" alt="Logo" class="logo"></a>
+        </div>
+        <div class="header-right">
+            {% if request.session.get("role") %}
+            <span class="user-info">
+                Logged In As: {{ request.session.get("username") }}
+            </span>
+            <a href="/go_main_menu" class="btn header-btn">Main Menu</a>
+            <a href="/logout" class="btn header-btn">Logout</a>
+            {% else %}
+            <a href="/login" class="btn header-btn">Login</a>
+            <a href="/register" class="btn header-btn">Register</a>
+            {% endif %}
+        </div>
+    </header>
     <section class="centered-container">
         <div class="content-box">
             {% block content %}{% endblock %}
         </div>
     </section>
-
     <footer>
         <p>© 2025 NexusAI Quiz App — All rights reserved.</p>
     </footer>
-
     <!-- Timer script if needed -->
     <script src="/static/js/timer.js"></script>
     {% block scripts %}{% endblock %}

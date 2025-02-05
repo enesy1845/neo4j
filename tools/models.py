@@ -36,16 +36,10 @@ class User(Base):
     score2 = Column(Float, default=0)
     score_avg = Column(Float, default=0)
     class_name = Column(String(50), nullable=False)
-
-    # Burada öğretmenin kayıtlı olduğu bir veya birden fazla "section"ı virgülle tutacağız.
     registered_section = Column(String(100), nullable=True)
-
-    # Yeni eklenen kolon: Öğrenci no (sadece student'lar için kullanılacak)
-    okul_no = Column(Integer, unique=True, nullable=True)  # <--- Yeni Eklendi
-
+    okul_no = Column(Integer, unique=True, nullable=True)
     school_id = Column(PGUUID(as_uuid=True), ForeignKey("schools.school_id", ondelete='CASCADE'), nullable=False)
     school = relationship("School", back_populates="users")
-
     exams = relationship("Exam", back_populates="user", cascade="all, delete-orphan")
 
 class Question(Base):
@@ -57,7 +51,6 @@ class Question(Base):
     points = Column(Integer, nullable=False, default=1)
     type = Column(String(50), nullable=False)
     question_choices = relationship("QuestionChoice", back_populates="question", cascade="all, delete-orphan")
-
     exams = relationship(
         "Exam",
         secondary=exam_question_association,
@@ -80,11 +73,11 @@ class Exam(Base):
     class_name = Column(String(50), nullable=False)
     start_time = Column(DateTime, default=datetime.utcnow)
     end_time = Column(DateTime, nullable=True)
+    status = Column(String(20), nullable=False, default="in_progress")  # New status column
     school_id = Column(PGUUID(as_uuid=True), ForeignKey("schools.school_id", ondelete='CASCADE'), nullable=False)
     school = relationship("School", back_populates="exams")
     user = relationship("User", back_populates="exams")
     exam_answers = relationship("ExamAnswer", back_populates="exam", cascade="all, delete-orphan")
-
     selected_questions = relationship(
         "Question",
         secondary=exam_question_association,
