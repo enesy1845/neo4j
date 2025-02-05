@@ -21,22 +21,20 @@ class SectionResult(BaseModel):
     section_number: int
     correct_answers: int
     wrong_answers: int
-    so: float  # sınıf ort.
-    oo: float  # okul ort.
+    so: float  # class average
+    oo: float  # school average
     notu: float
     ort: float
 
 class ExamDetailV2(BaseModel):
-    # exam_id yerine kullanıcıya göstermeyeceğiz, ID’yi saklamak istersek de ekleyebilirdik.
     start_time: str
     end_time: str | None
     pass_fail: str
     sections_details: List[SectionResult]
-    questions_details: List[QuestionDetailModel]  # <--- Yeni eklendi
+    questions_details: List[QuestionDetailModel]
 
 class ExamResultV2Response(BaseModel):
-    # ID yerine okul_no göstereceğiz
-    student_number: int | None  # eğer rol=student ise
+    student_number: int | None
     class_name: str
     attempts: int
     exams: List[ExamDetailV2]
@@ -45,8 +43,8 @@ class ExamResultV2Response(BaseModel):
 def view_exam_results_v2(db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
     if current_user.role != "student":
         raise HTTPException(status_code=403, detail="Only students can view their exam results.")
-
-    exams = db.query(Exam).filter(Exam.user_id == current_user.user_id).order_by(Exam.start_time.asc()).all()
+    # Only include exams that have been submitted (i.e. end_time is not None)
+    exams = db.query(Exam).filter(Exam.user_id == current_user.user_id, Exam.end_time.isnot(None)).order_by(Exam.start_time.asc()).all()
     if not exams:
         return {
             "student_number": current_user.okul_no,
@@ -54,7 +52,6 @@ def view_exam_results_v2(db: Session = Depends(get_db), current_user: User = Dep
             "attempts": current_user.attempts,
             "exams": []
         }
-
     pass_mark = 75.0
     exam_details_list = []
 
