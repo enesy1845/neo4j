@@ -1,19 +1,21 @@
-<!-- templates/teacher_menu.html -->
 {% extends "base.html" %}
 {% block content %}
-<h2>Teacher Panel</h2>
-<p class="welcome-message">
-    Hello, {{ user_info.name }} {{ user_info.surname }} ({{ user_info.role|capitalize }})<br>
-    Classes: {{ user_info.class_name }}<br>
-    Section: {{ user_info.registered_section }}
-</p>
-{% if msg %}
-<div style="color: green;">{{ msg }}</div>
-{% endif %}
-
-<div class="button-group">
-    <a href="/teacher_add_question" class="btn">Add Question</a>
-    <a href="/teacher_view_stats" class="btn">View Statistics</a>
-    <a href="/user_profile" class="btn">Update Profile</a>
+<div class="dashboard-container">
+    <h1>Teacher Dashboard</h1>
+    <p class="subtext">
+        Hello, {{ user_info.name }} {{ user_info.surname }}!<br>
+        Your Classes: {{ user_info.class_name }} | Registered Section: {{ user_info.registered_section }}
+    </p>
+    {% if msg %}
+    <div class="notification">
+        {{ msg }}
+    </div>
+    {% endif %}
+    <div class="button-group">
+        <a href="/teacher_add_question" class="btn">Add New Question</a>
+        <a href="/teacher_view_stats" class="btn">View Statistics</a>
+        <a href="/user_profile" class="btn">Update Profile</a>
+    </div>
 </div>
 {% endblock %}
+

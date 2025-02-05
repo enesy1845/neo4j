@@ -1,9 +1,10 @@
-<!-- templates/base.html -->
 <!DOCTYPE html>
-<html>
+<html lang="en">
 
 <head>
     <meta charset="UTF-8">
+    <!-- Added viewport meta tag for responsiveness -->
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>NexusAI Quiz App</title>
     <!-- Google Fonts: Sora -->
     <link href="https://fonts.googleapis.com/css2?family=Sora:wght@400;600;700&display=swap" rel="stylesheet" />
@@ -39,7 +40,29 @@
     </footer>
     <!-- Timer script if needed -->
     <script src="/static/js/timer.js"></script>
+
     {% block scripts %}{% endblock %}
+
+    {% if request.session.get("role") %}
+    <script>
+        // Back button confirmation functionality
+        // This script will intercept the browser's back button and ask for confirmation before navigating away.
+        (function () {
+            // Push an extra state so that back button triggers popstate
+            window.history.pushState(null, "", window.location.href);
+            window.onpopstate = function (event) {
+                // Show confirmation dialog
+                if (confirm("Are you sure you want to exit?")) {
+                    // If the user confirms, allow back navigation (or perform a logout if desired)
+                    window.history.back();
+                } else {
+                    // Otherwise, push state back to prevent navigation
+                    window.history.pushState(null, "", window.location.href);
+                }
+            };
+        })();
+    </script>
+    {% endif %}
 </body>
 
 </html>

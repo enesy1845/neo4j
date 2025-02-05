@@ -1,15 +1,15 @@
-<!-- templates/student_menu.html -->
 {% extends "base.html" %}
 {% block content %}
-<h2>Student Panel</h2>
-<p class="welcome-message">
-    Hello, {{ user_info.name }} {{ user_info.surname }} ({{ user_info.role|capitalize }})<br>
-    School No: {{ user_info.okul_no }} | Class: {{ user_info.class_name }}<br>
-    Remaining Exam Attempts: {{ left_attempts }} | Average Score: {{ "{:.2f}".format(user_info.score_avg) }}
-</p>
-<ul class="button-group">
-    <li><a href="/student_solve_exam" class="btn">Start Exam</a></li>
-    <li><a href="/student_view_results" class="btn">View Results</a></li>
-    <li><a href="/user_profile" class="btn">Update Profile</a></li>
-</ul>
+<div class="welcome-container">
+    <h1>Welcome, {{ user_info.name }}!</h1>
+    <p class="subtext">
+        School No: {{ user_info.okul_no }} | Class: {{ user_info.class_name }}<br>
+        Remaining Exam Attempts: {{ left_attempts }} | Average Score: {{ "{:.2f}".format(user_info.score_avg) }}
+    </p>
+    <div class="button-group">
+        <a href="/student_solve_exam" class="btn">Start Quiz</a>
+        <a href="/student_view_results" class="btn">View Results</a>
+        <a href="/user_profile" class="btn">Update Profile</a>
+    </div>
+</div>
 {% endblock %}

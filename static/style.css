@@ -1,4 +1,17 @@
-/* static/style.css */
+/* 17) Updated Color Palette & Layout for a Vibrant, Modern Quiz Application */
+
+/* Define CSS variables for a bright and lively color palette */
+:root {
+    --bg-color: #ffffff;
+    --surface-color: #f7f7f7;
+    --header-bg: linear-gradient(135deg, #43cea2, #185a9d);
+    --button-primary: #2196F3;
+    --button-hover: #1976D2;
+    --accent-color: #2196F3;
+    --text-color: #333333;
+    --border-color: #ddd;
+    --notification-bg: #e3f2fd;
+}
 
 /* 1) Basic Reset & Font */
 html,
@@ -7,24 +20,21 @@ body {
     margin: 0;
     padding: 0;
     font-family: 'Sora', sans-serif;
-    background: linear-gradient(to top left, #2b0428, #810c76) no-repeat fixed;
-    background-size: cover;
-    color: #f2f2f2;
+    background: var(--bg-color);
+    color: var(--text-color);
 }
 
 /* 2) Header */
 header {
-    background-color: #3a0a36;
+    background: var(--header-bg);
     padding: 16px 32px;
     display: flex;
     justify-content: space-between;
     align-items: center;
 }
 
-
-
 .header-left .logo {
-    height: 100px;
+    height: 80px;
 }
 
 .header-right {
@@ -36,15 +46,14 @@ header {
 .user-info {
     font-weight: 600;
     margin-right: 15px;
+    color:white;
 }
 
 /* 3) Buttons */
-/* 3) Buttons - update to dark purple */
 .btn,
 a.btn,
 button.btn {
-    background: #810c76;
-    /* dark purple */
+    background: var(--button-primary);
     color: #fff !important;
     padding: 10px 20px;
     border: none;
@@ -54,22 +63,19 @@ button.btn {
     font-weight: 500;
     display: inline-block;
     cursor: pointer;
-    box-sizing: border-box;
     margin-top: 5px;
     font-family: 'Sora', sans-serif;
 }
 
 a.btn:hover,
 button.btn:hover {
-    background-color: #75016a;
-    /* slightly lighter purple on hover */
+    background-color: var(--button-hover);
     transform: scale(1.05);
 }
 
 a.btn:active,
 button.btn:active {
-    background-color: #9f0090;
-    /* revert to dark purple */
+    background-color: var(--accent-color);
     transform: scale(1.0);
 }
 
@@ -84,10 +90,10 @@ button.btn:active {
 
 .content-box {
     width: 800px;
-    background-color: rgba(255, 255, 255, 0.05);
-    border: 1px solid rgba(255, 255, 255, 0.2);
+    background-color: var(--surface-color);
+    border: 1px solid var(--border-color);
     border-radius: 12px;
-    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
     padding: 30px 40px;
     margin-bottom: 40px;
 }
@@ -110,11 +116,11 @@ button.btn:active {
 .form-row input[type="number"],
 .form-row select {
     padding: 12px 16px;
-    border: none;
+    border: 1px solid var(--border-color);
     border-radius: 8px;
     font-size: 1rem;
-    background-color: rgba(255, 255, 255, 0.2);
-    color: #fff;
+    background-color: var(--surface-color);
+    color: var(--text-color);
     transition: background-color 0.3s, transform 0.2s;
 }
 
@@ -123,13 +129,13 @@ button.btn:active {
 .form-row input[type="number"]:focus,
 .form-row select:focus {
     outline: none;
-    background-color: rgba(255, 255, 255, 0.3);
+    background-color: #eaeaea;
     transform: scale(1.02);
 }
 
 /* 6) Password Help Text */
 .password-help {
-    color: #bbb;
+    color: #777;
     font-size: 0.85rem;
     margin-top: 5px;
 }
@@ -137,7 +143,7 @@ button.btn:active {
 /* 7) Select Elements */
 select {
     appearance: none;
-    background-image: url('data:image/svg+xml;charset=US-ASCII,<svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24"><path fill="%23ffffff" d="M7 10l5 5 5-5H7z"/></svg>');
+    background-image: url('data:image/svg+xml;charset=US-ASCII,<svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24"><path fill="%23333" d="M7 10l5 5 5-5H7z"/></svg>');
     background-repeat: no-repeat;
     background-position: right 16px center;
     background-size: 12px;
@@ -147,14 +153,14 @@ select {
 #studentClassSelect,
 #roleSelect,
 #sectionSelect {
-    background-color: #fff;
-    color: #333;
+    background-color: var(--surface-color);
+    color: var(--text-color);
 }
 
 /* 8) Checkboxes & Radios */
 .option input[type="checkbox"],
 .option input[type="radio"] {
-    accent-color: #f66ed2;
+    accent-color: var(--button-primary);
     width: 18px;
     height: 18px;
     cursor: pointer;
@@ -172,27 +178,26 @@ select {
 
 .table th,
 .table td {
-    border: 1px solid rgba(255, 255, 255, 0.2);
+    border: 1px solid var(--border-color);
     padding: 12px 16px;
-    background-color: rgba(255, 255, 255, 0.1);
-    color: #fff;
+    background-color: var(--surface-color);
+    color: var(--text-color);
     text-align: center;
 }
 
 .table th {
-    background-color: rgba(255, 255, 255, 0.15);
+    background-color: #e0e0e0;
     text-transform: uppercase;
     font-size: 0.9rem;
 }
 
 /* 10) Footer */
 footer {
-    background-color: #3a0a36;
+    background: var(--header-bg);
     color: #fff;
     text-align: center;
     padding: 12px 0;
     font-size: 0.9rem;
-    position: relative;
 }
 
 footer p {
@@ -200,18 +205,14 @@ footer p {
     opacity: 0.8;
 }
 
-/* 11) Button Group */
+/* 11) Button Group - center aligned */
 .button-group {
     display: flex;
-    flex-wrap: wrap;
+    justify-content: center;
     gap: 15px;
     list-style: none;
     padding: 0;
     margin: 20px 0;
-}
-
-.button-group li {
-    margin: 0;
 }
 
 /* 12) Options */
@@ -231,58 +232,53 @@ footer p {
 
 /* 14) Question Box */
 .question-box {
-    border: 1px solid rgba(255, 255, 255, 0.3);
+    border: 1px solid var(--border-color);
     padding: 20px;
     margin-bottom: 20px;
     border-radius: 8px;
-    background-color: rgba(255, 255, 255, 0.05);
+    background-color: var(--surface-color);
 }
 
 .question-text {
     font-weight: 700;
     margin-bottom: 15px;
-    color: #fbc3fa;
+    color: var(--accent-color);
     font-size: 1.05rem;
 }
 
-/* 15) New status and answer classes (updated color palette) */
+/* 15) Status and Answer Classes */
 .status-correct {
-    color: #ffffff;
-    /* Fresh Green for correct statuses */
+    color: #4CAF50;
 }
 
 .status-partial {
     color: #3498DB;
-    /* Vibrant Blue for partially correct statuses */
 }
 
 .status-wrong {
-    color: #b9b9b9;
-    /* Vibrant Red for wrong statuses */
+    color: #F44336;
 }
 
 .answer-correct {
-    color: #ffffff;
-    /* Fresh Green for correct answer text */
+    color: #4CAF50;
 }
 
 .answer-wrong {
-    color: #bebebe;
-    /* Vibrant Red for wrong answer text */
+    color: #F44336;
 }
 
 /* 16) Custom teacher multi-select styles and ordering input */
 .multi-class-dropdown {
     position: relative;
-    background-color: #fff;
-    color: #333;
+    background-color: var(--surface-color);
+    color: var(--text-color);
     border-radius: 8px;
     cursor: pointer;
     display: inline-block;
     width: 100%;
     box-sizing: border-box;
     user-select: none;
-    border: 1px solid #ccc;
+    border: 1px solid var(--border-color);
     margin-top: 5px;
 }
 
@@ -295,7 +291,7 @@ footer p {
 }
 
 .multi-class-header i.arrow-down {
-    border: solid #333;
+    border: solid var(--text-color);
     border-width: 0 2px 2px 0;
     display: inline-block;
     padding: 3px;
@@ -312,13 +308,13 @@ footer p {
     position: absolute;
     top: 100%;
     left: 0;
-    background-color: #fff;
-    color: #333;
+    background-color: var(--surface-color);
+    color: var(--text-color);
     width: 100%;
     border-radius: 8px;
-    border: 1px solid #ccc;
+    border: 1px solid var(--border-color);
     margin-top: 8px;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
     z-index: 999;
     padding: 10px;
     box-sizing: border-box;
@@ -335,27 +331,71 @@ footer p {
     margin-right: 8px;
     width: 16px;
     height: 16px;
-    accent-color: #f66ed2;
+    accent-color: var(--button-primary);
 }
 
 .ordering-input {
     width: 100%;
     padding: 12px 16px;
     margin-top: 5px;
-    border: 1px solid #ccc;
+    border: 1px solid var(--border-color);
     border-radius: 8px;
     font-size: 1rem;
-    color: #333;
+    color: var(--text-color);
     box-sizing: border-box;
+    background-color: var(--surface-color);
 }
 
 .ordering-input:focus {
     outline: none;
-    border-color: #f66ed2;
-    background-color: rgba(255, 255, 255, 0.8);
+    border-color: var(--button-primary);
+    background-color: #eaeaea;
     transform: scale(1.02);
     transition: 0.2s;
 }
 
+/* 17) New Helper Classes for Informative Layouts */
 
+/* Student welcome container */
+.welcome-container {
+    text-align: center;
+    padding: 20px;
+}
 
+.welcome-container h1 {
+    font-size: 2.5rem;
+    margin-bottom: 10px;
+}
+
+.welcome-container .subtext {
+    font-size: 1.2rem;
+    margin-bottom: 20px;
+    color: var(--accent-color);
+}
+
+/* Teacher dashboard container */
+.dashboard-container {
+    text-align: center;
+    padding: 20px;
+}
+
+.dashboard-container h1 {
+    font-size: 2.5rem;
+    margin-bottom: 10px;
+}
+
+.dashboard-container .subtext {
+    font-size: 1.2rem;
+    margin-bottom: 20px;
+    color: var(--accent-color);
+}
+
+/* Notification box for messages */
+.notification {
+    background-color: var(--notification-bg);
+    padding: 10px;
+    margin-bottom: 20px;
+    border-radius: 8px;
+    font-size: 1rem;
+    text-align: center;
+}
