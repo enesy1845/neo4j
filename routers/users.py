@@ -30,6 +30,7 @@ class UserResponse(BaseModel):
         orm_mode = True
 
 class UpdateUserRequest(BaseModel):
+    username: Optional[str]
     name: Optional[str]
     surname: Optional[str]
     class_name: Optional[str]
@@ -109,8 +110,6 @@ def update_user_endpoint(username: str,
         raise HTTPException(status_code=403, detail="Only admins can update users.")
 
     update_fields = {}
-    if request.username is not None:
-        update_fields["username"] = request.username
     if request.name is not None:
         update_fields["name"] = request.name
     if request.surname is not None:
@@ -130,10 +129,10 @@ def update_user_endpoint(username: str,
         update_fields["password"] = request.new_password.strip()
 
     # User ID'ye göre güncelleme fonksiyonu çağırıyoruz.
-    success = update_user(db, current_user, user_id, **update_fields)
+    success = update_user(db, current_user, username, **update_fields)
     if not success:
         raise HTTPException(status_code=404, detail="User not found or not updated.")
-    return {"message": f"User {username} updated successfully."}
+    return {"message": f"User {request.username} updated successfully."}
 
 @router.get("/", response_model=List[UserResponse], summary="List all users")
 def list_all_users(db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):

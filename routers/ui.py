@@ -1,5 +1,7 @@
 # routers/ui.py
 import httpx
+from uuid import UUID
+import json
 from fastapi import APIRouter, Request, Form, Depends
 from fastapi.responses import HTMLResponse, RedirectResponse
 from fastapi.templating import Jinja2Templates
@@ -374,7 +376,7 @@ def admin_update_user_form(request: Request, username: str):
 @ui_router.post("/admin_update_user", response_class=HTMLResponse)
 def admin_update_user_submit(
     request: Request,
-    user_id: str = Form(...),
+    user_id: UUID = Form(...),
     username: str = Form(...),
     name: str = Form(...),
     surname: str = Form(...),
@@ -401,7 +403,7 @@ def admin_update_user_submit(
 
     with httpx.Client() as client:
         r = client.put(
-            f"{API_BASE_URL}/users/{user_id}",
+            f"{API_BASE_URL}/users/{username}",
             headers={"Authorization": f"Bearer {token}"},
             json=payload
         )

@@ -99,11 +99,12 @@ def delete_user(db: Session, admin_user, username):
         print("User not found.")
         return False
 
-def update_user(db: Session, admin_user, user_id, **kwargs):
+def update_user(db: Session, admin_user,username, **kwargs):
     if admin_user.role.lower() != 'admin':
         print("Only admins can update users.")
         return False
     user = db.query(User).filter(User.username == username).first()
+    print("updateuser deyiz.")
     if not user:
         print("User not found.")
         return False

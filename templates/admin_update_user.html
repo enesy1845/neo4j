@@ -8,6 +8,7 @@
 </div>
 {% endif %}
 <form method="post" action="/admin_update_user">
+    <input type="hidden" name="user_id" value="{{ user_info.user_id }}">
     <input type="hidden" name="username" value="{{ user_info.username }}">
     <div class="form-row">
         <label>First Name</label>
