@@ -3,12 +3,18 @@
 {% block content %}
 <h2>Exam Screen</h2>
 <div id="timer">Time Left: <span id="timeLeft"></span> seconds</div>
+{% set questionCount = 5 %}
+
+
 <form id="examForm" method="post" action="/student_submit_exam">
     <input type="hidden" name="exam_id" value="{{ exam_id }}">
     {% for section_number, question_list in sections.items() %}
+    {%set count= loop.index -1 %}
     <h3>Section {{ section_number }}</h3>
     {% for q in question_list %}
+        
     <div class="question-box">
+        <h3>Question : {{ count*questionCount + loop.index }}</h3>
         <p class="question-text"><strong>{{ q.question }}</strong> (Points: {{ q.points }})</p>
         {% if q.type == 'true_false' %}
         <!-- True/False: typically 2 radio buttons -->
@@ -85,7 +91,12 @@
         <input type="text" name="answer_{{ q.question_id }}">
         {% endif %}
     </div>
+    
+
+   
     {% endfor %}
+
+
     {% endfor %}
     <button type="submit" class="btn">Submit Exam</button>
 </form>
