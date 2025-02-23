@@ -17,6 +17,10 @@ def register_user(session, username, password, name, surname, class_name, role, 
         return False
     school = record["s"]
     user_id = str(uuid4())
+
+        # <<<<<< EKSTRA: Kayıt sırasında kullanıcı ID ve şifresini yazdırıyoruz >>>>>>
+    print(f"Registering user: username={username}, user_id={user_id}, raw password={password}")
+
     hashed_pw = hash_password(password)
     session.run("""
     CREATE (u:User {
@@ -46,6 +50,7 @@ def register_user(session, username, password, name, surname, class_name, role, 
         "school_id": school.get("school_id", "default-school")
     })
     print("Registration successful.")
+    
     return True
 
 def login_user(session, username, password):
@@ -70,9 +75,10 @@ def delete_user(session, admin_user, username):
     print("User deleted.")
     return True
 
-def update_user(session, admin_user, user_id, **kwargs):
-    if admin_user["role"].lower() != "admin":
-        print("Only admins can update users.")
+def update_user(session, current_user, user_id, **kwargs):
+    # Eğer güncellemeyi yapan kişi kendisi ise veya admin ise güncellemeye izin ver
+    if current_user["role"].lower() != "admin" and current_user["user_id"] != user_id:
+        print("Only admins can update other users.")
         return False
     set_statements = []
     params = {"user_id": user_id}

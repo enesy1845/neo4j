@@ -1,5 +1,4 @@
 # tools/exam.py
-
 import random
 from datetime import datetime
 from uuid import uuid4
@@ -44,21 +43,21 @@ def select_questions(session, user):
 def process_results(session, user, exam_node, selected_questions, answers_dict, end_time):
     section_scores = {sec: [0, 0] for sec in range(1, 5)}
     section_correct_wrong = {sec: [0, 0] for sec in range(1, 5)}
-
     for q in selected_questions:
         qid = q["id"]
         ans_data = answers_dict.get(str(qid))
         if not ans_data:
             points_earned = 0
         else:
-            try:
+            # Eğer ans_data bir sözlükse .get ile, değilse attribute erişimiyle alıyoruz.
+            if isinstance(ans_data, dict):
                 selected = ans_data.get("selected_texts", [])
-            except AttributeError:
-                selected = ans_data.selected_texts if hasattr(ans_data, "selected_texts") and ans_data.selected_texts is not None else []
+            else:
+                selected = ans_data.selected_texts or []
             result = session.run("""
-                MATCH (q:Question {id: $qid})-[:HAS_CHOICE]->(c:Choice)
-                WHERE c.is_correct = true
-                RETURN collect(c.choice_text) as correct
+            MATCH (q:Question {id: $qid})-[:HAS_CHOICE]->(c:Choice)
+            WHERE c.is_correct = true
+            RETURN collect(c.choice_text) as correct
             """, {"qid": qid})
             correct_choices = result.single()["correct"]
             if set(selected) == set(correct_choices):
@@ -73,19 +72,31 @@ def process_results(session, user, exam_node, selected_questions, answers_dict, 
             section_correct_wrong[q["section"]][0] += 1
         else:
             section_correct_wrong[q["section"]][1] += 1
-
         exam_answer_id = str(uuid4())
-        # Güncellendi: exam_answer düğümüne "question_id" property’si de ekleniyor.
         session.run("""
-            MATCH (e:Exam {exam_id: $exam_id}), (q:Question {id: $qid})
-            CREATE (ea:ExamAnswer {
-                id: $exam_answer_id,
-                points_earned: $points_earned,
-                question_id: $qid
-            })
-            CREATE (e)-[:HAS_ANSWER]->(ea)
-            CREATE (ea)-[:FOR_QUESTION]->(q)
+        MATCH (e:Exam {exam_id: $exam_id}), (q:Question {id: $qid})
+        CREATE (ea:ExamAnswer {
+            id: $exam_answer_id,
+            points_earned: $points_earned,
+            question_id: $qid
+        })
+        CREATE (e)-[:HAS_ANSWER]->(ea)
+        CREATE (ea)-[:FOR_QUESTION]->(q)
         """, {"exam_id": exam_node["exam_id"], "qid": qid, "exam_answer_id": exam_answer_id, "points_earned": points_earned})
+        # Oluşturulan ExamAnswer düğümüne, öğrencinin seçtiği her cevabı ilişkilendiren CHOSE ilişkilerini ekliyoruz.
+        if ans_data:
+            if isinstance(ans_data, dict):
+                selected = ans_data.get("selected_texts", [])
+            else:
+                selected = ans_data.selected_texts or []
+            for answer_text in selected:
+                session.run("""
+                MATCH (q:Question {id: $qid})-[:HAS_CHOICE]->(c:Choice)
+                WHERE toLower(c.choice_text) = toLower($answer_text)
+                WITH c
+                MATCH (ea:ExamAnswer {id: $exam_answer_id})
+                CREATE (ea)-[:CHOSE]->(c)
+                """, {"qid": qid, "answer_text": answer_text.strip(), "exam_answer_id": exam_answer_id})
     all_section_pass = True
     for sec in section_scores:
         earned, possible = section_scores[sec]
@@ -97,12 +108,12 @@ def process_results(session, user, exam_node, selected_questions, answers_dict, 
     final_score = round((total_earned / total_possible) * 100, 2) if total_possible > 0 else 0.0
     pass_fail = "geçti" if (all_section_pass and (final_score >= 75.0)) else "geçemedi"
     session.run("""
-        MATCH (e:Exam {exam_id: $exam_id})
-        SET e.end_time = datetime($end_time), e.status = 'submitted'
+    MATCH (e:Exam {exam_id: $exam_id})
+    SET e.end_time = datetime($end_time), e.status = 'submitted'
     """, {"exam_id": exam_node["exam_id"], "end_time": end_time})
     session.run("""
-        MATCH (u:User {user_id: $user_id})
-        SET u.attempts = coalesce(u.attempts, 0) + 1,
-            u.score_avg = ($final_score + coalesce(u.score_avg, 0)) / 2
+    MATCH (u:User {user_id: $user_id})
+    SET u.attempts = coalesce(u.attempts, 0) + 1,
+        u.score_avg = ($final_score + coalesce(u.score_avg, 0)) / 2
     """, {"user_id": user["user_id"], "final_score": final_score})
     update_statistics(session, user.get("school_id"), user["class_name"], section_scores, section_correct_wrong)
