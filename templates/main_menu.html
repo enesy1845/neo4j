@@ -1,9 +1,16 @@
 <!-- templates/main_menu.html -->
 {% extends "base.html" %}
 {% block content %}
-<h2>Welcome to NexusAI Quiz App</h2>
-<p>Please login or register</p>
-<div style="margin-top: 20px;">
+<div class="intro-container" style="text-align: center; margin-bottom: 2rem;">
+    <h2>Welcome to NexusAI Quiz App</h2>
+    <p style="font-size: 1.1rem; line-height: 1.5; color: #555; max-width: 600px; margin: 0 auto;">
+        NexusAI Quiz App, okullar için özel olarak tasarlanmış, son teknoloji LLM (Large Language Model)
+        destekli interaktif bir quiz platformudur. Bu uygulama sayesinde öğrencileriniz eğlenceli bir
+        şekilde bilgi yarışmalarına katılabilir; öğretmenler ise performans istatistiklerini detaylı olarak
+        inceleyebilir. Eğer kayıtlıysanız lütfen giriş yapın, henüz kayıtlı değilseniz hemen kaydolun!
+    </p>
+</div>
+<div style="text-align: center;">
     <a href="/login" class="btn">Login</a>
     <a href="/register" class="btn">Register</a>
 </div>

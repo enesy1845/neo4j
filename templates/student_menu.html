@@ -1,10 +1,20 @@
+<!-- templates/student_menu.html -->
 {% extends "base.html" %}
 {% block content %}
 <div class="welcome-container">
     <h1>Welcome, {{ user_info.name }}!</h1>
     <p class="subtext">
+        {% if user_info.role == 'student' %}
         School No: {{ user_info.okul_no }} | Class: {{ user_info.class_name }}<br>
-        Remaining Exam Attempts: {{ left_attempts }} | Average Score: {{ "{:.2f}".format(user_info.score_avg) }}
+        Remaining Exam Attempts: {{ left_attempts }} |
+        {% if user_info.attempts == 1 %}
+        Your Exam Score: {{ "{:.2f}".format(user_info.score_avg) }}
+        {% elif user_info.attempts >= 2 %}
+        Avarage Score: {{ "{:.2f}".format(user_info.score_avg) }}
+        {% else %}
+        --
+        {% endif %}
+        {% endif %}
     </p>
     <div class="button-group">
         <a href="/student_solve_exam" class="btn">Start Quiz</a>

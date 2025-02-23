@@ -1,77 +1,94 @@
 <!-- templates/teacher_view_stats.html -->
 {% extends "base.html" %}
 {% block content %}
-<h2>Statistics For Teacher</h2>
-
-{% set stats = stats or {} %}
-{% if not stats.per_class and not stats.school_summary %}
-<p>There is no statistics.</p>
+<h2>Teacher Statistics</h2>
+{% set subject_mapping = {1: "Math", 2: "English", 3: "Science", 4: "History"} %}
+{% if stats.teacher_class_stats is not defined or stats.teacher_class_stats | length == 0 %}
+<p>No statistics available.</p>
 {% else %}
+<h3>Your Class Statistics</h3>
+<table class="table">
+    <thead>
+        <tr>
+            <th>Section</th>
+            <th>Correct Answers</th>
+            <th>Wrong Answers</th>
+            <th>Exam Takers</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for stat in stats.teacher_class_stats %}
+        <tr>
+            <td>
+                {% set sec = stat.section_number %}
+                Section {{ subject_mapping[sec] if sec in subject_mapping else sec }}
+            </td>
+            <td>{{ stat.correct_answers }}</td>
+            <td>{{ stat.wrong_answers }}</td>
+            <td>{{ stat.exam_takers }}</td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
 
+<h3>School Summary (All Classes)</h3>
+<table class="table">
+    <thead>
+        <tr>
+            <th>Section</th>
+            <th>Correct Total</th>
+            <th>Wrong Total</th>
+            <th>Exam Takers</th>
+            <th>Success Rate (%)</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for stat in stats.school_summary %}
+        <tr>
+            <td>
+                {% set sec = stat.section_number %}
+                Section {{ subject_mapping[sec] if sec in subject_mapping else sec }}
+            </td>
+            <td>{{ stat.correct_answers_total }}</td>
+            <td>{{ stat.wrong_answers_total }}</td>
+            <td>{{ stat.exam_takers }}</td>
+            <td>{{ stat.sn_basarisi }}%</td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
 
-{% for cls_name, row_list in stats.per_class.items() %}
-<div style="margin-bottom: 30px;">
-    <p><strong>Class: {{ cls_name }}</strong></p>
-    <table class="table">
-        <thead>
-            <tr>
-                <th>Section</th>
-                <th>Correct Answers</th>
-                <th>Wrong Answers</th>
-            </tr>
-        </thead>
-        <tbody>
-            {% for secrow in row_list %}
-            <tr>
-                <td>{{ secrow.section_number }}</td>
-                <td>{{ secrow.correct_answers }}</td>
-                <td>{{ secrow.wrong_answers }}</td>
-            </tr>
-            {% endfor %}
-        </tbody>
-    </table>
-</div>
+<h3>Per-Question Statistics</h3>
+{% if stats.question_stats and stats.question_stats | length > 0 %}
+{% for sec, qstats in stats.question_stats.items() %}
+<h4>
+    Section {{ subject_mapping[sec] if sec in subject_mapping else sec }}
+</h4>
+{% if qstats | length > 0 %}
+<table class="table">
+    <thead>
+        <tr>
+            <th>Question</th>
+            <th>Correct Answer Count</th>
+            <th>Wrong Answer Count</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for stat in qstats %}
+        <tr>
+            <td>{{ stat.question_text }}</td>
+            <td>{{ stat.correct_count }}</td>
+            <td>{{ stat.wrong_count }}</td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+{% else %}
+<p>No exam questions available for this section.</p>
+{% endif %}
 {% endfor %}
-
-
-<div>
-    <p><strong>School Summary</strong></p>
-    <table class="table">
-        <thead>
-            <tr>
-                <th>Section</th>
-                <th>Correct Total</th>
-                <th>Wrong Total</th>
-                <th>Başarı (%)</th>
-                {% if stats.per_class %}
-                {% for cls_name in stats.per_class.keys() %}
-                <th>{{ cls_name }}</th>
-                {% endfor %}
-                {% endif %}
-            </tr>
-        </thead>
-        <tbody>
-            {% for row in stats.school_summary %}
-            <tr>
-                <td>{{ row.section_number }}</td>
-                <td>{{ row.correct_answers_total }}</td>
-                <td>{{ row.wrong_answers_total }}</td>
-                <td>{{ row.sn_basarisi }}%</td>
-                {% if stats.per_class %}
-                {% for cls_name in stats.per_class.keys() %}
-                <td>
-                    {% if cls_name in row.classes %}
-                    {{ row.classes[cls_name] }}%
-                    {% else %}
-                    0%
-                    {% endif %}
-                </td>
-                {% endfor %}
-                {% endif %}
-            </tr>
-            {% endfor %}
-        </tbody>
-    </table>
-</div>
+{% else %}
+<p>No per-question statistics available.</p>
+{% endif %}
 {% endif %}
 {% endblock %}

@@ -7,13 +7,14 @@
     {{ msg }}
 </div>
 {% endif %}
+{% set subject_mapping = {'1': 'Math', '2': 'English', '3': 'Science', '4': 'History'} %}
 <table class="table">
     <thead>
         <tr>
             <th>Username</th>
-            <th>School No</th>
+            <th>School / Section</th>
             <th>Role</th>
-            <th>Class(es)</th>
+            <th>Class</th>
             <th>Actions</th>
         </tr>
     </thead>
@@ -24,6 +25,16 @@
             <td>
                 {% if u.role == 'student' %}
                 {{ u.okul_no }}
+                {% elif u.role == 'teacher' %}
+                {% if u.registered_section %}
+                {% set sections = u.registered_section.split(',') %}
+                {% for sec in sections %}
+                {{ subject_mapping[sec.strip()] if sec.strip() in subject_mapping else sec.strip() }}
+                {% if not loop.last %}, {% endif %}
+                {% endfor %}
+                {% else %}
+                N/A
+                {% endif %}
                 {% else %}
                 -
                 {% endif %}

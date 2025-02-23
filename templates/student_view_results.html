@@ -2,14 +2,20 @@
 {% extends "base.html" %}
 {% block content %}
 <h2>My Exam Results</h2>
-
 {% if results_data.exams | length == 0 %}
 <p>No exam records found.</p>
 {% else %}
-<p>School No: {{ results_data.student_number }}</p>
-<p>Class: {{ results_data.class_name }}</p>
-<p>Total Attempts: {{ results_data.attempts }}</p>
-
+<p>
+    School No: {{ results_data.student_number }}<br>
+    Class: {{ results_data.class_name }}<br>
+    Total Attempts: {{ results_data.attempts }}<br>
+    {% if results_data.attempts == 1 %}
+    Your Exam Score: {{ results_data.exams[0].exam_percentage }}
+    {% elif results_data.attempts >= 2 %}
+    Your Average Score: {{ "{:.2f}".format(results_data.overall_percentage) }}
+    {% endif %}
+</p>
+{% set subject_mapping = {1: "Math", 2: "English", 3: "Science", 4: "History"} %}
 {% for exam in results_data.exams %}
 <div style="border:1px solid #999; padding:10px; margin-bottom:15px; border-radius: 12px;">
     <h3>Exam #{{ loop.index }}</h3>
@@ -17,7 +23,7 @@
         Start Time: {{ exam.start_time }}<br>
         End Time: {{ exam.end_time if exam.end_time else "In Progress" }}
     </p>
-
+    <p style="font-weight: bold;">Your Exam Score: {{ exam.exam_percentage }}</p>
     <!-- Section-based summary -->
     <table class="table">
         <thead>
@@ -25,37 +31,27 @@
                 <th>Section</th>
                 <th>Correct Answers</th>
                 <th>Wrong Answers</th>
-                <th>Class Avg.</th>
-                <th>School Avg.</th>
+                <th>Class Average</th>
+                <th>School Average</th>
                 <th>Score</th>
-                <th>Overall Avg.</th>
             </tr>
         </thead>
         <tbody>
             {% for sec in exam.sections_details %}
             <tr>
-                <td>{{ sec.section_number }}</td>
+                <td>
+                    {% set sec_num = sec.section_number %}
+                    Section {{ subject_mapping[sec_num] if sec_num in subject_mapping else sec_num }}
+                </td>
                 <td>{{ sec.correct_answers }}</td>
                 <td>{{ sec.wrong_answers }}</td>
                 <td>{{ sec.so }}</td>
                 <td>{{ sec.oo }}</td>
                 <td>{{ sec.notu }}</td>
-                <td>{{ sec.ort }}</td>
             </tr>
             {% endfor %}
         </tbody>
     </table>
-
-    {% if exam.pass_fail == "geçemedi" %}
-    <p class="status-wrong">
-        Result: Failed (You must score at least 75 in each section).
-    </p>
-    {% else %}
-    <p class="status-correct">
-        Result: Passed, congratulations!
-    </p>
-    {% endif %}
-
     <!-- Detailed question info -->
     <h4>Question Details</h4>
     <table class="table">

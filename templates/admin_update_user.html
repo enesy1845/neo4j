@@ -26,10 +26,12 @@
         <label>Role</label>
         <input type="text" name="role" value="{{ user_info.role }}">
     </div>
+    {% if user_info.role != 'student' %}
     <div class="form-row">
         <label>Registered Section</label>
         <input type="text" name="registered_section" value="{{ user_info.registered_section or '' }}">
     </div>
+    {% endif %}
     <div class="form-row">
         <label>New Password (leave blank if not changing)</label>
         <input type="password" name="new_password">

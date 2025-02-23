@@ -4,20 +4,21 @@
 <h2>Exam Screen</h2>
 <div id="timer">Time Left: <span id="timeLeft"></span> seconds</div>
 {% set questionCount = 5 %}
-
-
+{% set subject_mapping = {1: "Math", 2: "English", 3: "Science", 4: "History"} %}
 <form id="examForm" method="post" action="/student_submit_exam">
     <input type="hidden" name="exam_id" value="{{ exam_id }}">
     {% for section_number, question_list in sections.items() %}
-    {%set count= loop.index -1 %}
-    <h3>Section {{ section_number }}</h3>
+    {% set count = loop.index - 1 %}
+    <h3>
+        Section
+        {% set sec = section_number %}
+        {{ subject_mapping[sec] if sec in subject_mapping else sec }}
+    </h3>
     {% for q in question_list %}
-        
     <div class="question-box">
-        <h3>Question : {{ count*questionCount + loop.index }}</h3>
+        <h3>Question: {{ count * questionCount + loop.index }}</h3>
         <p class="question-text"><strong>{{ q.question }}</strong> (Points: {{ q.points }})</p>
         {% if q.type == 'true_false' %}
-        <!-- True/False: typically 2 radio buttons -->
         <label class="option">
             <input type="radio" name="answer_{{ q.question_id }}" value="True"> True
         </label>
@@ -25,7 +26,6 @@
             <input type="radio" name="answer_{{ q.question_id }}" value="False"> False
         </label>
         {% elif q.type == 'single_choice' %}
-        <!-- Single Choice: radio buttons -->
         {% if q.choices %}
         {% for choice in q.choices %}
         <label class="option">
@@ -34,7 +34,6 @@
         </label>
         {% endfor %}
         {% else %}
-        <!-- Default A-D if no choices -->
         <label class="option">
             <input type="radio" name="answer_{{ q.question_id }}" value="A"> A
         </label>
@@ -49,7 +48,6 @@
         </label>
         {% endif %}
         {% elif q.type == 'multiple_choice' %}
-        <!-- Multiple Choice: checkboxes -->
         {% if q.choices %}
         {% for choice in q.choices %}
         <label class="option">
@@ -58,7 +56,6 @@
         </label>
         {% endfor %}
         {% else %}
-        <!-- Default 4 options -->
         <label class="option">
             <input type="checkbox" name="answer_{{ q.question_id }}" value="A"> A
         </label>
@@ -83,20 +80,15 @@
         <input type="text" name="answer_{{ q.question_id }}" class="ordering-input" placeholder="e.g. 3,1,4,2">
         {% else %}
         <p>No choices available for ordering question.</p>
-        <input type="text" name="answer_{{ q.question_id }}" class="ordering-input" placeholder="Enter your ordering...">
+        <input type="text" name="answer_{{ q.question_id }}" class="ordering-input"
+            placeholder="Enter your ordering...">
         {% endif %}
         {% else %}
-        <!-- Unknown type -->
         <label>Your Answer:</label>
         <input type="text" name="answer_{{ q.question_id }}">
         {% endif %}
     </div>
-    
-
-   
     {% endfor %}
-
-
     {% endfor %}
     <button type="submit" class="btn">Submit Exam</button>
 </form>

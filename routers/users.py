@@ -69,8 +69,10 @@ def update_current_user(request: SelfUpdateRequest, session = Depends(get_db), c
     success = update_user(session, current_user, current_user["user_id"], **update_fields)
     if not success:
         raise HTTPException(status_code=404, detail="User not updated.")
-    current_user.update(update_fields)
-    return {"message": "Profile updated successfully."}
+    current_user_dict = dict(current_user)
+    current_user_dict.update(update_fields)
+    return {"message": "Profile updated successfully.", "user": current_user_dict}
+
 
 @router.get("/", response_model=List[UserResponse], summary="List all users")
 def list_all_users(session = Depends(get_db), current_user = Depends(get_current_user)):

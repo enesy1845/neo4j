@@ -1,10 +1,22 @@
+<!-- templates/teacher_menu.html -->
 {% extends "base.html" %}
 {% block content %}
 <div class="dashboard-container">
     <h1>Teacher Dashboard</h1>
+    {% set subject_mapping = {'1': 'Math', '2': 'English', '3': 'Science', '4': 'History'} %}
     <p class="subtext">
         Hello, {{ user_info.name }} {{ user_info.surname }}!<br>
-        Your Classes: {{ user_info.class_name }} | Registered Section: {{ user_info.registered_section }}
+        Your Class: {{ user_info.class_name }} |
+        Registered Section:
+        {% if user_info.registered_section %}
+        {% set sections = user_info.registered_section.split(',') %}
+        {% for sec in sections %}
+        {{ subject_mapping[sec.strip()] if sec.strip() in subject_mapping else sec.strip() }}
+        {% if not loop.last %}, {% endif %}
+        {% endfor %}
+        {% else %}
+        N/A
+        {% endif %}
     </p>
     {% if msg %}
     <div class="notification">
@@ -18,4 +30,3 @@
     </div>
 </div>
 {% endblock %}
-
