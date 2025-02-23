@@ -7,46 +7,32 @@ services:
       dockerfile: Dockerfile.app
     container_name: quizapp-app
     depends_on:
-      db:
+      neo4j:
         condition: service_healthy
     environment:
       - PYTHONUNBUFFERED=1
     env_file:
-      - .env  # Ortam değişkenlerini buradan yükle
+      - .env
     volumes:
       - .:/app
     ports:
       - "8000:8000"
 
-  db:
-    build:
-      context: .
-      dockerfile: Dockerfile.db  # Dockerfile.db kullanılıyor
-    container_name: postgres_db
-    environment:
-      - POSTGRES_DB=${DB_NAME}
-      - POSTGRES_USER=${DB_USER}
-      - POSTGRES_PASSWORD=${DB_PASSWORD}
+  neo4j:
+    image: neo4j:5.11-community
+    container_name: neo4j_db
     ports:
-      - "5432:5432"
+      - "7687:7687"
+      - "7474:7474"
+    environment:
+      - NEO4J_AUTH=${NEO4J_USER}/${NEO4J_PASSWORD}
     volumes:
-      - db_data:/var/lib/postgresql/data
+      - neo4j_data:/data
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U ${DB_USER} -d ${DB_NAME}"]
-      interval: 5s
-      timeout: 5s
-      retries: 5
-
-  pgadmin:
-    image: dpage/pgadmin4
-    container_name: pgadmin
-    environment:
-      PGADMIN_DEFAULT_EMAIL: admin@admin.com
-      PGADMIN_DEFAULT_PASSWORD: admin123
-    ports:
-      - "8080:80"
-    depends_on:
-      - db
+      test: ["CMD-SHELL", "cypher-shell -u ${NEO4J_USER} -p ${NEO4J_PASSWORD} 'RETURN 1'"]
+      interval: 10s
+      timeout: 10s
+      retries: 10
 
 volumes:
-  db_data:
+  neo4j_data:

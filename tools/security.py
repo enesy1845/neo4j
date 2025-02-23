@@ -1,9 +1,9 @@
+# tools/security.py
 from datetime import datetime, timedelta
 from jose import jwt, JWTError
 import os
 
-# JWT ayarları
-SECRET_KEY = os.getenv("SECRET_KEY")  # Güçlü bir key kullanın
+SECRET_KEY = os.getenv("SECRET_KEY")
 ALGORITHM = "HS256"
 ACCESS_TOKEN_EXPIRE_MINUTES = 30
 

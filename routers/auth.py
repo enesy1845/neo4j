@@ -1,7 +1,5 @@
 # routers/auth.py
-
 from fastapi import APIRouter, Depends, HTTPException
-from sqlalchemy.orm import Session
 from pydantic import BaseModel, Field, root_validator, validator
 from tools.database import get_db
 from tools.user import register_user, login_user
@@ -9,7 +7,6 @@ from tools.token_generator import create_access_token
 
 router = APIRouter()
 
-# ========== Pydantic Models ==========
 class RegisterRequest(BaseModel):
     username: str = Field(..., min_length=3, max_length=50)
     password: str
@@ -36,20 +33,14 @@ class RegisterRequest(BaseModel):
         pwd = values.get("password")
         if not pwd:
             raise ValueError("Password is required.")
-
-        # En az 8 karakter
         if len(pwd) < 8:
             raise ValueError("Şifre en az 8 karakter olmalı.")
-        # En az 1 büyük harf
         if not any(c.isupper() for c in pwd):
             raise ValueError("Şifre en az 1 büyük harf içermeli.")
-        # En az 1 küçük harf
         if not any(c.islower() for c in pwd):
             raise ValueError("Şifre en az 1 küçük harf içermeli.")
-        # En az 1 rakam
         if not any(c.isdigit() for c in pwd):
             raise ValueError("Şifre en az 1 rakam içermeli.")
-
         return values
 
 class RegisterResponse(BaseModel):
@@ -64,12 +55,10 @@ class LoginResponse(BaseModel):
     token_type: str = "bearer"
     role: str
 
-# ========== Endpoints ==========
-
 @router.post("/register", response_model=RegisterResponse)
-def register_endpoint(request: RegisterRequest, db: Session = Depends(get_db)):
+def register_endpoint(request: RegisterRequest, session = Depends(get_db)):
     success = register_user(
-        db=db,
+        session=session,
         username=request.username,
         password=request.password,
         name=request.name,
@@ -79,20 +68,17 @@ def register_endpoint(request: RegisterRequest, db: Session = Depends(get_db)):
         registered_section=request.registered_section,
     )
     if not success:
-        raise HTTPException(
-            status_code=400,
-            detail="Username already exists or default school not found."
-        )
+        raise HTTPException(status_code=400, detail="Username already exists or default school not found.")
     return {"message": "Registration successful."}
 
 @router.post("/login", response_model=LoginResponse)
-def login_endpoint(body: LoginRequest, db: Session = Depends(get_db)):
-    user = login_user(db, body.username, body.password)
+def login_endpoint(body: LoginRequest, session = Depends(get_db)):
+    user = login_user(session, body.username, body.password)
     if not user:
         raise HTTPException(status_code=401, detail="Invalid username or password.")
-    token = create_access_token(str(user.user_id))
+    token = create_access_token(user["user_id"])
     return {
         "access_token": token,
         "token_type": "bearer",
-        "role": user.role
+        "role": user["role"]
     }

@@ -1,24 +1,20 @@
 # routers/users.py
-from fastapi import APIRouter, Depends, HTTPException
-from sqlalchemy.orm import Session
+from fastapi import APIRouter, Depends, HTTPException, Path, Body
 from typing import List, Optional
 from pydantic import BaseModel
-from uuid import UUID
 from tools.database import get_db
-from tools.models import User
-from tools.user import delete_user, update_user
 from tools.token_generator import get_current_user
+from tools.user import delete_user, update_user
 from tools.utils import hash_password
 
 router = APIRouter()
 
-# ========== Pydantic Models ==========
 class UserResponse(BaseModel):
-    user_id: UUID
+    user_id: str
     username: str
     role: str
     class_name: str
-    school_id: UUID
+    school_id: str
     name: str
     surname: str
     registered_section: Optional[str] = None
@@ -26,31 +22,21 @@ class UserResponse(BaseModel):
     score_avg: float
     okul_no: Optional[int]
 
-    class Config:
-        orm_mode = True
-
 class UpdateUserRequest(BaseModel):
-    username: Optional[str]
-    name: Optional[str]
-    surname: Optional[str]
-    class_name: Optional[str]
-    role: Optional[str]
-    registered_section: Optional[str]
+    name: Optional[str] = None
+    surname: Optional[str] = None
+    class_name: Optional[str] = None
+    role: Optional[str] = None
+    registered_section: Optional[str] = None
     new_password: Optional[str] = None
 
 class SelfUpdateRequest(BaseModel):
-    """
-    Kendi profilini (student/teacher) güncelleme talebi
-    """
-    name: Optional[str]
-    surname: Optional[str]
-    class_name: Optional[str]
+    name: Optional[str] = None
+    surname: Optional[str] = None
+    class_name: Optional[str] = None
     new_password: Optional[str] = None
 
-
-# ========== Yardımcı Fonksiyon ==========
 def validate_password_strength(password: str) -> bool:
-    """8 karakter, en az 1 büyük/küçük/rakam"""
     if len(password) < 8:
         return False
     if not any(c.isupper() for c in password):
@@ -61,54 +47,45 @@ def validate_password_strength(password: str) -> bool:
         return False
     return True
 
-
-# ========== Endpoints ==========
-
-# 1. Önce /me endpoint'ini tanımla
-@router.get("/me", response_model=UserResponse, summary="Get current user info")
-def get_current_user_info(db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
-    """
-    Student, teacher veya admin farketmez, kendi bilgilerini döndür.
-    """
+@router.get("/me", response_model=UserResponse, summary="Get current user details")
+def read_current_user(current_user = Depends(get_current_user)):
     return current_user
 
-@router.put("/me", summary="Update your own profile")
-def update_own_profile(request: SelfUpdateRequest,
-                       db: Session = Depends(get_db),
-                       current_user: User = Depends(get_current_user)):
-    """
-    Student/Teacher kendi profilini güncelleyebilir (Ad, Soyad, Sınıf, Parolayı)
-    Admin de isterse bu endpoint'i kendi kendine çağırabilir.
-    """
-    # Parola güncelleme
-    if request.new_password and request.new_password.strip():
-        if not validate_password_strength(request.new_password.strip()):
-            raise HTTPException(status_code=400, detail="New password does not meet complexity rules.")
-        current_user.password = hash_password(request.new_password.strip())
-
+@router.put("/me", summary="Update current user's profile")
+def update_current_user(request: SelfUpdateRequest, session = Depends(get_db), current_user = Depends(get_current_user)):
+    update_fields = {}
     if request.name is not None:
-        current_user.name = request.name
+        update_fields["name"] = request.name
     if request.surname is not None:
-        current_user.surname = request.surname
+        update_fields["surname"] = request.surname
     if request.class_name is not None:
-        current_user.class_name = request.class_name
-
-    db.commit()
-    db.refresh(current_user)
+        update_fields["class_name"] = request.class_name
+    if request.new_password is not None and request.new_password.strip() != "":
+        if not validate_password_strength(request.new_password.strip()):
+            raise HTTPException(status_code=400, detail="Password does not meet complexity rules.")
+        update_fields["password"] = hash_password(request.new_password.strip())
+    if not update_fields:
+        return {"message": "No changes provided."}
+    success = update_user(session, current_user, current_user["user_id"], **update_fields)
+    if not success:
+        raise HTTPException(status_code=404, detail="User not updated.")
+    current_user.update(update_fields)
     return {"message": "Profile updated successfully."}
 
-# 2. Daha sonra /{username} endpoint'ini tanımla
-@router.put("/{username}", summary="Update a user (Admin)")
-def update_user_endpoint(username: str,
-                         request: UpdateUserRequest,
-                         db: Session = Depends(get_db),
-                         current_user: User = Depends(get_current_user)):
-    """
-    Admin'in başkalarını güncelleyebildiği endpoint
-    """
-    if current_user.role != "admin":
-        raise HTTPException(status_code=403, detail="Only admins can update users.")
+@router.get("/", response_model=List[UserResponse], summary="List all users")
+def list_all_users(session = Depends(get_db), current_user = Depends(get_current_user)):
+    if current_user["role"] != "admin":
+        raise HTTPException(status_code=403, detail="Only admins can list users.")
+    result = session.run("MATCH (u:User) RETURN u")
+    users = []
+    for record in result:
+        users.append(record["u"])
+    return users
 
+@router.put("/{user_id}", summary="Update a user (Admin)")
+def update_user_endpoint(user_id: str, request: UpdateUserRequest, session = Depends(get_db), current_user = Depends(get_current_user)):
+    if current_user["role"] != "admin":
+        raise HTTPException(status_code=403, detail="Only admins can update users.")
     update_fields = {}
     if request.name is not None:
         update_fields["name"] = request.name
@@ -120,34 +97,20 @@ def update_user_endpoint(username: str,
         update_fields["role"] = request.role
     if request.registered_section is not None:
         update_fields["registered_section"] = request.registered_section
-
-    # Parola kontrolü
     if request.new_password is not None and request.new_password.strip() != "":
         if not validate_password_strength(request.new_password.strip()):
             raise HTTPException(status_code=400, detail="Password does not meet complexity rules.")
-        hashed = hash_password(request.new_password.strip())
-        update_fields["password"] = request.new_password.strip()
-
-    # User ID'ye göre güncelleme fonksiyonu çağırıyoruz.
-    success = update_user(db, current_user, username, **update_fields)
+        update_fields["password"] = hash_password(request.new_password.strip())
+    success = update_user(session, current_user, user_id, **update_fields)
     if not success:
         raise HTTPException(status_code=404, detail="User not found or not updated.")
-    return {"message": f"User {request.username} updated successfully."}
-
-@router.get("/", response_model=List[UserResponse], summary="List all users")
-def list_all_users(db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
-    if current_user.role != "admin":
-        raise HTTPException(status_code=403, detail="Only admins can list users.")
-    users = db.query(User).all()
-    return users
+    return {"message": "User updated successfully."}
 
 @router.delete("/{username}", summary="Delete a user")
-def delete_user_endpoint(username: str,
-                         db: Session = Depends(get_db),
-                         current_user: User = Depends(get_current_user)):
-    if current_user.role != "admin":
+def delete_user_endpoint(username: str, session = Depends(get_db), current_user = Depends(get_current_user)):
+    if current_user["role"] != "admin":
         raise HTTPException(status_code=403, detail="Only admins can delete users.")
-    success = delete_user(db, current_user, username)
+    success = delete_user(session, current_user, username)
     if not success:
         raise HTTPException(status_code=404, detail="User not found or not deleted.")
     return {"message": f"User {username} deleted successfully."}
