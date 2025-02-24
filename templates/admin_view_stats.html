@@ -1,0 +1,59 @@
+<!-- templates/admin_view_stats.html -->
+{% extends "base.html" %}
+{% block content %}
+<h2>Admin Statistics</h2>
+{% if overall_summary | length == 0 and per_class | length == 0 %}
+<p>No statistics available.</p>
+{% else %}
+<h3>Overall Summary (All Classes)</h3>
+<table class="table">
+    <thead>
+        <tr>
+            <th>Section</th>
+            <th>Correct Total</th>
+            <th>Wrong Total</th>
+            <th>Exam Takers</th>
+            <th>Success Rate (%)</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for stat in overall_summary %}
+        <tr>
+            <td>{{ stat.section_name }}</td>
+            <td>{{ stat.correct_answers_total }}</td>
+            <td>{{ stat.wrong_answers_total }}</td>
+            <td>{{ stat.exam_takers }}</td>
+            <td>{{ stat.success_rate }}%</td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+
+<h3>Detailed Per-Class Statistics</h3>
+{% for cls, stats_list in per_class.items() %}
+<h4>Class: {{ cls }}</h4>
+<table class="table">
+    <thead>
+        <tr>
+            <th>Section</th>
+            <th>Correct Answers</th>
+            <th>Wrong Answers</th>
+            <th>Exam Takers</th>
+            <th>Success Rate (%)</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for stat in stats_list %}
+        <tr>
+            <td>{{ stat.section_name }}</td>
+            <td>{{ stat.correct_answers }}</td>
+            <td>{{ stat.wrong_answers }}</td>
+            <td>{{ stat.exam_takers }}</td>
+            <td>{{ stat.success_rate }}%</td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+{% endfor %}
+{% endif %}
+{% endblock %}

@@ -1,4 +1,5 @@
 # tests/test_scenario.py
+
 import sys
 import os
 import pytest
@@ -6,14 +7,20 @@ import random
 from fastapi.testclient import TestClient
 from tools.database import init_db, get_db
 import logging
+import uuid
+
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 from main import app
+
 client = TestClient(app)
 
+# Use English-friendly teacher names to avoid Turkish characters in usernames.
 teacher_first_names = ["Ali", "Veli", "Mustafa", "Emre", "Kerem", "Berk", "Caner"]
-teacher_last_names = ["Yılmaz", "Kaya", "Demir", "Şahin", "Çelik", "Arslan", "Aslan"]
+teacher_last_names = ["Yilmaz", "Kaya", "Demir", "Sahin", "Celik", "Arslan", "Aslan"]
+
 student_first_names = ["Ahmet", "Mehmet", "Mustafa", "Ali", "Veli", "Okan", "Emre", "Can", "Deniz", "Baran"]
-student_last_names = ["Yıldız", "Öztürk", "Aydın", "Şimşek", "Arslan", "Güler", "Kılıç", "Çetin", "Aksoy", "Koç"]
+student_last_names = ["Yildiz", "Ozturk", "Aydin", "Simsek", "Arslan", "Guler", "Kilic", "Cetin", "Aksoy", "Koc"]
+
 class_pool = ["7-A", "7-B", "7-C", "7-D"]
 section_pool = [str(x) for x in range(1, 5)]
 
@@ -28,7 +35,7 @@ def setup_db():
 @pytest.fixture
 def admin_user():
     username = "ADMIN"
-    password = "ADMIN"
+    password = "ADMINpassword1"  # Ensure password meets complexity
     name = "ADMIN"
     surname = "ADMIN"
     class_name = "AdminClass"
@@ -83,8 +90,9 @@ def teacher_users():
         first_name = random.choice(teacher_first_names)
         last_name = random.choice(teacher_last_names)
         rand_suffix = random.randint(100, 999)
-        username = f"{first_name.lower()}{last_name.lower()}{rand_suffix}"
-        password = f"TeacherPass{rand_suffix}"
+        unique_part = uuid.uuid4().hex[:6]  # benzersiz 6 karakter
+        username = f"{first_name.lower()}{last_name.lower()}{rand_suffix}_{unique_part}"
+        password = f"TeacherPass{rand_suffix}"  # Must meet complexity requirements
         name = first_name
         surname = last_name
         class_name = random.choice(class_pool)
@@ -105,8 +113,9 @@ def student_users():
         first_name = random.choice(student_first_names)
         last_name = random.choice(student_last_names)
         rand_suffix = random.randint(100, 999)
-        username = f"{first_name.lower()}{last_name.lower()}{rand_suffix}"
-        password = f"StudentPass{rand_suffix}"
+        unique_part = uuid.uuid4().hex[:6]  # 6 karakterlik benzersiz önek/sonek
+        username = f"{first_name.lower()}{last_name.lower()}{rand_suffix}_{unique_part}"
+        password = f"StudentPass{rand_suffix}"  # Password complexity must be met
         name = first_name
         surname = last_name
         class_name = random.choice(class_pool)

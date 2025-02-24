@@ -1,116 +1,90 @@
-<!-- templates/student_view_results.html -->
+<!-- templates/teacher_view_stats.html -->
 {% extends "base.html" %}
 {% block content %}
-<h2>My Exam Results</h2>
-{% if results_data.exams | length == 0 %}
-<p>No exam records found.</p>
-{% else %}
-<p>
-    School No: {{ results_data.student_number }}<br>
-    Class: {{ results_data.class_name }}<br>
-    Total Attempts: {{ results_data.attempts }}<br>
-    {% if results_data.attempts == 1 %}
-    Your Exam Score: {{ results_data.exams[0].exam_percentage }}
-    {% elif results_data.attempts >= 2 %}
-    Your Average Score: {{ "{:.2f}".format(results_data.overall_percentage) }}
-    {% endif %}
-</p>
+<h2>Teacher Statistics</h2>
 {% set subject_mapping = {1: "Math", 2: "English", 3: "Science", 4: "History"} %}
-{% for exam in results_data.exams %}
-<div style="border:1px solid #999; padding:10px; margin-bottom:15px; border-radius: 12px;">
-    <h3>Exam #{{ loop.index }}</h3>
-    <p>
-        Start Time: {{ exam.start_time }}<br>
-        End Time: {{ exam.end_time if exam.end_time else "In Progress" }}
-    </p>
-    <p style="font-weight: bold;">Your Exam Score: {{ exam.exam_percentage }}</p>
-    <!-- Section-based summary -->
-    <table class="table">
-        <thead>
-            <tr>
-                <th>Section</th>
-                <th>Correct Answers</th>
-                <th>Wrong Answers</th>
-                <th>Class Average</th>
-                <th>School Average</th>
-                <th>Score</th>
-            </tr>
-        </thead>
-        <tbody>
-            {% for sec in exam.sections_details %}
-            <tr>
-                <td>
-                    {% set sec_num = sec.section_number %}
-                    Section {{ subject_mapping[sec_num] if sec_num in subject_mapping else sec_num }}
-                </td>
-                <td>{{ sec.correct_answers }}</td>
-                <td>{{ sec.wrong_answers }}</td>
-                <td>{{ sec.so }}</td>
-                <td>{{ sec.oo }}</td>
-                <td>{{ sec.notu }}</td>
-            </tr>
-            {% endfor %}
-        </tbody>
-    </table>
-    <!-- Detailed question info -->
-    <h4>Question Details</h4>
-    <table class="table">
-        <thead>
-            <tr>
-                <th>Question</th>
-                <th>Your Answer(s)</th>
-                <th>Correct Answer(s)</th>
-                <th>Status</th>
-                <th>Points</th>
-            </tr>
-        </thead>
-        <tbody>
-            {% for qd in exam.questions_details %}
-            <tr>
-                <td>{{ qd.question_text }}</td>
-                <td>
-                    {% if qd.student_answers and qd.student_answers | length > 0 %}
-                    {% if qd.status == "Wrong" %}
-                    {% for ans in qd.student_answers %}
-                    <span class="answer-wrong">{{ ans }}</span><br>
-                    {% endfor %}
-                    {% elif qd.status == "Partially Correct" %}
-                    {% for ans in qd.student_answers %}
-                    {% if ans in qd.correct_answers %}
-                    <span class="answer-correct">{{ ans }}</span><br>
-                    {% else %}
-                    <span class="answer-wrong">{{ ans }}</span><br>
-                    {% endif %}
-                    {% endfor %}
-                    {% else %}
-                    {% for ans in qd.student_answers %}
-                    <span class="answer-correct">{{ ans }}</span><br>
-                    {% endfor %}
-                    {% endif %}
-                    {% else %}
-                    <span class="answer-wrong">(No answer)</span>
-                    {% endif %}
-                </td>
-                <td>
-                    {% for correct in qd.correct_answers %}
-                    <span class="answer-correct">{{ correct }}</span><br>
-                    {% endfor %}
-                </td>
-                <td>
-                    {% if qd.status == "Correct" %}
-                    <span class="status-correct">Correct</span>
-                    {% elif qd.status == "Partially Correct" %}
-                    <span class="status-partial">Partially Correct</span>
-                    {% else %}
-                    <span class="status-wrong">Wrong</span>
-                    {% endif %}
-                </td>
-                <td>{{ qd.points_earned }}/{{ qd.points_possible }}</td>
-            </tr>
-            {% endfor %}
-        </tbody>
-    </table>
-</div>
+{% if stats.teacher_class_stats is not defined or stats.teacher_class_stats | length == 0 %}
+<p>No statistics available.</p>
+{% else %}
+<h3>Your Class Statistics</h3>
+<table class="table">
+    <thead>
+        <tr>
+            <th>Section</th>
+            <th>Correct Answers</th>
+            <th>Wrong Answers</th>
+            <th>Exam Takers</th>
+            <th>Success Rate (%)</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for stat in stats.teacher_class_stats %}
+        <tr>
+            <td>{{ stat.section_name }}</td>
+            <td>{{ stat.correct_answers }}</td>
+            <td>{{ stat.wrong_answers }}</td>
+            <td>{{ stat.exam_takers }}</td>
+            <td>{{ stat.success_rate }}%</td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+
+<h3>School Summary (All Classes)</h3>
+<table class="table">
+    <thead>
+        <tr>
+            <th>Section</th>
+            <th>Correct Total</th>
+            <th>Wrong Total</th>
+            <th>Exam Takers</th>
+            <th>Success Rate (%)</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for stat in stats.school_summary %}
+        <tr>
+            <td>{{ stat.section_name }}</td>
+            <td>{{ stat.correct_answers_total }}</td>
+            <td>{{ stat.wrong_answers_total }}</td>
+            <td>{{ stat.exam_takers }}</td>
+            <td>{{ stat.success_rate }}%</td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+
+<h3>Per-Question Statistics</h3>
+{% if stats.question_stats and stats.question_stats | length > 0 %}
+{% for sec, qstats in stats.question_stats.items() %}
+<h4>
+    Section {{ subject_mapping[sec] if sec in subject_mapping else sec }}
+</h4>
+{% if qstats | length > 0 %}
+<table class="table">
+    <thead>
+        <tr>
+            <th>Question</th>
+            <th>Correct Answer Count</th>
+            <th>Wrong Answer Count</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for stat in qstats %}
+        <tr>
+            <td>{{ stat.question_text }}</td>
+            <td>{{ stat.correct_count }}</td>
+            <td>{{ stat.wrong_count }}</td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+{% else %}
+<p>No exam questions available for this section.</p>
+{% endif %}
 {% endfor %}
+{% else %}
+<p>No per-question statistics available.</p>
+{% endif %}
 {% endif %}
 {% endblock %}

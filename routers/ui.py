@@ -377,6 +377,25 @@ def admin_delete_user(request: Request, username: str):
         else:
             return RedirectResponse(url=f"/admin_list_users?msg=User+could+not+be+deleted:{r.text}", status_code=status.HTTP_303_SEE_OTHER)
 
+@ui_router.get("/admin_view_stats", response_class=HTMLResponse)
+def admin_view_stats(request: Request):
+    token = request.session.get("token")
+    role = request.session.get("role")
+    if not token or role != "admin":
+        return RedirectResponse(url="/login")
+    with httpx.Client() as client:
+        # Use trailing slash to avoid redirect
+        r = client.get(f"{API_BASE_URL}/stats/", headers={"Authorization": f"Bearer {token}"})
+        if r.status_code == 200:
+            stats_data = r.json()
+            return templates.TemplateResponse("admin_view_stats.html", {
+                "request": request, 
+                "stats": stats_data, 
+                "overall_summary": stats_data.get("overall_summary", []), 
+                "per_class": stats_data.get("per_class", {})
+            })
+        else:
+            return HTMLResponse("Unable to fetch statistics", status_code=400)
 # ==================== Teacher Endpoints ====================
 
 @ui_router.get("/teacher_menu", response_class=HTMLResponse)

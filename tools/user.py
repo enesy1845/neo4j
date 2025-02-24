@@ -3,13 +3,16 @@ import os
 from uuid import uuid4
 from tools.utils import hash_password, check_password
 
+
 def register_user(session, username, password, name, surname, class_name, role, registered_section=None):
-    # Kullanıcı var mı kontrol et
+    # Normalize username (trim and lower-case)
+    username = username.strip().lower()
+    # Check if user already exists
     result = session.run("MATCH (u:User {username: $username}) RETURN u LIMIT 1", {"username": username})
     if result.single():
         print("Username already exists.")
         return False
-    # DefaultSchool düğümünü bul
+    # Find DefaultSchool node
     result = session.run("MATCH (s:School {name: 'DefaultSchool'}) RETURN s LIMIT 1")
     record = result.single()
     if not record:
@@ -17,11 +20,14 @@ def register_user(session, username, password, name, surname, class_name, role, 
         return False
     school = record["s"]
     user_id = str(uuid4())
-
-        # <<<<<< EKSTRA: Kayıt sırasında kullanıcı ID ve şifresini yazdırıyoruz >>>>>>
-    print(f"Registering user: username={username}, user_id={user_id}, raw password={password}")
-
     hashed_pw = hash_password(password)
+    # Determine school number for student by counting existing students in the school
+    if role.lower() == "student":
+        result = session.run("MATCH (u:User {school_id: $school_id, role: 'student'}) RETURN count(u) as student_count", {"school_id": school.get("school_id", "default-school")})
+        count = result.single()["student_count"]
+        okul_no = count + 1
+    else:
+        okul_no = None
     session.run("""
     CREATE (u:User {
         user_id: $user_id,
@@ -46,14 +52,15 @@ def register_user(session, username, password, name, surname, class_name, role, 
         "role": role.lower(),
         "class_name": class_name,
         "registered_section": registered_section if role.lower() == "teacher" else None,
-        "okul_no": None if role.lower() != "student" else 1,
+        "okul_no": okul_no,
         "school_id": school.get("school_id", "default-school")
     })
-    print("Registration successful.")
-    
+    print(f"User registered: {username} | Password: {password}")
     return True
 
 def login_user(session, username, password):
+    # Normalize username to ensure consistency
+    username = username.strip().lower()
     result = session.run("MATCH (u:User {username: $username}) RETURN u LIMIT 1", {"username": username})
     record = result.single()
     if not record:
