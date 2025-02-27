@@ -25,3 +25,11 @@ def update_statistics(session, school_id, class_name, section_scores: dict, sect
             "section_percentage": section_percentage,
             "section_name": subject_mapping.get(sec, f"Section {sec}")
         })
+        session.run("""
+        MATCH (s:School {school_id: $school_id}), (st:Statistics {school_id: $school_id, class_name: $class_name, section_number: $section_number})
+        MERGE (s)-[:HAS_STATISTICS]->(st)
+        """, {
+            "school_id": school_id,
+            "class_name": class_name,
+            "section_number": sec
+        })

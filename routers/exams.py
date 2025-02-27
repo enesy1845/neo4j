@@ -84,6 +84,14 @@ def start_exam_endpoint(session = Depends(get_db), current_user = Depends(get_cu
         "class_name": current_user["class_name"],
         "start_time": start_time
     })
+
+
+    # Ek olarak, kullanıcı ile sınav arasında açık ilişki kuruyoruz:
+    session.run("""
+    MATCH (u:User {user_id: $user_id}), (e:Exam {exam_id: $exam_id})
+    MERGE (u)-[:TAKES_EXAM]->(e)
+    """, {"user_id": current_user["user_id"], "exam_id": exam_id})
+
     for sec, qs in selected_questions.items():
         for q in qs:
             session.run("""

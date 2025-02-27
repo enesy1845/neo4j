@@ -55,6 +55,12 @@ def register_user(session, username, password, name, surname, class_name, role, 
         "okul_no": okul_no,
         "school_id": school.get("school_id", "default-school")
     })
+    session.run("""
+    MATCH (s:School {school_id: $school_id}), (u:User {user_id: $user_id})
+    MERGE (s)-[:HAS_USER]->(u)
+    """, {"school_id": school.get("school_id", "default-school"), "user_id": user_id})
+    
+
     print(f"User registered: {username} | Password: {password}")
     return True
 
@@ -144,4 +150,8 @@ def create_admin_user(session):
         "surname": ADMIN_SURNAME,
         "school_id": school.get("school_id", "default-school")
     })
+    session.run("""
+    MATCH (s:School {school_id: $school_id}), (u:User {user_id: $user_id})
+    MERGE (s)-[:HAS_USER]->(u)
+    """, {"school_id": school.get("school_id", "default-school"), "user_id": user_id})
     print("Admin user created successfully.")
