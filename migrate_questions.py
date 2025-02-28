@@ -19,8 +19,7 @@ def questions_already_migrated(session) -> bool:
 def main():
     session = get_db()
     try:
-        init_db()  # Constraint ve index'leri oluşturuyoruz
-
+        init_db()  # Constraint oluşturma
         if questions_already_migrated(session):
             print("Questions already migrated. Skipping.")
             return
@@ -31,7 +30,7 @@ def main():
             answers_data = {}
         else:
             answers_data = load_json(ANSWERS_FILE)  # { "q_ext_id": cevap }
-            
+
         # 2) Her bölüm için soru dosyalarını işle
         for section in range(1, 5):
             q_file = QUESTIONS_DIR / f"questions_section{section}.json"
@@ -43,7 +42,6 @@ def main():
             if not questions_list:
                 print(f"No questions found in {q_file}, skipping.")
                 continue
-
             for q_item in questions_list:
                 ext_id = q_item["id"]
                 # Benzersiz soru düğümü oluştur
@@ -67,12 +65,23 @@ def main():
                     "qtype": q_item["type"]
                 }
                 session.run(cypher_create_question, params)
+
+                # Bölüm düğümünü oluştur (MERGE) ve soru ile ilişkilendir (PART_OF)
+                cypher_merge_section = """
+                MERGE (s:Section {section_number: $section})
+                """
+                session.run(cypher_merge_section, {"section": q_item["section"]})
+                cypher_link_question_section = """
+                MATCH (q:Question {id: $question_id}), (s:Section {section_number: $section})
+                CREATE (q)-[:PART_OF]->(s)
+                """
+                session.run(cypher_link_question_section, {"question_id": question_id, "section": q_item["section"]})
+
                 # Cevabı belirle
                 raw_answer = answers_data.get(ext_id, None)
                 options_list = q_item.get("options") or q_item.get("choices") or []
                 if q_item["type"] == "true_false" and not options_list:
                     options_list = ["True", "False"]
-
                 for opt in options_list:
                     is_corr = False
                     if raw_answer:
@@ -90,6 +99,7 @@ def main():
                         correct_position: $correct_position
                     })
                     CREATE (q)-[:HAS_CHOICE]->(c)
+                    CREATE (c)-[:IS_OPTION_FOR]->(q)
                     """
                     params_choice = {
                         "question_id": question_id,

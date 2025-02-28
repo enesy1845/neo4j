@@ -1,90 +1,96 @@
-<!-- templates/teacher_view_stats.html -->
+<!-- templates/student_view_results.html -->
 {% extends "base.html" %}
 {% block content %}
-<h2>Teacher Statistics</h2>
-{% set subject_mapping = {1: "Math", 2: "English", 3: "Science", 4: "History"} %}
-{% if stats.teacher_class_stats is not defined or stats.teacher_class_stats | length == 0 %}
-<p>No statistics available.</p>
-{% else %}
-<h3>Your Class Statistics</h3>
-<table class="table">
-    <thead>
-        <tr>
-            <th>Section</th>
-            <th>Correct Answers</th>
-            <th>Wrong Answers</th>
-            <th>Exam Takers</th>
-            <th>Success Rate (%)</th>
-        </tr>
-    </thead>
-    <tbody>
-        {% for stat in stats.teacher_class_stats %}
-        <tr>
-            <td>{{ stat.section_name }}</td>
-            <td>{{ stat.correct_answers }}</td>
-            <td>{{ stat.wrong_answers }}</td>
-            <td>{{ stat.exam_takers }}</td>
-            <td>{{ stat.success_rate }}%</td>
-        </tr>
-        {% endfor %}
-    </tbody>
-</table>
+<div class="welcome-container">
+    <h1>Exam Results</h1>
+</div>
 
-<h3>School Summary (All Classes)</h3>
-<table class="table">
-    <thead>
-        <tr>
-            <th>Section</th>
-            <th>Correct Total</th>
-            <th>Wrong Total</th>
-            <th>Exam Takers</th>
-            <th>Success Rate (%)</th>
-        </tr>
-    </thead>
-    <tbody>
-        {% for stat in stats.school_summary %}
-        <tr>
-            <td>{{ stat.section_name }}</td>
-            <td>{{ stat.correct_answers_total }}</td>
-            <td>{{ stat.wrong_answers_total }}</td>
-            <td>{{ stat.exam_takers }}</td>
-            <td>{{ stat.success_rate }}%</td>
-        </tr>
-        {% endfor %}
-    </tbody>
-</table>
+<div class="results-summary">
+    <p><strong>Student Number:</strong> {{ results_data.student_number or "N/A" }}</p>
+    <p><strong>Class:</strong> {{ results_data.class_name }}</p>
+    <p><strong>Attempts:</strong> {{ results_data.attempts }}</p>
+    <p><strong>Overall Percentage:</strong> {{ results_data.overall_percentage }}%</p>
+</div>
 
-<h3>Per-Question Statistics</h3>
-{% if stats.question_stats and stats.question_stats | length > 0 %}
-{% for sec, qstats in stats.question_stats.items() %}
-<h4>
-    Section {{ subject_mapping[sec] if sec in subject_mapping else sec }}
-</h4>
-{% if qstats | length > 0 %}
-<table class="table">
-    <thead>
-        <tr>
-            <th>Question</th>
-            <th>Correct Answer Count</th>
-            <th>Wrong Answer Count</th>
-        </tr>
-    </thead>
-    <tbody>
-        {% for stat in qstats %}
-        <tr>
-            <td>{{ stat.question_text }}</td>
-            <td>{{ stat.correct_count }}</td>
-            <td>{{ stat.wrong_count }}</td>
-        </tr>
-        {% endfor %}
-    </tbody>
-</table>
-{% else %}
-<p>No exam questions available for this section.</p>
-{% endif %}
+{% if results_data.exams and results_data.exams|length > 0 %}
+<h3>Exam Details</h3>
+{% for exam in results_data.exams %}
+<div class="exam-detail" style="margin-bottom: 30px;">
+    <h4>
+        Exam {{ loop.index }}:
+        {% if exam.start_time %}
+        {% set formatted_start = exam.start_time | replace("T", " ") %}
+        {% if exam.end_time %}
+        {% set formatted_end = exam.end_time | replace("T", " ") %}
+        {{ formatted_start }} - {{ formatted_end }}
+        {% else %}
+        {{ formatted_start }}
+        {% endif %}
+        {% else %}
+        Date not available
+        {% endif %}
+        - <span style="text-transform: capitalize;">{{ exam.pass_fail }}</span>
+    </h4>
+    <p><strong>Exam Percentage:</strong> {{ exam.exam_percentage }}%</p>
+
+    <h5>Section Results</h5>
+    <table class="table">
+        <thead>
+            <tr>
+                <th>Section</th>
+                <th>Correct Answers</th>
+                <th>Wrong Answers</th>
+                <th>Notu (%)</th>
+                <th>Average (Ort)</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for section in exam.sections_details %}
+            <tr>
+                <td>{{ section.section_number }}</td>
+                <td>{{ section.correct_answers }}</td>
+                <td>{{ section.wrong_answers }}</td>
+                <td>{{ section.notu }}%</td>
+                <td>{{ section.ort }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+
+    <h5>Question Details</h5>
+    <table class="table">
+        <thead>
+            <tr>
+                <th>Question</th>
+                <th>Your Answers</th>
+                <th>Correct Answers</th>
+                <th>Status</th>
+                <th>Points Earned</th>
+                <th>Points Possible</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for question in exam.questions_details %}
+            <tr>
+                <td>{{ question.question_text }}</td>
+                <td>{{ question.student_answers | join(', ') }}</td>
+                <td>{{ question.correct_answers | join(', ') }}</td>
+                <td>{{ question.status }}</td>
+                <td>{{ question.points_earned }}</td>
+                <td>{{ question.points_possible }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
 {% endfor %}
 {% else %}
-<p>No per-question statistics available.</p>
+<p>No exam results available.</p>
 {% endif %}
+
+{% if not hide_back_button %}
+<div class="button-group">
+    <a href="/student_menu" class="btn">Back to Menu</a>
+</div>
 {% endif %}
 {% endblock %}

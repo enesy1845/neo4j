@@ -3,9 +3,11 @@ import os
 from neo4j import GraphDatabase
 from dotenv import load_dotenv
 load_dotenv()
+
 NEO4J_URI = os.getenv("NEO4J_URI", "bolt://localhost:7687")
 NEO4J_USER = os.getenv("NEO4J_USER", "neo4j")
 NEO4J_PASSWORD = os.getenv("NEO4J_PASSWORD", "neo4j")
+
 driver = GraphDatabase.driver(NEO4J_URI, auth=(NEO4J_USER, NEO4J_PASSWORD))
 
 def get_db():
@@ -69,6 +71,12 @@ def init_db():
         CREATE CONSTRAINT statistics_id_unique IF NOT EXISTS
         FOR (st:Statistics)
         REQUIRE st.id IS UNIQUE
+        """)
+        # Section için constraint
+        session.run("""
+        CREATE CONSTRAINT section_unique IF NOT EXISTS
+        FOR (s:Section)
+        REQUIRE s.section_number IS UNIQUE
         """)
     finally:
         session.close()

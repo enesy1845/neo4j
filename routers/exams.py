@@ -27,7 +27,7 @@ def start_exam_endpoint(session = Depends(get_db), current_user = Depends(get_cu
     if current_user.get("attempts", 0) >= 2:
         raise HTTPException(status_code=400, detail="You have no remaining exam attempts.")
 
-    # Ongoing exam sorgulaması
+    # Check for ongoing exam
     query = """
     MATCH (e:Exam {user_id: $user_id, status: 'in_progress'})
     RETURN e LIMIT 1
@@ -63,7 +63,7 @@ def start_exam_endpoint(session = Depends(get_db), current_user = Depends(get_cu
             "status": exam_node["status"]
         }
 
-    # Yeni sınav oluşturma
+    # Create new exam
     selected_questions = select_questions(session, current_user)
     if not selected_questions:
         raise HTTPException(status_code=400, detail="No questions available.")
@@ -85,19 +85,39 @@ def start_exam_endpoint(session = Depends(get_db), current_user = Depends(get_cu
         "start_time": start_time
     })
 
-
-    # Ek olarak, kullanıcı ile sınav arasında açık ilişki kuruyoruz:
+    # Create relationship between User and Exam
     session.run("""
     MATCH (u:User {user_id: $user_id}), (e:Exam {exam_id: $exam_id})
     MERGE (u)-[:TAKES_EXAM]->(e)
     """, {"user_id": current_user["user_id"], "exam_id": exam_id})
 
+    # Link selected questions to exam
     for sec, qs in selected_questions.items():
         for q in qs:
             session.run("""
             MATCH (e:Exam {exam_id: $exam_id}), (q:Question {id: $question_id})
             CREATE (e)-[:CONTAINS]->(q)
             """, {"exam_id": exam_id, "question_id": q["id"]})
+        # Add NEXT_QUESTION relationship within same section
+        if len(qs) > 1:
+            for i in range(len(qs) - 1):
+                session.run("""
+                MATCH (q1:Question {id: $id1}), (q2:Question {id: $id2})
+                CREATE (q1)-[:NEXT_QUESTION {exam_id: $exam_id, section: $section}]->(q2)
+                """, {"id1": qs[i]["id"], "id2": qs[i+1]["id"], "exam_id": exam_id, "section": sec})
+
+    # Create relationship between Exam and Class using WITH clause
+    session.run("""
+    MERGE (c:Class {name: $class_name})
+    WITH c
+    MATCH (e:Exam {exam_id: $exam_id})
+    CREATE (e)-[:FOR_CLASS]->(c)
+    """, {
+        "class_name": current_user["class_name"],
+        "exam_id": exam_id
+    })
+
+    # Retrieve exam questions and choices
     q_result = session.run("""
     MATCH (e:Exam {exam_id: $exam_id})-[:CONTAINS]->(q:Question)
     OPTIONAL MATCH (q)-[:HAS_CHOICE]->(c:Choice)
@@ -141,7 +161,6 @@ def submit_exam_endpoint(body: SubmitExamRequest, session = Depends(get_db), cur
     exam_node = record["e"]
     if exam_node.get("end_time") is not None:
         raise HTTPException(status_code=400, detail="Exam has already been submitted.")
-
     q_result = session.run("""
     MATCH (e:Exam {exam_id: $exam_id})-[:CONTAINS]->(q:Question)
     RETURN q
@@ -149,7 +168,6 @@ def submit_exam_endpoint(body: SubmitExamRequest, session = Depends(get_db), cur
     selected_questions = [rec["q"] for rec in q_result]
     if not selected_questions:
         raise HTTPException(status_code=400, detail="No questions associated with this exam.")
-
     end_time = datetime.utcnow().isoformat()
     process_results(session, current_user, exam_node, selected_questions, body.answers, end_time)
     session.run("""

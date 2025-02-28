@@ -14,18 +14,18 @@
             <th>Correct Answers</th>
             <th>Wrong Answers</th>
             <th>Exam Takers</th>
+            <th>Success Rate (%)</th>
         </tr>
     </thead>
     <tbody>
         {% for stat in stats.teacher_class_stats %}
         <tr>
-            <td>
-                {% set sec = stat.section_number %}
-                Section {{ subject_mapping[sec] if sec in subject_mapping else sec }}
-            </td>
+            <td>{{ subject_mapping[stat.section_number|int] if stat.section_number|int in subject_mapping else
+                stat.section_number }}</td>
             <td>{{ stat.correct_answers }}</td>
             <td>{{ stat.wrong_answers }}</td>
             <td>{{ stat.exam_takers }}</td>
+            <td>{{ stat.success_rate }}%</td>
         </tr>
         {% endfor %}
     </tbody>
@@ -45,14 +45,12 @@
     <tbody>
         {% for stat in stats.school_summary %}
         <tr>
-            <td>
-                {% set sec = stat.section_number %}
-                Section {{ subject_mapping[sec] if sec in subject_mapping else sec }}
-            </td>
+            <td>{{ subject_mapping[stat.section_number|int] if stat.section_number|int in subject_mapping else
+                stat.section_number }}</td>
             <td>{{ stat.correct_answers_total }}</td>
             <td>{{ stat.wrong_answers_total }}</td>
             <td>{{ stat.exam_takers }}</td>
-            <td>{{ stat.sn_basarisi }}%</td>
+            <td>{{ stat.success_rate }}%</td>
         </tr>
         {% endfor %}
     </tbody>
@@ -62,7 +60,7 @@
 {% if stats.question_stats and stats.question_stats | length > 0 %}
 {% for sec, qstats in stats.question_stats.items() %}
 <h4>
-    Section {{ subject_mapping[sec] if sec in subject_mapping else sec }}
+    Section {{ subject_mapping[sec|int] if sec|int in subject_mapping else sec }}
 </h4>
 {% if qstats | length > 0 %}
 <table class="table">

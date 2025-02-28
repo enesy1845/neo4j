@@ -3,7 +3,6 @@ import os
 from uuid import uuid4
 from tools.utils import hash_password, check_password
 
-
 def register_user(session, username, password, name, surname, class_name, role, registered_section=None):
     # Normalize username (trim and lower-case)
     username = username.strip().lower()
@@ -21,7 +20,7 @@ def register_user(session, username, password, name, surname, class_name, role, 
     school = record["s"]
     user_id = str(uuid4())
     hashed_pw = hash_password(password)
-    # Determine school number for student by counting existing students in the school
+    # Determine school number for student
     if role.lower() == "student":
         result = session.run("MATCH (u:User {school_id: $school_id, role: 'student'}) RETURN count(u) as student_count", {"school_id": school.get("school_id", "default-school")})
         count = result.single()["student_count"]
@@ -55,17 +54,21 @@ def register_user(session, username, password, name, surname, class_name, role, 
         "okul_no": okul_no,
         "school_id": school.get("school_id", "default-school")
     })
+    # Mevcut ilişki: School -[:HAS_USER]-> User
     session.run("""
     MATCH (s:School {school_id: $school_id}), (u:User {user_id: $user_id})
     MERGE (s)-[:HAS_USER]->(u)
     """, {"school_id": school.get("school_id", "default-school"), "user_id": user_id})
-    
-
+    # EK: User -[:BELONGS_TO]-> School ilişkisini ekle
+    session.run("""
+    MATCH (u:User {user_id: $user_id}), (s:School {school_id: $school_id})
+    MERGE (u)-[:BELONGS_TO]->(s)
+    """, {"user_id": user_id, "school_id": school.get("school_id", "default-school")})
     print(f"User registered: {username} | Password: {password}")
     return True
 
 def login_user(session, username, password):
-    # Normalize username to ensure consistency
+    # (Login işlemleri aynı, değişiklik yok)
     username = username.strip().lower()
     result = session.run("MATCH (u:User {username: $username}) RETURN u LIMIT 1", {"username": username})
     record = result.single()
@@ -89,7 +92,6 @@ def delete_user(session, admin_user, username):
     return True
 
 def update_user(session, current_user, user_id, **kwargs):
-    # Eğer güncellemeyi yapan kişi kendisi ise veya admin ise güncellemeye izin ver
     if current_user["role"].lower() != "admin" and current_user["user_id"] != user_id:
         print("Only admins can update other users.")
         return False
@@ -121,7 +123,6 @@ def create_admin_user(session):
     result = session.run("MATCH (s:School {name: 'DefaultSchool'}) RETURN s LIMIT 1")
     record = result.single()
     if not record:
-        # Eğer DefaultSchool yoksa oluştur
         new_school_id = str(uuid4())
         session.run("CREATE (s:School {school_id: $school_id, name: 'DefaultSchool'})", {"school_id": new_school_id})
         result = session.run("MATCH (s:School {name: 'DefaultSchool'}) RETURN s LIMIT 1")
@@ -154,4 +155,8 @@ def create_admin_user(session):
     MATCH (s:School {school_id: $school_id}), (u:User {user_id: $user_id})
     MERGE (s)-[:HAS_USER]->(u)
     """, {"school_id": school.get("school_id", "default-school"), "user_id": user_id})
+    session.run("""
+    MATCH (u:User {user_id: $user_id}), (s:School {school_id: $school_id})
+    MERGE (u)-[:BELONGS_TO]->(s)
+    """, {"user_id": user_id, "school_id": school.get("school_id", "default-school")})
     print("Admin user created successfully.")
