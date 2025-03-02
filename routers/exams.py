@@ -69,11 +69,13 @@ def start_exam_endpoint(session = Depends(get_db), current_user = Depends(get_cu
         raise HTTPException(status_code=400, detail="No questions available.")
     exam_id = str(uuid4())
     start_time = datetime.utcnow().isoformat()
+    attempt_number = current_user.get("attempts", 0) + 1
+    exam_title = f"{current_user['username']} Exam {attempt_number}"
     create_exam_query = """
     CREATE (e:Exam {
         exam_id: $exam_id,
         user_id: $user_id,
-        class_name: $class_name,
+        exam_title: $exam_title,
         start_time: datetime($start_time),
         status: 'in_progress'
     })
@@ -81,7 +83,7 @@ def start_exam_endpoint(session = Depends(get_db), current_user = Depends(get_cu
     session.run(create_exam_query, {
         "exam_id": exam_id,
         "user_id": current_user["user_id"],
-        "class_name": current_user["class_name"],
+        "exam_title": exam_title,
         "start_time": start_time
     })
 

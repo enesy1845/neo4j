@@ -78,5 +78,11 @@ def init_db():
         FOR (s:Section)
         REQUIRE s.section_number IS UNIQUE
         """)
+        # Class için constraint
+        session.run("""
+        CREATE CONSTRAINT class_unique IF NOT EXISTS
+        FOR (c:Class)
+        REQUIRE c.name IS UNIQUE
+        """)
     finally:
         session.close()

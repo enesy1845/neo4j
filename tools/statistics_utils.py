@@ -1,7 +1,9 @@
+# tools/statistics_utils.py
 def update_statistics(session, school_id, class_name, section_scores: dict, section_correct_wrong: dict, attempt_number):
     """
     Her bölüm için istatistik düğümü oluşturulur veya güncellenir.
     Ek olarak, attempt_number bilgisine göre ilk ve ikinci sınav yüzdeleri ayrı tutulur.
+    Bu istatistik düğümleri, ilgili Section, Class ve School düğümleriyle ilişkilendirilecektir.
     """
     subject_mapping = {1: "Math", 2: "English", 3: "Science", 4: "History"}
     for sec in range(1, 5):
@@ -36,3 +38,21 @@ def update_statistics(session, school_id, class_name, section_scores: dict, sect
             SET st.second_exam_percentage = coalesce(st.second_exam_percentage, 0) + $section_percentage,
                 st.second_exam_count = coalesce(st.second_exam_count, 0) + 1
             """, {"school_id": school_id, "class_name": class_name, "section_number": sec, "section_percentage": section_percentage})
+        # İstatistik düğümünü ilgili Section düğümüyle ilişkilendiriyoruz.
+        session.run("""
+        MATCH (st:Statistics {school_id: $school_id, class_name: $class_name, section_number: $section_number})
+        MERGE (sec:Section {section_number: $section_number})
+        MERGE (st)-[:OF_SECTION]->(sec)
+        """, {"school_id": school_id, "class_name": class_name, "section_number": sec})
+        # İstatistik düğümünü Class düğümüyle ilişkilendiriyoruz.
+        session.run("""
+        MATCH (st:Statistics {school_id: $school_id, class_name: $class_name, section_number: $section_number})
+        MERGE (c:Class {name: $class_name})
+        MERGE (c)-[:HAS_STATISTICS]->(st)
+        """, {"school_id": school_id, "class_name": class_name, "section_number": sec})
+        # İstatistik düğümünü School düğümüyle ilişkilendiriyoruz.
+        session.run("""
+        MATCH (st:Statistics {school_id: $school_id, class_name: $class_name, section_number: $section_number})
+        MATCH (s:School {school_id: $school_id})
+        MERGE (s)-[:HAS_STATISTICS]->(st)
+        """, {"school_id": school_id, "class_name": class_name, "section_number": sec})

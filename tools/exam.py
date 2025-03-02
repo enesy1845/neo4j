@@ -41,8 +41,10 @@ def select_questions(session, user):
     return final_dict
 
 def process_results(session, user, exam_node, selected_questions, answers_dict, end_time):
+    # Hesaplamaları bölüm bazında yapıyoruz.
     section_scores = {sec: [0, 0] for sec in range(1, 5)}
     section_correct_wrong = {sec: [0, 0] for sec in range(1, 5)}
+    
     for q in selected_questions:
         qid = q["id"]
         ans_data = answers_dict.get(str(qid))
@@ -85,15 +87,15 @@ def process_results(session, user, exam_node, selected_questions, answers_dict, 
         CREATE (ea)-[:FOR_QUESTION]->(q)
         CREATE (ea)-[:ANSWER_FOR]->(q)
         """, {"exam_id": exam_node["exam_id"], "qid": qid, "exam_answer_id": exam_answer_id, "points_earned": points_earned})
-
-        # Eğer tam puan alamadıysa ilgili soru düğümünde wrong_count artırılıyor
+        
+        # Eğer tam puan alamadıysa, ilgili soru düğümündeki wrong_count property'sini artır
         if points_earned < q.get("points", 1):
             session.run("""
             MATCH (q:Question {id: $qid})
             SET q.wrong_count = coalesce(q.wrong_count, 0) + 1
             """, {"qid": qid})
-
-        # Seçilen şıklar için sayacın güncellenmesi
+        
+        # Seçilen şıklar için sayacı güncelliyoruz
         if ans_data:
             if isinstance(ans_data, dict):
                 selected = ans_data.get("selected_texts", [])
@@ -110,33 +112,53 @@ def process_results(session, user, exam_node, selected_questions, answers_dict, 
                 WHERE toLower(c.choice_text) = toLower($answer_text) AND c.is_correct = true
                 SET c.selected_correct_count = coalesce(c.selected_correct_count, 0) + 1
                 """, {"qid": qid, "answer_text": answer_text.strip()})
-
-    # Sınavın bitiş zamanı ve durumunun güncellenmesi
-    session.run("""
-    MATCH (e:Exam {exam_id: $exam_id})
-    SET e.end_time = datetime($end_time), e.status = 'submitted'
-    """, {"exam_id": exam_node["exam_id"], "end_time": end_time})
-
+    
     total_earned = sum(section_scores[s][0] for s in section_scores)
     total_possible = sum(section_scores[s][1] for s in section_scores)
     final_score = round((total_earned / total_possible) * 100, 2) if total_possible > 0 else 0.0
+    attempt_number = user.get("attempts", 0) + 1
 
-    # Kullanıcının sınav denemelerini güncelleme: 
-    # İlk deneme ise first_exam_score, ikinci deneme ise second_exam_score, ve genel ortalama score_avg hesaplanıyor.
+    # Yeni: ExamResult düğümü oluşturup öğrencinin sınav sonucunu burada saklıyoruz.
+    exam_result_id = str(uuid4())
+    session.run("""
+    CREATE (er:ExamResult {
+       id: $exam_result_id,
+       exam_id: $exam_id,
+       student_id: $user_id,
+       attempt_number: $attempt_number,
+       exam_percentage: $final_score,
+       timestamp: datetime($end_time)
+    })
+    """, {
+        "exam_result_id": exam_result_id,
+        "exam_id": exam_node["exam_id"],
+        "user_id": user["user_id"],
+        "attempt_number": attempt_number,
+        "final_score": final_score,
+        "end_time": end_time
+    })
+    # Kullanıcı ile ExamResult arasında ilişki kuruyoruz.
+    session.run("""
+    MATCH (u:User {user_id: $user_id}), (er:ExamResult {id: $exam_result_id})
+    CREATE (u)-[:HAS_RESULT]->(er)
+    """, {"user_id": user["user_id"], "exam_result_id": exam_result_id})
+    # Her bölüm için, ilgili Statistics düğümüyle ExamResult'u ilişkilendiriyoruz.
+    for sec in range(1, 5):
+        session.run("""
+        MATCH (er:ExamResult {id: $exam_result_id}),
+              (st:Statistics {school_id: $school_id, class_name: $class_name, section_number: $sec})
+        MERGE (er)-[:RESULT_FOR {section: $sec}]->(st)
+        """, {
+            "exam_result_id": exam_result_id,
+            "school_id": user.get("school_id"),
+            "class_name": user.get("class_name"),
+            "sec": sec
+        })
+    # Kullanıcının sınav deneme sayısını güncelliyoruz.
     session.run("""
     MATCH (u:User {user_id: $user_id})
-    WITH u, coalesce(u.attempts, 0) as currentAttempts
-    SET u.attempts = currentAttempts + 1
-    WITH u, currentAttempts + 1 as newAttempts
-    SET u.first_exam_score = CASE WHEN newAttempts = 1 THEN $final_score ELSE u.first_exam_score END,
-        u.second_exam_score = CASE WHEN newAttempts = 2 THEN $final_score ELSE u.second_exam_score END,
-        u.score_avg = CASE WHEN newAttempts = 1 THEN $final_score
-                           WHEN newAttempts = 2 THEN (u.first_exam_score + $final_score)/2
-                           ELSE u.score_avg END
-    """, {"user_id": user["user_id"], "final_score": final_score})
-
-    # Deneme numarasını (1 veya 2) update_statistics fonksiyonuna geçiriyoruz
-    # (Not: user nesnesi eski olabileceğinden, deneme sayısını dışarıdan takip etmek gerekebilir;
-    # burada basitçe mevcut deneme sayısının bir fazlasını kullanıyoruz.)
-    attempt_number = user.get("attempts", 0) + 1
-    update_statistics(session, user.get("school_id"), user["class_name"], section_scores, section_correct_wrong, attempt_number=attempt_number)
+    SET u.attempts = coalesce(u.attempts, 0) + 1
+    """, {"user_id": user["user_id"]})
+    
+    # İstatistik düğümlerini güncelliyoruz.
+    update_statistics(session, user.get("school_id"), user.get("class_name"), section_scores, section_correct_wrong, attempt_number=attempt_number)

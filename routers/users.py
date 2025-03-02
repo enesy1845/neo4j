@@ -49,6 +49,8 @@ def validate_password_strength(password: str) -> bool:
 
 @router.get("/me", response_model=UserResponse, summary="Get current user details")
 def read_current_user(current_user = Depends(get_current_user)):
+    # Eğer current_user, ilişkisel bilgileri içermiyorsa; isteniyorsa get_current_user fonksiyonunda da
+    # ilişkilerden class_name ve school_id eklenebilir.
     return current_user
 
 @router.put("/me", summary="Update current user's profile")
@@ -73,15 +75,25 @@ def update_current_user(request: SelfUpdateRequest, session = Depends(get_db), c
     current_user_dict.update(update_fields)
     return {"message": "Profile updated successfully.", "user": current_user_dict}
 
-
 @router.get("/", response_model=List[UserResponse], summary="List all users")
 def list_all_users(session = Depends(get_db), current_user = Depends(get_current_user)):
     if current_user["role"] != "admin":
         raise HTTPException(status_code=403, detail="Only admins can list users.")
-    result = session.run("MATCH (u:User) RETURN u")
+    # Grafik modeline göre kullanıcı bilgilerini ilişkilerden almak için sorgu:
+    query = """
+    MATCH (u:User)
+    OPTIONAL MATCH (u)-[:BELONGS_TO]->(c:Class)
+    OPTIONAL MATCH (c)<-[:HAS_CLASS]-(s:School)
+    RETURN u, c.name as class_name, s.school_id as school_id
+    """
+    result = session.run(query)
     users = []
     for record in result:
-        users.append(record["u"])
+        # Node objesini dict'e çeviriyoruz
+        user = dict(record["u"])
+        user["class_name"] = record.get("class_name") or ""
+        user["school_id"] = record.get("school_id") or ""
+        users.append(user)
     return users
 
 @router.put("/{user_id}", summary="Update a user (Admin)")

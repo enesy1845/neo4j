@@ -20,13 +20,16 @@ def register_user(session, username, password, name, surname, class_name, role, 
     school = record["s"]
     user_id = str(uuid4())
     hashed_pw = hash_password(password)
+    
     # Determine school number for student
     if role.lower() == "student":
-        result = session.run("MATCH (u:User {school_id: $school_id, role: 'student'}) RETURN count(u) as student_count", {"school_id": school.get("school_id", "default-school")})
+        result = session.run("MATCH (u:User)-[:BELONGS_TO]->(:Class {name: $class_name}) RETURN count(u) as student_count", {"class_name": class_name})
         count = result.single()["student_count"]
         okul_no = count + 1
     else:
         okul_no = None
+
+    # Create the User node
     session.run("""
     CREATE (u:User {
         user_id: $user_id,
@@ -35,12 +38,10 @@ def register_user(session, username, password, name, surname, class_name, role, 
         name: $name,
         surname: $surname,
         role: $role,
-        class_name: $class_name,
         registered_section: $registered_section,
         attempts: 0,
         score_avg: 0,
-        okul_no: $okul_no,
-        school_id: $school_id
+        okul_no: $okul_no
     })
     """, {
         "user_id": user_id,
@@ -49,26 +50,38 @@ def register_user(session, username, password, name, surname, class_name, role, 
         "name": name,
         "surname": surname,
         "role": role.lower(),
-        "class_name": class_name,
         "registered_section": registered_section if role.lower() == "teacher" else None,
-        "okul_no": okul_no,
-        "school_id": school.get("school_id", "default-school")
+        "okul_no": okul_no
     })
-    # Mevcut ilişki: School -[:HAS_USER]-> User
+    
+    # For teacher: connect teacher to Class via TEACHES relationship.
+    if role.lower() == "teacher":
+        session.run("""
+        MERGE (c:Class {name: $class_name})
+        WITH c
+        MATCH (u:User {user_id: $user_id})
+        CREATE (u)-[:TEACHES]->(c)
+        """, {"class_name": class_name, "user_id": user_id})
+    # For student: connect student to Class via BELONGS_TO relationship.
+    elif role.lower() == "student":
+        session.run("""
+        MERGE (c:Class {name: $class_name})
+        WITH c
+        MATCH (u:User {user_id: $user_id})
+        CREATE (u)-[:BELONGS_TO]->(c)
+        """, {"class_name": class_name, "user_id": user_id})
+    
+    # Connect School to Class (for both teacher and student)
     session.run("""
-    MATCH (s:School {school_id: $school_id}), (u:User {user_id: $user_id})
-    MERGE (s)-[:HAS_USER]->(u)
-    """, {"school_id": school.get("school_id", "default-school"), "user_id": user_id})
-    # EK: User -[:BELONGS_TO]-> School ilişkisini ekle
-    session.run("""
-    MATCH (u:User {user_id: $user_id}), (s:School {school_id: $school_id})
-    MERGE (u)-[:BELONGS_TO]->(s)
-    """, {"user_id": user_id, "school_id": school.get("school_id", "default-school")})
+    MATCH (s:School {name: 'DefaultSchool'})
+    MERGE (c:Class {name: $class_name})
+    MERGE (s)-[:HAS_CLASS]->(c)
+    """, {"class_name": class_name})
+    
     print(f"User registered: {username} | Password: {password}")
     return True
 
 def login_user(session, username, password):
-    # (Login işlemleri aynı, değişiklik yok)
     username = username.strip().lower()
     result = session.run("MATCH (u:User {username: $username}) RETURN u LIMIT 1", {"username": username})
     record = result.single()
@@ -138,25 +151,15 @@ def create_admin_user(session):
         name: $name,
         surname: $surname,
         role: 'admin',
-        class_name: '',
         attempts: 0,
-        score_avg: 0,
-        school_id: $school_id
+        score_avg: 0
     })
     """, {
         "user_id": user_id,
         "username": ADMIN_USERNAME,
         "password": hashed_pw,
         "name": ADMIN_NAME,
-        "surname": ADMIN_SURNAME,
-        "school_id": school.get("school_id", "default-school")
+        "surname": ADMIN_SURNAME
     })
-    session.run("""
-    MATCH (s:School {school_id: $school_id}), (u:User {user_id: $user_id})
-    MERGE (s)-[:HAS_USER]->(u)
-    """, {"school_id": school.get("school_id", "default-school"), "user_id": user_id})
-    session.run("""
-    MATCH (u:User {user_id: $user_id}), (s:School {school_id: $school_id})
-    MERGE (u)-[:BELONGS_TO]->(s)
-    """, {"user_id": user_id, "school_id": school.get("school_id", "default-school")})
+    # Admin için doğrudan School bağlantısı kurmaya gerek yok, fakat istenirse eklenebilir.
     print("Admin user created successfully.")

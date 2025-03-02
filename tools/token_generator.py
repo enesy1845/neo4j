@@ -26,8 +26,17 @@ def get_current_user(credentials: HTTPAuthorizationCredentials = Depends(bearer_
     user_id = payload.get("user_id")
     if not user_id:
         raise HTTPException(status_code=401, detail="Invalid token payload.")
-    result = session.run("MATCH (u:User {user_id: $user_id}) RETURN u LIMIT 1", {"user_id": user_id})
+    # Kullanıcının ilişkisel bilgilerini (Class ve School) da çekiyoruz.
+    result = session.run("""
+    MATCH (u:User {user_id: $user_id})
+    OPTIONAL MATCH (u)-[:BELONGS_TO]->(c:Class)
+    OPTIONAL MATCH (c)<-[:HAS_CLASS]-(s:School)
+    RETURN u, c.name as class_name, s.school_id as school_id
+    """, {"user_id": user_id})
     record = result.single()
     if not record:
         raise HTTPException(status_code=401, detail="User not found.")
-    return record["u"]
+    user = dict(record["u"])
+    user["class_name"] = record.get("class_name") or ""
+    user["school_id"] = record.get("school_id") or ""
+    return user
