@@ -9,19 +9,16 @@
     <!-- ROLE -->
     <div class="form-row">
         <label>Role</label>
-        <!-- styled-select sınıfını ekledik -->
         <select id="roleSelect" name="role" class="styled-select" onchange="onRoleChange()" required>
             <option value="student">Student</option>
             <option value="teacher">Teacher</option>
         </select>
     </div>
-
     <!-- USERNAME -->
     <div class="form-row">
         <label>Username</label>
         <input type="text" name="username" required />
     </div>
-
     <!-- PASSWORD -->
     <div class="form-row">
         <label>Password</label>
@@ -31,23 +28,19 @@
             and one digit.
         </small>
     </div>
-
     <!-- FIRST NAME -->
     <div class="form-row">
         <label>First Name</label>
         <input type="text" name="name" required />
     </div>
-
     <!-- LAST NAME -->
     <div class="form-row">
         <label>Last Name</label>
         <input type="text" name="surname" required />
     </div>
-
     <!-- STUDENT SINGLE-SELECT (Hidden if Teacher) -->
     <div class="form-row" id="studentClassRow">
         <label>Class (Single)</label>
-        <!-- styled-select sınıfını ekledik -->
         <select name="class_name" id="studentClassSelect" class="styled-select" required>
             <option value="7-A">7-A</option>
             <option value="7-B">7-B</option>
@@ -55,11 +48,9 @@
             <option value="7-D">7-D</option>
         </select>
     </div>
-
     <!-- TEACHER MULTI-SELECT (Hidden if Student) -->
     <div class="form-row" id="teacherClassRow" style="display:none;">
         <label>Class (Multiple)</label>
-        <!-- styled-select ve multi-class-dropdown sınıflarını ekledik -->
         <div class="styled-select multi-class-dropdown" id="teacherMultiSelect">
             <div class="multi-class-header" onclick="toggleMultiClassDropdown(event)">
                 <span id="multiClassPlaceholder">Select classes...</span>
@@ -81,84 +72,74 @@
             </div>
         </div>
     </div>
-
     <!-- REGISTERED SECTION (for teacher) -->
     <div class="form-row" id="sectionRow" style="display:none;">
         <label>Registered Section</label>
-        <!-- styled-select sınıfını ekledik -->
         <select name="registered_section" id="sectionSelect" class="styled-select">
             <option value="">Section</option>
-            <option value="math">Math</option>
-            <option value="english">English</option>
-            <option value="physics">Physics</option>
-            <option value="chemistry">Chemistry</option>
+            <option value="1">Math</option>
+            <option value="2">English</option>
+            <option value="3">Science</option>
+            <option value="4">History</option>
         </select>
     </div>
-
     <button type="submit" class="btn">Register</button>
 </form>
-
 <script>
-function onRoleChange() {
-    const roleVal = document.getElementById('roleSelect').value;
-    const studentClassRow = document.getElementById('studentClassRow');
-    const teacherClassRow = document.getElementById('teacherClassRow');
-    const sectionRow = document.getElementById('sectionRow');
-    const sectionSelect = document.getElementById('sectionSelect');
-
-    if (roleVal === 'teacher') {
-        // Teacher: Hide single-select, show multi-select + section
-        studentClassRow.style.display = 'none';
-        teacherClassRow.style.display = 'block';
-        sectionRow.style.display = 'block';
-        document.getElementById("studentClassSelect").disabled = true;
-        teacherClassRow.style.display = 'block';
-        // "required" ekle, "disabled" kaldır
-        sectionSelect.removeAttribute('disabled');
-        sectionSelect.setAttribute('required', '');
-    } else {
-        // Student: Hide multi-select, show single-select, hide section
-        studentClassRow.style.display = 'block';
-        teacherClassRow.style.display = 'none';
-        sectionRow.style.display = 'none';
-        document.getElementById("studentClassSelect").disabled = false;
-        teacherClassRow.style.display = 'none';
-        // "required" kaldır, "disabled" ekle
-        sectionSelect.removeAttribute('required');
-        sectionSelect.setAttribute('disabled', '');
+    function onRoleChange() {
+        const roleVal = document.getElementById('roleSelect').value;
+        const studentClassRow = document.getElementById('studentClassRow');
+        const teacherClassRow = document.getElementById('teacherClassRow');
+        const sectionRow = document.getElementById('sectionRow');
+        const sectionSelect = document.getElementById('sectionSelect');
+        if (roleVal === 'teacher') {
+            // Teacher: Hide single-select, show multi-select + section
+            studentClassRow.style.display = 'none';
+            teacherClassRow.style.display = 'block';
+            sectionRow.style.display = 'block';
+            document.getElementById("studentClassSelect").disabled = true;
+            teacherClassRow.style.display = 'block';
+            // Add "required" to sectionSelect
+            sectionSelect.removeAttribute('disabled');
+            sectionSelect.setAttribute('required', '');
+        } else {
+            // Student: Show single-select, hide multi-select, hide section
+            studentClassRow.style.display = 'block';
+            teacherClassRow.style.display = 'none';
+            sectionRow.style.display = 'none';
+            document.getElementById("studentClassSelect").disabled = false;
+            teacherClassRow.style.display = 'none';
+            // Remove "required" from sectionSelect
+            sectionSelect.removeAttribute('required');
+            sectionSelect.setAttribute('disabled', '');
+        }
     }
-}
-
-// Toggle the multi-class dropdown
-function toggleMultiClassDropdown(event) {
-    event.stopPropagation();
-    const multiClassList = document.getElementById('multiClassList');
-    const multiClassDropdown = document.getElementById('teacherMultiSelect');
-
-    if (multiClassList.style.display === 'none') {
-        multiClassList.style.display = 'block';
-        multiClassDropdown.classList.add('open');
-    } else {
-        multiClassList.style.display = 'none';
-        multiClassDropdown.classList.remove('open');
+    // Toggle the multi-class dropdown
+    function toggleMultiClassDropdown(event) {
+        event.stopPropagation();
+        const multiClassList = document.getElementById('multiClassList');
+        const multiClassDropdown = document.getElementById('teacherMultiSelect');
+        if (multiClassList.style.display === 'none') {
+            multiClassList.style.display = 'block';
+            multiClassDropdown.classList.add('open');
+        } else {
+            multiClassList.style.display = 'none';
+            multiClassDropdown.classList.remove('open');
+        }
     }
-}
-
-// Close the dropdown if clicked outside
-document.addEventListener('click', function () {
-    const multiClassList = document.getElementById('multiClassList');
-    const multiClassDropdown = document.getElementById('teacherMultiSelect');
-    if (multiClassList.style.display === 'block') {
-        multiClassList.style.display = 'none';
-        multiClassDropdown.classList.remove('open');
-    }
-});
-
-document.getElementById('multiClassList').addEventListener('click', function (event) {
-    event.stopPropagation();
-});
-
-// Init once on page load
-onRoleChange();
+    // Close the dropdown if clicked outside
+    document.addEventListener('click', function () {
+        const multiClassList = document.getElementById('multiClassList');
+        const multiClassDropdown = document.getElementById('teacherMultiSelect');
+        if (multiClassList.style.display === 'block') {
+            multiClassList.style.display = 'none';
+            multiClassDropdown.classList.remove('open');
+        }
+    });
+    document.getElementById('multiClassList').addEventListener('click', function (event) {
+        event.stopPropagation();
+    });
+    // Init once on page load
+    onRoleChange();
 </script>
 {% endblock %}

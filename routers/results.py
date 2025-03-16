@@ -1,10 +1,12 @@
 # routers/results.py
+
 from fastapi import APIRouter, Depends, HTTPException
 from typing import List, Dict
 from pydantic import BaseModel
 from tools.database import get_db
 from tools.token_generator import get_current_user
 import math
+from datetime import datetime
 
 router = APIRouter()
 
@@ -40,12 +42,22 @@ class ExamResultV2Response(BaseModel):
     exams: List[ExamDetailV2]
     overall_percentage: float
 
+def format_datetime(dt):
+    if isinstance(dt, str):
+        try:
+            dt_obj = datetime.fromisoformat(dt)
+        except Exception:
+            return dt
+        return dt_obj.strftime("%b %d, %Y %H:%M:%S")
+    elif hasattr(dt, "strftime"):
+        return dt.strftime("%b %d, %Y %H:%M:%S")
+    else:
+        return dt
+
 @router.get("/results_v2", response_model=ExamResultV2Response, summary="View your exam results (table style)")
 def view_exam_results_v2(session = Depends(get_db), current_user = Depends(get_current_user)):
     if current_user["role"] != "student":
         raise HTTPException(status_code=403, detail="Only students can view their exam results.")
-    
-    # Güncellendi: exists(e.end_time) yerine e.end_time IS NOT NULL kullanılıyor.
     exam_result = session.run(
         """
         MATCH (e:Exam)
@@ -62,7 +74,6 @@ def view_exam_results_v2(session = Depends(get_db), current_user = Depends(get_c
             "exams": [],
             "overall_percentage": 0.0
         }
-    
     pass_mark = 75.0
     exam_details_list = []
     stats_map = {}
@@ -76,7 +87,6 @@ def view_exam_results_v2(session = Depends(get_db), current_user = Depends(get_c
     for record in stats_result:
         st = record["st"]
         stats_map[st["section_number"]] = st
-
     total_exam_percentage = 0.0
     for exam in exams:
         exam_id = exam["exam_id"]
@@ -92,7 +102,7 @@ def view_exam_results_v2(session = Depends(get_db), current_user = Depends(get_c
             q_result = session.run(
                 """
                 MATCH (q:Question {id: $qid})
-                RETURN q LIMIT 1 
+                RETURN q LIMIT 1
                 """, {"qid": ea["question_id"]}
             )
             q_record = q_result.single()
@@ -151,7 +161,7 @@ def view_exam_results_v2(session = Depends(get_db), current_user = Depends(get_c
         total_earned = sum(section_dict[s]["sum_earned"] for s in section_dict)
         total_possible = sum(section_dict[s]["sum_possible"] for s in section_dict)
         final_score = round((total_earned / total_possible) * 100, 2) if total_possible > 0 else 0.0
-        pass_fail = "geçti" if (all_section_pass and (final_score >= pass_mark)) else "geçemedi"
+        pass_fail = "passed" if (all_section_pass and (final_score >= pass_mark)) else "failed"
         questions_details = []
         for ea in exam_answers:
             q_result = session.run(
@@ -207,8 +217,8 @@ def view_exam_results_v2(session = Depends(get_db), current_user = Depends(get_c
             )
             questions_details.append(question_detail)
         exam_detail = ExamDetailV2(
-            start_time=(exam["start_time"].isoformat() if hasattr(exam["start_time"], "isoformat") else exam["start_time"]),
-            end_time=(exam["end_time"].isoformat() if exam.get("end_time") and hasattr(exam["end_time"], "isoformat") else exam.get("end_time")),
+            start_time=format_datetime(exam["start_time"]),
+            end_time=format_datetime(exam.get("end_time")) if exam.get("end_time") else None,
             pass_fail=pass_fail,
             sections_details=sections_details,
             questions_details=questions_details,

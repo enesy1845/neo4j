@@ -1,12 +1,13 @@
 # migrate_questions.py
+
 import json
 from pathlib import Path
 from uuid import uuid4
 from tools.database import get_db, init_db
 
-# Kaynak dosya yolları
-QUESTIONS_DIR = Path("questions")            # Örn: "questions_section1.json" ...
-ANSWERS_FILE = Path("answers/answers.json")    # Örn: "answers.json"
+# Source file paths
+QUESTIONS_DIR = Path("questions")            # e.g., "questions_section1.json" ...
+ANSWERS_FILE = Path("answers/answers.json")    # e.g., "answers.json"
 
 def load_json(filepath: Path):
     with open(filepath, 'r', encoding='utf-8') as f:
@@ -19,19 +20,17 @@ def questions_already_migrated(session) -> bool:
 def main():
     session = get_db()
     try:
-        init_db()  # Constraint oluşturma
+        init_db()  # Create constraints
         if questions_already_migrated(session):
             print("Questions already migrated. Skipping.")
             return
-
-        # 1) Cevapları yükle
+        # 1) Load answers
         if not ANSWERS_FILE.exists():
             print(f"Answers file '{ANSWERS_FILE}' not found. Can't set correct answers.")
             answers_data = {}
         else:
-            answers_data = load_json(ANSWERS_FILE)  # { "q_ext_id": cevap }
-
-        # 2) Her bölüm için soru dosyalarını işle
+            answers_data = load_json(ANSWERS_FILE)  # { "q_ext_id": answer }
+        # 2) Process question files for each section
         for section in range(1, 5):
             q_file = QUESTIONS_DIR / f"questions_section{section}.json"
             if not q_file.exists():
@@ -44,7 +43,7 @@ def main():
                 continue
             for q_item in questions_list:
                 ext_id = q_item["id"]
-                # Benzersiz soru düğümü oluştur
+                # Create a unique question node
                 question_id = str(uuid4())
                 cypher_create_question = """
                 CREATE (q:Question {
@@ -65,8 +64,7 @@ def main():
                     "qtype": q_item["type"]
                 }
                 session.run(cypher_create_question, params)
-
-                # Bölüm düğümünü oluştur (MERGE) ve soru ile ilişkilendir (PART_OF)
+                # Create (MERGE) section node and relate question with section (PART_OF)
                 cypher_merge_section = """
                 MERGE (s:Section {section_number: $section})
                 """
@@ -76,8 +74,7 @@ def main():
                 CREATE (q)-[:PART_OF]->(s)
                 """
                 session.run(cypher_link_question_section, {"question_id": question_id, "section": q_item["section"]})
-
-                # Cevabı belirle
+                # Set the correct answer
                 raw_answer = answers_data.get(ext_id, None)
                 options_list = q_item.get("options") or q_item.get("choices") or []
                 if q_item["type"] == "true_false" and not options_list:

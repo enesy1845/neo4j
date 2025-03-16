@@ -1,4 +1,5 @@
 # tools/exam.py
+
 import random
 from datetime import datetime
 from uuid import uuid4
@@ -41,15 +42,15 @@ def select_questions(session, user):
     return final_dict
 
 def process_results(session, user, exam_node, selected_questions, answers_dict, end_time):
-    # Hesaplamaları bölüm bazında yapıyoruz.
+    # Calculate scores per section.
     section_scores = {sec: [0, 0] for sec in range(1, 5)}
     section_correct_wrong = {sec: [0, 0] for sec in range(1, 5)}
-    
     for q in selected_questions:
         qid = q["id"]
         ans_data = answers_dict.get(str(qid))
         if not ans_data:
             points_earned = 0
+            selected = []
         else:
             if isinstance(ans_data, dict):
                 selected = ans_data.get("selected_texts", [])
@@ -67,14 +68,12 @@ def process_results(session, user, exam_node, selected_questions, answers_dict, 
                 points_earned = q.get("points", 1) / 2
             else:
                 points_earned = 0
-
         section_scores[q["section"]][0] += points_earned
         section_scores[q["section"]][1] += q.get("points", 1)
         if points_earned == q.get("points", 1):
             section_correct_wrong[q["section"]][0] += 1
         else:
             section_correct_wrong[q["section"]][1] += 1
-
         exam_answer_id = str(uuid4())
         session.run("""
         MATCH (e:Exam {exam_id: $exam_id}), (q:Question {id: $qid})
@@ -87,15 +86,13 @@ def process_results(session, user, exam_node, selected_questions, answers_dict, 
         CREATE (ea)-[:FOR_QUESTION]->(q)
         CREATE (ea)-[:ANSWER_FOR]->(q)
         """, {"exam_id": exam_node["exam_id"], "qid": qid, "exam_answer_id": exam_answer_id, "points_earned": points_earned})
-        
-        # Eğer tam puan alamadıysa, ilgili soru düğümündeki wrong_count property'sini artır
+        # If not full points, increment wrong_count on the question node.
         if points_earned < q.get("points", 1):
             session.run("""
             MATCH (q:Question {id: $qid})
             SET q.wrong_count = coalesce(q.wrong_count, 0) + 1
             """, {"qid": qid})
-        
-        # Seçilen şıklar için sayacı güncelliyoruz
+        # Update selection counters and create CHOSE relationships for selected answers.
         if ans_data:
             if isinstance(ans_data, dict):
                 selected = ans_data.get("selected_texts", [])
@@ -112,22 +109,26 @@ def process_results(session, user, exam_node, selected_questions, answers_dict, 
                 WHERE toLower(c.choice_text) = toLower($answer_text) AND c.is_correct = true
                 SET c.selected_correct_count = coalesce(c.selected_correct_count, 0) + 1
                 """, {"qid": qid, "answer_text": answer_text.strip()})
-    
+                session.run("""
+                MATCH (ea:ExamAnswer {id: $exam_answer_id})
+                MATCH (q:Question {id: $qid})-[:HAS_CHOICE]->(c:Choice)
+                WHERE toLower(c.choice_text) = toLower($answer_text)
+                CREATE (ea)-[:CHOSE]->(c)
+                """, {"exam_answer_id": exam_answer_id, "qid": qid, "answer_text": answer_text.strip()})
     total_earned = sum(section_scores[s][0] for s in section_scores)
     total_possible = sum(section_scores[s][1] for s in section_scores)
     final_score = round((total_earned / total_possible) * 100, 2) if total_possible > 0 else 0.0
     attempt_number = user.get("attempts", 0) + 1
-
-    # Yeni: ExamResult düğümü oluşturup öğrencinin sınav sonucunu burada saklıyoruz.
+    # Create ExamResult node to store student's exam result.
     exam_result_id = str(uuid4())
     session.run("""
     CREATE (er:ExamResult {
-       id: $exam_result_id,
-       exam_id: $exam_id,
-       student_id: $user_id,
-       attempt_number: $attempt_number,
-       exam_percentage: $final_score,
-       timestamp: datetime($end_time)
+        id: $exam_result_id,
+        exam_id: $exam_id,
+        student_id: $user_id,
+        attempt_number: $attempt_number,
+        exam_percentage: $final_score,
+        timestamp: datetime($end_time)
     })
     """, {
         "exam_result_id": exam_result_id,
@@ -137,16 +138,16 @@ def process_results(session, user, exam_node, selected_questions, answers_dict, 
         "final_score": final_score,
         "end_time": end_time
     })
-    # Kullanıcı ile ExamResult arasında ilişki kuruyoruz.
+    # Create relationship between User and ExamResult.
     session.run("""
     MATCH (u:User {user_id: $user_id}), (er:ExamResult {id: $exam_result_id})
     CREATE (u)-[:HAS_RESULT]->(er)
     """, {"user_id": user["user_id"], "exam_result_id": exam_result_id})
-    # Her bölüm için, ilgili Statistics düğümüyle ExamResult'u ilişkilendiriyoruz.
+    # Link ExamResult to Statistics nodes for each section.
     for sec in range(1, 5):
         session.run("""
         MATCH (er:ExamResult {id: $exam_result_id}),
-              (st:Statistics {school_id: $school_id, class_name: $class_name, section_number: $sec})
+        (st:Statistics {school_id: $school_id, class_name: $class_name, section_number: $sec})
         MERGE (er)-[:RESULT_FOR {section: $sec}]->(st)
         """, {
             "exam_result_id": exam_result_id,
@@ -154,11 +155,10 @@ def process_results(session, user, exam_node, selected_questions, answers_dict, 
             "class_name": user.get("class_name"),
             "sec": sec
         })
-    # Kullanıcının sınav deneme sayısını güncelliyoruz.
+    # Increment the user's exam attempt count.
     session.run("""
     MATCH (u:User {user_id: $user_id})
     SET u.attempts = coalesce(u.attempts, 0) + 1
     """, {"user_id": user["user_id"]})
-    
-    # İstatistik düğümlerini güncelliyoruz.
+    # Update Statistics nodes.
     update_statistics(session, user.get("school_id"), user.get("class_name"), section_scores, section_correct_wrong, attempt_number=attempt_number)

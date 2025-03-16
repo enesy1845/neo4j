@@ -4,14 +4,18 @@
 <div class="welcome-container">
     <h1>Exam Results</h1>
 </div>
-
 <div class="results-summary">
     <p><strong>Student Number:</strong> {{ results_data.student_number or "N/A" }}</p>
     <p><strong>Class:</strong> {{ results_data.class_name }}</p>
     <p><strong>Attempts:</strong> {{ results_data.attempts }}</p>
+    {% if results_data.exams|length == 1 %}
+    <p><strong>Exam 1 Score:</strong> {{ results_data.exams[0].exam_percentage }}%</p>
+    {% elif results_data.exams|length >= 2 %}
+    <p><strong>Average Score:</strong> {{ results_data.overall_percentage }}%</p>
+    {% else %}
     <p><strong>Overall Percentage:</strong> {{ results_data.overall_percentage }}%</p>
+    {% endif %}
 </div>
-
 {% if results_data.exams and results_data.exams|length > 0 %}
 <h3>Exam Details</h3>
 {% for exam in results_data.exams %}
@@ -19,20 +23,13 @@
     <h4>
         Exam {{ loop.index }}:
         {% if exam.start_time %}
-        {% set formatted_start = exam.start_time | replace("T", " ") %}
-        {% if exam.end_time %}
-        {% set formatted_end = exam.end_time | replace("T", " ") %}
-        {{ formatted_start }} - {{ formatted_end }}
-        {% else %}
-        {{ formatted_start }}
-        {% endif %}
+        {{ exam.start_time }} - {{ exam.end_time if exam.end_time else "In Progress" }}
         {% else %}
         Date not available
         {% endif %}
         - <span style="text-transform: capitalize;">{{ exam.pass_fail }}</span>
     </h4>
     <p><strong>Exam Percentage:</strong> {{ exam.exam_percentage }}%</p>
-
     <h5>Section Results</h5>
     <table class="table">
         <thead>
@@ -40,8 +37,7 @@
                 <th>Section</th>
                 <th>Correct Answers</th>
                 <th>Wrong Answers</th>
-                <th>Notu (%)</th>
-                <th>Average (Ort)</th>
+                <th>Score (%)</th>
             </tr>
         </thead>
         <tbody>
@@ -51,12 +47,10 @@
                 <td>{{ section.correct_answers }}</td>
                 <td>{{ section.wrong_answers }}</td>
                 <td>{{ section.notu }}%</td>
-                <td>{{ section.ort }}</td>
             </tr>
             {% endfor %}
         </tbody>
     </table>
-
     <h5>Question Details</h5>
     <table class="table">
         <thead>
@@ -87,7 +81,6 @@
 {% else %}
 <p>No exam results available.</p>
 {% endif %}
-
 {% if not hide_back_button %}
 <div class="button-group">
     <a href="/student_menu" class="btn">Back to Menu</a>

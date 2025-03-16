@@ -1,4 +1,5 @@
 # routers/auth.py
+
 from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel, Field, root_validator, validator
 from tools.database import get_db
@@ -19,13 +20,13 @@ class RegisterRequest(BaseModel):
     @validator("name")
     def validate_name(cls, value):
         if len(value) < 2:
-            raise ValueError("İsim en az 2 karakter olmalıdır!")
+            raise ValueError("Name must be at least 2 characters long!")
         return value
 
     @validator("surname")
     def validate_surname(cls, value):
         if len(value) < 2:
-            raise ValueError("Soyad en az 2 karakter olmalıdır!")
+            raise ValueError("Surname must be at least 2 characters long!")
         return value
 
     @root_validator
@@ -34,13 +35,13 @@ class RegisterRequest(BaseModel):
         if not pwd:
             raise ValueError("Password is required.")
         if len(pwd) < 8:
-            raise ValueError("Şifre en az 8 karakter olmalı.")
+            raise ValueError("Password must be at least 8 characters long.")
         if not any(c.isupper() for c in pwd):
-            raise ValueError("Şifre en az 1 büyük harf içermeli.")
+            raise ValueError("Password must include at least one uppercase letter.")
         if not any(c.islower() for c in pwd):
-            raise ValueError("Şifre en az 1 küçük harf içermeli.")
+            raise ValueError("Password must include at least one lowercase letter.")
         if not any(c.isdigit() for c in pwd):
-            raise ValueError("Şifre en az 1 rakam içermeli.")
+            raise ValueError("Password must include at least one digit.")
         return values
 
 class RegisterResponse(BaseModel):
