@@ -71,7 +71,6 @@ def view_statistics(session = Depends(get_db), current_user = Depends(get_curren
             coalesce(count(CASE WHEN ea.points_earned = 0 THEN 1 ELSE null END), 0) AS wrong_count
             """, {"section": sec})
             qs = [record for record in qs_result]
-            # Fallback: if no questions are returned, still return empty rows for each question
             if not qs:
                 qs_result = session.run("""
                 MATCH (q:Question {section: $section})

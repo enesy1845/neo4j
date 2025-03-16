@@ -1,5 +1,4 @@
 # migrate_questions.py
-
 import json
 from pathlib import Path
 from uuid import uuid4
@@ -58,7 +57,7 @@ def main():
                 params = {
                     "id": question_id,
                     "external_id": ext_id,
-                    "section": q_item["section"],
+                    "section": int(q_item["section"]),  # force section to be integer
                     "question": q_item["question"],
                     "points": q_item["points"],
                     "qtype": q_item["type"]
@@ -68,12 +67,12 @@ def main():
                 cypher_merge_section = """
                 MERGE (s:Section {section_number: $section})
                 """
-                session.run(cypher_merge_section, {"section": q_item["section"]})
+                session.run(cypher_merge_section, {"section": int(q_item["section"])})
                 cypher_link_question_section = """
                 MATCH (q:Question {id: $question_id}), (s:Section {section_number: $section})
                 CREATE (q)-[:PART_OF]->(s)
                 """
-                session.run(cypher_link_question_section, {"question_id": question_id, "section": q_item["section"]})
+                session.run(cypher_link_question_section, {"question_id": question_id, "section": int(q_item["section"])})
                 # Set the correct answer
                 raw_answer = answers_data.get(ext_id, None)
                 options_list = q_item.get("options") or q_item.get("choices") or []
