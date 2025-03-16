@@ -1,5 +1,4 @@
 # tests/test_scenario.py
-
 import sys
 import os
 import pytest
@@ -8,30 +7,21 @@ from fastapi.testclient import TestClient
 from tools.database import init_db, get_db
 import logging
 import uuid
-
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 from main import app
-
 client = TestClient(app)
-
 # Use English-friendly teacher names to avoid Turkish characters in usernames.
 teacher_first_names = ["Ali", "Veli", "Mustafa", "Emre", "Kerem", "Berk", "Caner"]
 teacher_last_names = ["Yilmaz", "Kaya", "Demir", "Sahin", "Celik", "Arslan", "Aslan"]
-
 student_first_names = ["Ahmet", "Mehmet", "Mustafa", "Ali", "Veli", "Okan", "Emre", "Can", "Deniz", "Baran"]
 student_last_names = ["Yildiz", "Ozturk", "Aydin", "Simsek", "Arslan", "Guler", "Kilic", "Cetin", "Aksoy", "Koc"]
-
 class_pool = ["7-A", "7-B", "7-C", "7-D"]
 section_pool = [str(x) for x in range(1, 5)]
-
 @pytest.fixture(scope="session", autouse=True)
 def setup_db():
     init_db()
-    session = get_db()
-    session.run("MERGE (s:School {name: 'DefaultSchool', school_id: 'default-school'})")
-    session.close()
+    # Removed duplicate creation of DefaultSchool to avoid multiple default schools.
     yield
-
 @pytest.fixture
 def admin_user():
     username = "ADMIN"
@@ -55,7 +45,6 @@ def admin_user():
     token = response.json()["access_token"]
     headers = {"Authorization": f"Bearer {token}"}
     return headers
-
 def register_user(username, password, name, surname, class_name, role, registered_section=None):
     payload = {
         "username": username,
@@ -70,7 +59,6 @@ def register_user(username, password, name, surname, class_name, role, registere
     response = client.post("/auth/register", json=payload)
     print(f"Registering user {username}: {response.status_code} - {response.json()}")
     return response
-
 def login_user(username, password):
     response = client.post("/auth/login", json={"username": username, "password": password})
     if response.status_code == 200:
@@ -81,7 +69,6 @@ def login_user(username, password):
     else:
         print(f"Login failed for {username}: {response.json()}")
         return None
-
 @pytest.fixture
 def teacher_users():
     teachers = []
@@ -90,7 +77,7 @@ def teacher_users():
         first_name = random.choice(teacher_first_names)
         last_name = random.choice(teacher_last_names)
         rand_suffix = random.randint(100, 999)
-        unique_part = uuid.uuid4().hex[:6]  # benzersiz 6 karakter
+        unique_part = uuid.uuid4().hex[:6]  # unique 6 characters
         username = f"{first_name.lower()}{last_name.lower()}{rand_suffix}_{unique_part}"
         password = f"TeacherPass{rand_suffix}"  # Must meet complexity requirements
         name = first_name
@@ -104,7 +91,6 @@ def teacher_users():
         assert headers is not None, f"Login failed for teacher {username}"
         teachers.append(headers)
     return teachers
-
 @pytest.fixture
 def student_users():
     students = []
@@ -113,7 +99,7 @@ def student_users():
         first_name = random.choice(student_first_names)
         last_name = random.choice(student_last_names)
         rand_suffix = random.randint(100, 999)
-        unique_part = uuid.uuid4().hex[:6]  # 6 karakterlik benzersiz önek/sonek
+        unique_part = uuid.uuid4().hex[:6]  # unique 6 characters
         username = f"{first_name.lower()}{last_name.lower()}{rand_suffix}_{unique_part}"
         password = f"StudentPass{rand_suffix}"  # Password complexity must be met
         name = first_name
@@ -126,7 +112,6 @@ def student_users():
         assert headers is not None, f"Login failed for student {username}"
         students.append(headers)
     return students
-
 def test_full_scenario(admin_user, teacher_users, student_users):
     print("\n--- Admin: List all users ---")
     response = client.get("/users/", headers=admin_user)

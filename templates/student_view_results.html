@@ -8,76 +8,79 @@
     <p><strong>Student Number:</strong> {{ results_data.student_number or "N/A" }}</p>
     <p><strong>Class:</strong> {{ results_data.class_name }}</p>
     <p><strong>Attempts:</strong> {{ results_data.attempts }}</p>
-    {% if results_data.exams|length == 1 %}
+    {% if results_data.exams|length == 1 and results_data.exams[0].exam_percentage > 0 %}
     <p><strong>Exam 1 Score:</strong> {{ results_data.exams[0].exam_percentage }}%</p>
-    {% elif results_data.exams|length >= 2 %}
+    {% elif results_data.exams|length >= 2 and results_data.overall_percentage > 0 %}
     <p><strong>Average Score:</strong> {{ results_data.overall_percentage }}%</p>
-    {% else %}
-    <p><strong>Overall Percentage:</strong> {{ results_data.overall_percentage }}%</p>
     {% endif %}
 </div>
 {% if results_data.exams and results_data.exams|length > 0 %}
-<h3>Exam Details</h3>
-{% for exam in results_data.exams %}
-<div class="exam-detail" style="margin-bottom: 30px;">
-    <h4>
-        Exam {{ loop.index }}:
-        {% if exam.start_time %}
-        {{ exam.start_time }} - {{ exam.end_time if exam.end_time else "In Progress" }}
-        {% else %}
-        Date not available
+<div class="exam-results-container">
+    {% for exam in results_data.exams %}
+    <div class="exam-card"
+        style="border: 1px solid var(--border-color); border-radius: 12px; margin-bottom: 30px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); padding: 20px; background-color: var(--surface-color);">
+        <h4 style="margin-bottom: 10px;">
+            Exam {{ loop.index }}
+        </h4>
+        <p style="margin: 0 0 5px 0;">
+            <strong>Date:</strong> {{ exam.start_time }}{% if exam.end_time %} - {{ exam.end_time }}{% endif %}
+        </p>
+        <p style="margin: 0 0 5px 0;">
+            <strong>Status:</strong> <span style="text-transform: capitalize;">{{ exam.pass_fail }}</span>
+        </p>
+        {% if exam.pass_fail == "failed" %}
+        <p style="color: #F44336; font-weight: bold;">This exam was not passed.</p>
         {% endif %}
-        - <span style="text-transform: capitalize;">{{ exam.pass_fail }}</span>
-    </h4>
-    <p><strong>Exam Percentage:</strong> {{ exam.exam_percentage }}%</p>
-    <h5>Section Results</h5>
-    <table class="table">
-        <thead>
-            <tr>
-                <th>Section</th>
-                <th>Correct Answers</th>
-                <th>Wrong Answers</th>
-                <th>Score (%)</th>
-            </tr>
-        </thead>
-        <tbody>
-            {% for section in exam.sections_details %}
-            <tr>
-                <td>{{ section.section_number }}</td>
-                <td>{{ section.correct_answers }}</td>
-                <td>{{ section.wrong_answers }}</td>
-                <td>{{ section.notu }}%</td>
-            </tr>
-            {% endfor %}
-        </tbody>
-    </table>
-    <h5>Question Details</h5>
-    <table class="table">
-        <thead>
-            <tr>
-                <th>Question</th>
-                <th>Your Answers</th>
-                <th>Correct Answers</th>
-                <th>Status</th>
-                <th>Points Earned</th>
-                <th>Points Possible</th>
-            </tr>
-        </thead>
-        <tbody>
-            {% for question in exam.questions_details %}
-            <tr>
-                <td>{{ question.question_text }}</td>
-                <td>{{ question.student_answers | join(', ') }}</td>
-                <td>{{ question.correct_answers | join(', ') }}</td>
-                <td>{{ question.status }}</td>
-                <td>{{ question.points_earned }}</td>
-                <td>{{ question.points_possible }}</td>
-            </tr>
-            {% endfor %}
-        </tbody>
-    </table>
+        <p style="margin-top: 10px;"><strong>Exam Percentage:</strong> {{ exam.exam_percentage }}%</p>
+        <h5 style="margin-top: 20px; color: var(--accent-color);">Section Results</h5>
+        <table class="table" style="margin-top: 10px;">
+            <thead>
+                <tr>
+                    <th>Section</th>
+                    <th>Correct Answers</th>
+                    <th>Wrong Answers</th>
+                    <th>Score (%)</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for section in exam.sections_details %}
+                <tr>
+                    <td>{{ section.section_number }}</td>
+                    <td>{{ section.correct_answers }}</td>
+                    <td>{{ section.wrong_answers }}</td>
+                    <td>{{ section.notu }}%</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        <h5 style="margin-top: 20px; color: var(--accent-color);">Question Details</h5>
+        <table class="table" style="margin-top: 10px;">
+            <thead>
+                <tr>
+                    <th>Question</th>
+                    <th>Your Answers</th>
+                    <th>Correct Answers</th>
+                    <th>Status</th>
+                    <th>Points Earned</th>
+                    <th>Points Possible</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for question in exam.questions_details %}
+                <tr>
+                    <td>{{ question.question_text }}</td>
+                    <td>{{ question.student_answers | join(', ') }}</td>
+                    <td>{{ question.correct_answers | join(', ') }}</td>
+                    <td>{{ question.status }}</td>
+                    <td>{{ question.points_earned }}</td>
+                    <td>{{ question.points_possible }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% endfor %}
 </div>
-{% endfor %}
 {% else %}
 <p>No exam results available.</p>
 {% endif %}
