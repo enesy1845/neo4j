@@ -26,7 +26,7 @@
         <label>Role</label>
         <input type="text" name="role" value="{{ user_info.role }}">
     </div>
-    {% if user_info.role != 'student' %}
+    {% if user_info.role == 'teacher' %}
     <div class="form-row">
         <label>Registered Section</label>
         <input type="text" name="registered_section" value="{{ user_info.registered_section or '' }}">

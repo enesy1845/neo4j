@@ -1,12 +1,15 @@
 <!-- templates/user_profile.html -->
 {% extends "base.html" %}
+
 {% block content %}
 <h2>Update Profile</h2>
+
 {% if msg %}
 <div style="border: 1px solid green; color:green; padding:5px; margin:5px;">
     {{ msg }}
 </div>
 {% endif %}
+
 <form method="post" action="/user_profile">
     <div class="form-row">
         <label>First Name</label>
@@ -16,14 +19,20 @@
         <label>Last Name</label>
         <input type="text" name="surname" value="{{ user_data.surname }}">
     </div>
+
+    {% if user_data.role != "admin" %}  <!-- Eğer kullanıcı admin değilse, class_name göster -->
     <div class="form-row">
         <label>Class</label>
         <input type="text" name="class_name" value="{{ user_data.class_name }}">
     </div>
+    {% endif %}
+
     <div class="form-row">
         <label>New Password (leave blank if unchanged)</label>
         <input type="password" name="new_password">
     </div>
+
     <button type="submit" class="btn">Save</button>
 </form>
+
 {% endblock %}
