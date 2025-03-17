@@ -108,21 +108,69 @@ def update_user(session, current_user, user_id, **kwargs):
     if current_user["role"].lower() != "admin" and current_user["user_id"] != user_id:
         print("Only admins can update other users.")
         return False
+    
+    # Kullanıcının mevcut rolünü almak için
+    result = session.run("MATCH (u:User {user_id: $user_id}) RETURN u.role AS role", {"user_id": user_id})
+    record = result.single()
+    
+    if not record:
+        print("User not found.")
+        return False
+    
+    user_role = record["role"].lower()
+    
     set_statements = []
     params = {"user_id": user_id}
+
+    # Eğer güncellenen kullanıcı öğretmense ve class_name eksikse, zorunlu olarak iste
+    if user_role == "teacher" and "class_name" not in kwargs:
+        print("Error: Teachers must be assigned a class.")
+        return False
+
+    # Güncellenecek alanları ekle
     for key, value in kwargs.items():
-        set_statements.append(f"u.{key} = ${key}")
-        params[key] = value
+        if value is not None:  # None değerleri atlama
+            set_statements.append(f"u.{key} = ${key}")
+            params[key] = value
+    
     if not set_statements:
         return False
+
     query = "MATCH (u:User {user_id: $user_id}) SET " + ", ".join(set_statements) + " RETURN u"
     result = session.run(query, params)
+
     if result.single():
         print(f"User {user_id} updated: {kwargs}")
+        
+        # Eğer güncellenen kullanıcı **öğretmense (`teacher`)**, sınıf bağlantısını güncelle
+        if user_role == "teacher" and "class_name" in kwargs:
+            class_name = kwargs["class_name"]
+            session.run("""
+                MATCH (u:User {user_id: $user_id})
+                OPTIONAL MATCH (u)-[r:TEACHES]->()
+                DELETE r
+                WITH u
+                MERGE (c:Class {name: $class_name})
+                CREATE (u)-[:TEACHES]->(c)
+            """, {"user_id": user_id, "class_name": class_name})
+        
+        # Eğer güncellenen kullanıcı **öğrenciyse (`student`)**, sınıf bağlantısını güncelle
+        elif user_role == "student" and "class_name" in kwargs:
+            class_name = kwargs["class_name"]
+            session.run("""
+                MATCH (u:User {user_id: $user_id})
+                OPTIONAL MATCH (u)-[r:BELONGS_TO]->()
+                DELETE r
+                WITH u
+                MERGE (c:Class {name: $class_name})
+                CREATE (u)-[:BELONGS_TO]->(c)
+            """, {"user_id": user_id, "class_name": class_name})
+
         return True
     else:
         print("User not found.")
         return False
+
 
 def create_admin_user(session):
     ADMIN_USERNAME = os.getenv("ADMIN_USERNAME")

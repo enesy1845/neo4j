@@ -5,6 +5,7 @@ from fastapi.responses import HTMLResponse, RedirectResponse
 from fastapi.templating import Jinja2Templates
 from starlette import status
 from tools.database import get_db  # Sadece Neo4j için kullanılacak
+from typing import Optional
 
 ui_router = APIRouter()
 templates = Jinja2Templates(directory="templates")
@@ -334,7 +335,7 @@ def admin_update_user_submit(
     username: str = Form(...),
     name: str = Form(...),
     surname: str = Form(...),
-    class_name: str = Form(...),
+    class_name: Optional[str] = Form(None),  # ✅ class_name artık zorunlu değil!
     role: str = Form(...),
     registered_section: str = Form(""),
     new_password: str = Form("")
@@ -343,16 +344,21 @@ def admin_update_user_submit(
     role_session = request.session.get("role")
     if not token or role_session != "admin":
         return RedirectResponse(url="/login")
+
+    # Eğer admin güncelleniyorsa, class_name'i kaldır
     payload = {
         "username": username,
         "name": name,
         "surname": surname,
-        "class_name": class_name,
         "role": role,
         "registered_section": registered_section
     }
+    if class_name:  # ✅ Sadece class_name varsa payload'a ekle
+        payload["class_name"] = class_name
+
     if new_password.strip():
         payload["new_password"] = new_password.strip()
+
     with httpx.Client() as client:
         r = client.put(
             f"{API_BASE_URL}/users/{user_id}",

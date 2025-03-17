@@ -1,7 +1,7 @@
 # routers/users.py
 from fastapi import APIRouter, Depends, HTTPException, Path, Body
 from typing import List, Optional
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 from tools.database import get_db
 from tools.token_generator import get_current_user
 from tools.user import delete_user, update_user
@@ -13,7 +13,7 @@ class UserResponse(BaseModel):
     user_id: str
     username: str
     role: str
-    class_name: str
+    class_name: Optional[str] = Field(None, description="Required for students and teachers")  # ✅ class_name artık zorunlu değil
     school_id: str
     name: str
     surname: str
@@ -82,7 +82,7 @@ def list_all_users(session = Depends(get_db), current_user = Depends(get_current
     # Grafik modeline göre kullanıcı bilgilerini ilişkilerden almak için sorgu:
     query = """
     MATCH (u:User)
-    OPTIONAL MATCH (u)-[:BELONGS_TO]->(c:Class)
+    OPTIONAL MATCH (u)-[:BELONGS_TO|TEACHES]->(c:Class) 
     OPTIONAL MATCH (c)<-[:HAS_CLASS]-(s:School)
     RETURN u, c.name as class_name, s.school_id as school_id
     """
